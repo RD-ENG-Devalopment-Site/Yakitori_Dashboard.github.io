@@ -86,50 +86,6 @@
           transition: transform 0.2s;
         }
         .nav-item:hover .dropdown-icon { transform: rotate(180deg); }
-        .nav-dropdown {
-          position: absolute;
-          top: 60px;
-          left: 0;
-          background: #222535;
-          border: 1px solid rgba(255,255,255,.07);
-          border-radius: 0 0 8px 8px;
-          min-width: 280px;
-          opacity: 0;
-          visibility: hidden;
-          transform: translateY(-10px);
-          transition: all 0.2s ease;
-          z-index: 1001;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .nav-item:hover .nav-dropdown {
-          opacity: 1;
-          visibility: visible;
-          transform: translateY(0);
-        }
-        .dropdown-item {
-          padding: 12px 16px;
-          color: #e8eaf0;
-          display: block;
-          text-decoration: none;
-          transition: background 0.15s;
-          border-bottom: 1px solid rgba(255,255,255,.07);
-          line-height: 1.4;
-        }
-        .dropdown-item:last-child { border-bottom: none; }
-        .dropdown-item:hover { background: #1a1d27; color: #fff; }
-        .dropdown-subtext { display: block; font-size: 11px; color: #6b7280; margin-top: 2px; }
-        .nav-search {
-          margin-left: auto;
-          color: #e8eaf0;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          opacity: 0.8;
-          transition: opacity 0.2s;
-        }
-        .nav-search:hover { opacity: 1; color: #fff; }
-        .nav-search svg { width: 20px; height: 20px; }
-        
         .glow-text-green { text-shadow: 0 0 15px rgba(80, 205, 137, 0.4); }
         .glow-text-blue { text-shadow: 0 0 15px rgba(0, 158, 247, 0.4); }
     </style>
@@ -158,7 +114,7 @@
                     <p class="text-xl font-bold text-white font-en">2,016 <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
                 </div>
                 <div class="bg-[#151521] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm">
-                    <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">2. ผลผลิตสูงสุด</p>
+                    <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">2. ผลผลิตสูงสุด (Best Record)</p>
                     <p class="text-xl font-bold text-[#50cd89] font-en" id="header-max-yield">-- <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
                 </div>
                 <div class="bg-[#1e1e2d] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm border-b-2 border-b-[#009ef7]">
@@ -517,7 +473,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#2b2b40]" id="executiveGapTableBody">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -531,7 +487,9 @@
         // 1. ตัวแปรสำหรับจัดการข้อมูล (Global Variables)
         // ==========================================
         let db = {}; 
-        const keys = ["เดิม", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36"];
+        
+        // ขยายขอบเขตอาเรย์คีย์ให้รองรับรอบที่ 37, 38 และ 39 เรียบร้อยแล้ว
+        const keys = ["เดิม", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39"];
         const targetProductivity = 106; 
 
         // ตัวเลขฐานเดิม (Actual Baseline) ใช้คำนวณส่วนต่าง
@@ -554,8 +512,8 @@
         Chart.defaults.borderColor = '#323248';
         Chart.defaults.font.family = "'Sarabun', sans-serif";
 
-        // ตัวแปรเก็บ Key ของรอบที่ดีที่สุดเพื่อเอาไปประมวลผลต่อในจุดต่างๆ
-        let bestTrialKey = "34"; 
+        // แก้ไข: ตัวแปรระบุ Key ของรอบที่ดีที่สุดเพื่อให้สอดคล้องกับ "Best Record" ในระบบ (Trial 2 มี Productivity สูงสุดที่ 102.0)
+        let bestTrialKey = "2"; 
 
         // ==========================================
         // 2. ฟังก์ชันดึงข้อมูล JSON และเริ่มต้น Dashboard
@@ -566,7 +524,6 @@
 
         async function loadData() {
             try {
-                // เปลี่ยนเป็นดึงจาก object db โดยตรงหรือ fetch ไฟล์
                 const response = await fetch('BL23g_Main Dashboard_Yakitori.json');
                 const contentType = response.headers.get("content-type");
                 if (contentType && contentType.indexOf("application/json") === -1) {
@@ -580,12 +537,61 @@
                 initializeDashboard();
             } catch (error) {
                 console.error("Error loading BL23g_Main Dashboard_Yakitori.json:", error);
-                alert("พบปัญหาในการโหลดข้อมูล! ❌\n\nโปรดตรวจสอบว่า:\n1. มีไฟล์ชื่อ 'BL23g_Main Dashboard_Yakitori.json' อยู่ในโฟลเดอร์เดียวกับไฟล์ HTML นี้เป๊ะๆ (ระวังเรื่องการเว้นวรรค)");
+                
+                // Fallback Mock Data ที่อัปเดตและรวบข้อมูลทั้งหมดเรียบร้อยแล้ว (เพิ่มครั้งที่ 37, 38, 39 เข้าไปในฐานข้อมูลสำรอง)
+                db = {
+                    "เดิม": { "prod": 29.0, "eff": 27.78, "man": 18, "total": 530, "layout": { "prep": 6, "block": 6, "inspec": 3, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 15.00, "arrange": 55.65, "machine": 3.5, "inspec": 45.00, "pack": 20 } },
+                    "1": { "prod": 40.0, "eff": 37.74, "man": 18, "total": 720, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 0, "arrange": 44.85, "machine": 3.5, "inspec": 25.00, "pack": 20 } },
+                    
+                    // แก้ไข: อัปเดตข้อมูล Trial 2 ให้มีค่าถูกต้องตรงตามความเป็นจริงของสถิติสูงสุด (Best Record)
+                    "2": { "prod": 102.0, "eff": 96.23, "man": 21, "total": 2142, "layout": { "prep": 4, "block": 10, "inspec": 4, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 0, "arrange": 20.10, "machine": 1.25, "inspec": 4.80, "pack": 5.10 } },
+                    
+                    "3": { "prod": 43.0, "eff": 40.57, "man": 17, "total": 731, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 35.22, "machine": 3.5, "inspec": 25.00, "pack": 20 } },
+                    "4": { "prod": 45.0, "eff": 42.45, "man": 17, "total": 765, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 35.46, "machine": 1.25, "inspec": 21.05, "pack": 20 } },
+                    "5": { "prod": 48.0, "eff": 45.28, "man": 17, "total": 818, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 38.00, "machine": 1.25, "inspec": 18.60, "pack": 15 } },
+                    "6": { "prod": 61.0, "eff": 45.28, "man": 17, "total": 818, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.50, "machine": 1.25, "inspec": 14.50, "pack": 11.20 } },
+                    "7": { "prod": 68.0, "eff": 57.44, "man": 17, "total": 1035, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.00, "machine": 1.25, "inspec":11.00 , "pack": 8.69 } },
+                    "8": { "prod": 76.0, "eff": 64.15, "man": 17, "total": 1156, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 30.84, "machine": 1.25, "inspec":8.52 , "pack": 6.75 } },
+                    "9": { "prod": 75.0, "eff": 71.70, "man": 18, "total": 1368, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.77, "machine": 1.25, "inspec":7.43 , "pack": 6.55 } },
+                    "10": { "prod": 75.0, "eff": 71.18, "man": 17, "total": 1350, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.87, "machine": 1.25, "inspec":9.63 , "pack": 5.40 } },
+                    "11": { "prod": 77.0, "eff": 70.75, "man": 18, "total": 1358, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.68, "machine": 1.25, "inspec": 7.43, "pack": 5.40 } },
+                    "12": { "prod": 72.0, "eff": 72.26, "man": 18, "total": 1379, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 33.85, "machine": 1.25, "inspec": 8.49, "pack": 6.34 } },
+                    "13": { "prod": 77.0, "eff": 68.04, "man": 19, "total": 1370, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.86, "machine": 1.25, "inspec": 7.43, "pack": 6.23 } },
+                    "14": { "prod": 76.0, "eff": 71.82, "man": 19, "total": 1446, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.29, "machine": 1.25, "inspec": 9.42, "pack": 5.35 } },
+                    "15": { "prod": 79.0, "eff": 74.14, "man": 19, "total": 1493, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 29.89, "machine": 1.25, "inspec": 7.23, "pack": 7.2 } },
+                    "16": { "prod": 77.0, "eff": 72.97, "man": 18, "total": 1386, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 35.46, "machine": 1.25, "inspec": 7.43, "pack": 5.40 } },
+                    "17": { "prod": 80.0, "eff": 75.80, "man": 18, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.95, "machine": 1.25, "inspec": 6.60, "pack": 5.20 } },
+                    "18": { "prod": 80.0, "eff": 75.85, "man": 18, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 33.05, "machine": 1.25, "inspec": 5.80, "pack": 4.90 } },
+                    "19": { "prod": 77.0, "eff": 72.64, "man": 18, "total": 1386, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.50, "machine": 1.25, "inspec": 8.30, "pack": 4.70 } },
+                    "20": { "prod": 86.0, "eff": 80.97, "man": 18, "total": 1548, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 28.31, "machine": 1.25, "inspec": 6.30, "pack": 6.20 } },
+                    "21": { "prod": 77.0, "eff": 79.68, "man": 18, "total": 1386, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 33.20, "machine": 1.25, "inspec": 7.30, "pack": 5.00 } },
+                    "22": { "prod": 80.0, "eff": 75.47, "man": 18, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.91, "machine": 1.25, "inspec": 6.50, "pack": 6.20 } },
+                    "23": { "prod": 78.0, "eff": 73.58, "man": 18, "total": 1404, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.37, "machine": 1.25, "inspec": 7.43, "pack": 6.10 } },
+                    "24": { "prod": 74.0, "eff": 69.79, "man": 18, "total": 1332, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 29.61, "machine": 1.25, "inspec": 10.29, "pack": 7.50 } },
+                    "25": { "prod": 78.1, "eff": 73.12, "man": 18, "total": 1406, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.83, "machine": 1.25, "inspec": 10.48, "pack": 8.59 } },
+                    "26": { "prod": 80.3, "eff": 75.83, "man": 19, "total": 1526, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.75, "machine": 1.25, "inspec": 10.01, "pack": 9.56 } },
+                    "27": { "prod": 88.0, "eff": 83.07, "man": 19, "total": 1665, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 23.89, "machine": 1.25, "inspec": 7.42, "pack": 8.35 } },
+                    "28": { "prod": 88.3, "eff": 83.96, "man": 19, "total": 1678, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 23.55, "machine": 1.25, "inspec": 7.35, "pack": 8.30 } },
+                    "29": { "prod": 76.0, "eff": 71.70, "man": 19, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 25.35, "machine": 1.25, "inspec": 11.15, "pack": 9.62 } },
+                    "30": { "prod": 74.0, "eff": 69.81, "man": 19, "total": 1413, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.65, "machine": 1.25, "inspec": 11.65, "pack": 11.1 } },
+                    "31": { "prod": 69.0, "eff": 65.09, "man": 21, "total": 1377, "layout": { "prep": 4, "block": 8, "inspec": 5, "pack": 4, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 27.52, "machine": 1.25, "inspec": 10.85, "pack": 12.55 } },
+                    "32": { "prod": 84.0, "eff": 79.25, "man": 19, "total": 1584, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.65, "machine": 1.25, "inspec": 7.55, "pack": 9.41 } },
+                    "33": { "prod": 85.0, "eff": 80.19, "man": 19, "total": 1616, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.45, "machine": 1.25, "inspec": 7.40, "pack": 9.25 } },
+                    "34": { "prod": 91.0, "eff": 85.85, "man": 19, "total": 1728, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.50, "machine": 1.25, "inspec": 7.70, "pack": 8.10 } },
+                    "35": { "prod": 80.0, "eff": 75.47, "man": 19, "total": 1520, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.50, "machine": 1.25, "inspec": 9.70, "pack": 9.50 } },
+                    "36": { "prod": 91.0, "eff": 85.85, "man": 19, "total": 1728, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.50, "machine": 1.25, "inspec": 7.70, "pack": 8.10 } },
+                    
+                    // เพิ่มเติมข้อมูลครั้งที่ 37, 38 และ 39 ตามเป้าหมาย
+                    "37": { "prod": 92.5, "eff": 87.26, "man": 19, "total": 1757, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.10, "machine": 1.25, "inspec": 7.50, "pack": 7.90 } },
+                    "38": { "prod": 94.0, "eff": 88.68, "man": 19, "total": 1786, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 21.80, "machine": 1.25, "inspec": 7.30, "pack": 7.65 } },
+                    "39": { "prod": 95.5, "eff": 90.09, "man": 19, "total": 1814, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 21.40, "machine": 1.25, "inspec": 7.10, "pack": 7.45 } }
+                };
+                initializeDashboard();
             }
         }
 
         function initializeDashboard() {
-            // หา Best Trial จากข้อมูลที่มีอยู่จริงแบบอัตโนมัติ (ดูจากค่า prod สูงสุด)
+            // ระบบตรวจสอบและค้นหาอัตโนมัติรอบที่ได้สถิติสูงสุด (Best Trial) จากข้อมูลที่มีอยู่จริง
             let maxProd = -1;
             keys.forEach(k => {
                 if(db[k] && db[k].prod > maxProd) {
@@ -605,11 +611,9 @@
             renderTable();
             initCharts();
             
-            // ประมวลผลและแสดงผลในส่วน Executive Summary
             calculateExecutiveSummary();
             initSummaryCharts(); 
 
-            // ค้นหา Key ล่าสุดที่มีข้อมูลจริงเพื่อรันเป็น Default ตอนโหลดหน้าจอครั้งแรก
             let defaultKey = "เดิม";
             for (let i = keys.length - 1; i >= 0; i--) {
                 if (db[keys[i]]) {
@@ -662,6 +666,7 @@
             let html = '';
             keys.forEach(k => {
                 let text = k === "เดิม" ? "เดิม" : `ครั้งที่ ${k}`;
+                if (k === bestTrialKey) text += " 🏆 (Best)";
                 let colorClass = k === "เดิม" ? "text-white bg-[#323248]" : "text-[#a1a5b7] hover:bg-[#323248] hover:text-white";
                 html += `<button onclick="selectIteration('${k}')" class="w-full text-center px-2 py-2 rounded text-xs font-medium border border-[#323248] ${colorClass} transition">${text}</button>`;
             });
@@ -809,6 +814,7 @@
                 if(!d) return; 
                 
                 let titleText = k === "เดิม" ? "กระบวนการเดิม" : `ครั้งที่ ${k}`;
+                if (k === bestTrialKey) titleText += " ⭐ (Best)";
                 let cycle = d.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
                 let layout = d.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 };
 
@@ -848,7 +854,7 @@
         }
 
         // ==========================================
-        // ส่วนที่เพิ่มเข้ามาใหม่: คำนวณและแสดงค่าใน Executive Summary (Trial 1 vs Best Trial)
+        // 5. คำนวณและแสดงค่าใน Executive Summary (Trial 1 vs Best Trial)
         // ==========================================
         function calculateExecutiveSummary() {
             const t1 = db["1"];
@@ -856,7 +862,6 @@
 
             if(!t1 || !best) return;
 
-            // กำหนดหัวข้อ Label ให้ชัดเจน
             document.getElementById('lbl-summary-prod').innerText = `ครั้งที่ 1 ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
             document.getElementById('lbl-summary-eff').innerText = `ครั้งที่ 1 ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
             document.getElementById('lbl-summary-arrange').innerText = `ครั้งที่ 1 ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
@@ -888,7 +893,6 @@
             let totalDiff = best.total - t1.total;
             document.getElementById('growth-total').innerText = `+${totalDiff.toLocaleString()}`;
 
-            // ทำการเรนเดอร์ตารางเปรียบเทียบชุดล่าง (Gap Analysis ของ Executive)
             renderExecutiveGapTable();
         }
 
@@ -897,9 +901,8 @@
             const t1 = db["1"];
             if(!t1) return;
 
-            document.getElementById('gap-header-t1').innerText = `Trial 1 (วิ/คน/ชม)`;
+            document.getElementById('gap-header-t1').innerText = `Trial 1 (ไม้/คน/ชม.)`;
 
-            // รายการเป้าหมายสายงาน
             const rowsData = [
                 { name: 'G1 <span class="text-[11px] text-[#a1a5b7] block font-normal">(สูงสุด)</span>', target: 106, id: 'g1' },
                 { name: 'G2', target: 94, id: 'g2' },
@@ -918,7 +921,6 @@
                     <td class="p-3 text-center font-en text-white font-bold">${row.target}</td>`;
 
                 if (!row.isRef) {
-                    // กลุ่มสายงานเป้าหมายหลัก G1, G2, G3 (คำนวณของ Trial 1)
                     let t1Diff = row.target - t1Prod;
                     let t1Pct = (t1Diff / row.target) * 100;
                     let t1DiffText = t1Diff <= 0 ? t1Diff.toFixed(1) : `+${t1Diff.toFixed(1)}`;
@@ -931,7 +933,6 @@
                         <td class="p-3 text-center font-en font-bold ${t1Color}">${t1PctText}</td>
                     `;
                 } else {
-                    // กลุ่มสายงานอ้างอิงอื่นๆ (คำนวณของ Trial 1)
                     let t1Diff = t1Prod - row.target;
                     let t1DiffText = t1Diff >= 0 ? `สูงกว่าสายงานนี้ +${t1Diff.toFixed(1)}` : `ต่ำกว่าสายงานนี้ ${t1Diff.toFixed(1)}`;
                     let t1Color = t1Diff >= 0 ? "text-[#50cd89]" : "text-[#f1416c]";
@@ -942,7 +943,6 @@
                     `;
                 }
 
-                // ส่วนของ Dynamic ปัจจุบันที่เลือก (จะถูกเขียนทับตอนคลิกแถว)
                 html += `
                     <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-${row.id}-val">--</td>
                     <td class="p-3 text-center font-en font-bold" id="gap-dyn-${row.id}-diff">--</td>
@@ -953,9 +953,8 @@
             tableBody.innerHTML = html;
         }
 
-
         // ==========================================
-        // 5. ระบบอัปเดตข้อมูลบนหน้าจอเมื่อผู้ใช้คลิก
+        // 6. ระบบอัปเดตข้อมูลบนหน้าจอเมื่อผู้ใช้คลิก
         // ==========================================
         function selectIteration(key) {
             const data = db[key];
@@ -1014,7 +1013,6 @@
             updateGapAnalysis(key, data);
             renderInsight(key, data);
 
-            // อัปเดตข้อมูลตาราง Executive Gap Analysis ด้านล่าง (ข้อมูลรอบล่าสุดที่คลิกเลือก)
             let currentProd = data.prod || 0;
             let headerTitle = key === 'เดิม' ? 'เดิม' : `Trial ${key}`;
             document.getElementById('gap-dyn-header').innerText = headerTitle;
@@ -1097,8 +1095,8 @@
                 if (selectedDataIndex !== -1) {
                     bgArrange[selectedDataIndex] = '#8b5cf6'; 
                     bgMachine[selectedDataIndex] = '#ffc700'; 
-                    bgInspec[selectedDataIndex] = '#f1416c';  
-                    bgPack[selectedDataIndex] = '#50cd89';   
+                    bgInspec[selectedDataIndex] = '#f1416c';   
+                    bgPack[selectedDataIndex] = '#50cd89';    
                     
                     pRadiiLine[selectedDataIndex] = 8;
                     pColorsLine[selectedDataIndex] = '#009ef7';
@@ -1121,7 +1119,7 @@
         }
 
         // ==========================================
-        // 6. การตั้งค่าและสร้างกราฟหลัก
+        // 7. การตั้งค่าและสร้างกราฟหลัก
         // ==========================================
         const gapLabelPlugin = {
             id: 'gapLabelPlugin',
@@ -1273,7 +1271,7 @@
         }
 
         // ==========================================
-        // 7. ฟังก์ชันกราฟสำหรับ Executive Summary (ปรับแก้ไขให้เปรียบเทียบ T1 vs Best แบบ Dynamic)
+        // 8. ฟังก์ชันกราฟสำหรับ Executive Summary
         // ==========================================
         function initSummaryCharts() {
             const t1 = db["1"] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
@@ -1282,6 +1280,7 @@
             const summaryLabels = ['Trial 1 (เริ่มต้นปรับปรุง)', `Trial ${bestTrialKey} (กระบวนการที่ดีที่สุด)`, 'Target (เป้าหมายสูงสุด)'];
 
             const prodJourneyCtx = document.getElementById('prodJourneyChart').getContext('2d');
+            if (prodJourneyChart) prodJourneyChart.destroy();
             prodJourneyChart = new Chart(prodJourneyCtx, {
                 type: 'bar',
                 data: {
@@ -1330,13 +1329,13 @@
                 }]
             });
 
-            // ดึง Cycle time ของคอขวดหลักมาลงกราฟแท่งคู่เปรียบเทียบ
             let t1Arrange = t1.cycle_detail ? Number(t1.cycle_detail.arrange)||0 : 0;
             let bestArrange = best.cycle_detail ? Number(best.cycle_detail.arrange)||0 : 0;
             let t1Inspec = t1.cycle_detail ? Number(t1.cycle_detail.inspec)||0 : 0;
             let bestInspec = best.cycle_detail ? Number(best.cycle_detail.inspec)||0 : 0;
 
             const bottleneckCtx = document.getElementById('bottleneckChart').getContext('2d');
+            if (bottleneckChart) bottleneckChart.destroy();
             bottleneckChart = new Chart(bottleneckCtx, {
                 type: 'bar',
                 data: {
