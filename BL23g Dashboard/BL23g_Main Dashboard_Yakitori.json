@@ -35,5 +35,8 @@
     "33": { "prod": 85.0, "eff": 80.19, "man": 19, "total": 1616, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.45, "machine": 1.25, "inspec": 7.40, "pack": 9.25 } },
     "34": { "prod": 91.0, "eff": 85.85, "man": 19, "total": 1728, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.50, "machine": 1.25, "inspec": 7.70, "pack": 8.10 } },
     "35": { "prod": 80.0, "eff": 75.47, "man": 19, "total": 1520, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.50, "machine": 1.25, "inspec": 9.70, "pack": 9.50 } },
-    "36": { "prod": 91.0, "eff": 85.85, "man": 19, "total": 1728, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.50, "machine": 1.25, "inspec": 7.70, "pack": 8.10 } }
+    "36": { "prod": 91.0, "eff": 85.85, "man": 19, "total": 1728, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.50, "machine": 1.25, "inspec": 7.70, "pack": 8.10 } },
+    "37": { "prod": 91.0, "eff": 85.85, "man": 19, "total": 1728, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.50, "machine": 1.25, "inspec": 7.70, "pack": 8.10 } },
+    "38": { "prod": 91.0, "eff": 85.85, "man": 19, "total": 1728, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.50, "machine": 1.25, "inspec": 7.70, "pack": 8.10 } },
+    "39": { "prod": 91.0, "eff": 85.85, "man": 19, "total": 1728, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.50, "machine": 1.25, "inspec": 7.70, "pack": 8.10 } }
 }
