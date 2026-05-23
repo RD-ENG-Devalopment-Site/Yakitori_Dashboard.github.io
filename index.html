@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APEX Flow - Process Improvement Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #151521;
+            color: #a1a5b7;
+            overflow: hidden; 
+        }
+        .font-en { font-family: 'Inter', sans-serif; }
+        .bg-card { background-color: #1e1e2d; }
+        .bg-card-gradient { background: linear-gradient(145deg, #1e1e2d 0%, #151521 100%); }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #323248; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #474761; }
+
+        .sidebar-dropdown {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .sidebar-dropdown.open {
+            max-height: 400px; 
+            opacity: 1;
+        }
+        
+        .progress-bar-striped {
+            background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
+            background-size: 1rem 1rem;
+            transition: width 1s ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex h-screen w-full">
+
+    <aside class="w-[280px] bg-[#1a1d27] border-r border-[#323248] flex flex-col h-full flex-shrink-0 z-20">
+        <div class="h-[70px] flex items-center px-6 border-b border-[#323248]">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-[#009ef7] bg-opacity-20 flex items-center justify-center border border-[#009ef7]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="text-[#009ef7]" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 0a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 12.293V.5A.5.5 0 0 1 8 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <a href="Main.html" class="text-white font-bold text-lg font-en tracking-wide leading-tight hover:text-[#009ef7] transition">Project APEX Flow</a>
+                    <p class="text-[10px] text-[#009ef7] uppercase tracking-widest font-semibold">การปรับปรุงกระบวนการเสียบไม้</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+            <p class="text-[11px] text-[#6b7280] font-bold uppercase tracking-wider mb-4 px-2">Experimental Data</p>
+            <div>
+                <a href="Production Summary & Top 5 Focus.html" target="_blank" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#50cd89]" viewBox="0 0 16 16">
+                        <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm10-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z"/>
+                    </svg>
+                    <span class="font-medium text-sm">Production Summary</span>
+                </a>
+            </div>
+             <div>
+                <a href="BL23g_All new Idel Prodution time.html" target="_blank" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#50cd89]" viewBox="0 0 16 16">
+                        <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm10-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z"/>
+                    </svg>
+                    <span class="font-medium text-sm">Idle Production Time</span>
+                </a>
+            </div>
+
+            <div>
+                <button onclick="toggleMenu('menu-bl', 'icon-bl')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
+                    <div class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#8b5cf6]" viewBox="0 0 16 16">
+                            <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/>
+                        </svg>
+                        <span class="font-medium text-sm">BL Experimental</span>
+                    </div>
+                    <svg id="icon-bl" class="w-4 h-4 transition-transform duration-300 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="menu-bl" class="sidebar-dropdown open pl-9 pr-2 py-1 space-y-1">
+                    <a href="BL23g Dashboard/BL23g_Main Dashboard_Yakitori.html" target="_blank" class="block px-3 py-2 rounded-md text-[13px] text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white hover:translate-x-1 transition-all border-l-2 border-transparent hover:border-[#8b5cf6]">BL 23G R15 Dashboard</a>
+                </div>
+            </div>
+
+            <div>
+                <button onclick="toggleMenu('menu-gizzard', 'icon-gizzard')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
+                    <div class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#009ef7]" viewBox="0 0 16 16">
+                            <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/>
+                        </svg>
+                        <span class="font-medium text-sm">Gizzard Experimental</span>
+                    </div>
+                    <svg id="icon-gizzard" class="w-4 h-4 transition-transform duration-300 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="menu-gizzard" class="sidebar-dropdown open pl-9 pr-2 py-1 space-y-1">
+                    <a href="Gizzard Main Dashboard/GizzardS18_Main DashBoard_Yakitori.html" target="_blank" class="block px-3 py-2 rounded-md text-[13px] text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white hover:translate-x-1 transition-all border-l-2 border-transparent hover:border-[#009ef7]">Gizzard 40G S18 Dashboard</a>
+                </div>
+            </div>
+
+            <div>
+                <a href="Web Dashboard.html" target="_blank" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#50cd89]" viewBox="0 0 16 16">
+                        <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/>
+                    </svg>
+                    <span class="font-medium text-sm">BB SKIN Experimental</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <header class="h-[70px] bg-[#1a1d27] border-b border-[#323248] flex items-center justify-between px-8 flex-shrink-0">
+            <div class="flex items-center gap-2">
+                <span class="text-[#a1a5b7] text-sm">Welcome to</span>
+                <span class="text-white font-bold text-sm">Experimental Data</span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-[#2b2b40] border-2 border-[#323248] overflow-hidden flex items-center justify-center text-[#a1a5b7]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                    </svg>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-4 md:p-8">
+            
+            <div class="mb-10">
+                <h1 class="text-3xl font-bold text-white mb-2 font-en">Project APEX Flow</h1>
+                <p class="text-[#a1a5b7]">Process Improvement Data</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-card-gradient border border-[#323248] rounded-2xl p-6 shadow-lg border-t-4 border-t-[#8b5cf6]">
+                    <div class="w-10 h-10 rounded-lg bg-[rgba(139,92,246,0.1)] text-[#8b5cf6] flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/></svg>
+                    </div>
+                    <h3 class="text-white font-bold text-lg mb-1">BL Experimental</h3>
+                    <p class="text-xs text-[#a1a5b7] mb-4">การปรับปรุงกระบวนการเสียบไม้สินค้า BL</p>
+                    <a href="BL23g Dashboard/BL23g_Main Dashboard_Yakitori.html" target="_blank" class="text-[#8b5cf6] text-sm font-bold hover:text-white transition flex items-center gap-1">
+                        ไปที่ Dashboard <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
+                    </a>
+                </div>
+
+                <div class="bg-card-gradient border border-[#323248] rounded-2xl p-6 shadow-lg border-t-4 border-t-[#009ef7]">
+                    <div class="w-10 h-10 rounded-lg bg-[rgba(0,158,247,0.1)] text-[#009ef7] flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/></svg>
+                    </div>
+                    <h3 class="text-white font-bold text-lg mb-1">Gizzard Experimental</h3>
+                    <p class="text-xs text-[#a1a5b7] mb-4">การปรับปรุงกระบวนการเสียบไม้สินค้า Gizzard</p>
+                    <a href="Gizzard Main Dashboard/GizzardS18_Main DashBoard_Yakitori.html" target="_blank" class="text-[#009ef7] text-sm font-bold hover:text-white transition flex items-center gap-1">
+                        ไปที่ Dashboard <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
+                    </a>
+                </div>
+
+                <div class="bg-card-gradient border border-[#323248] rounded-2xl p-6 shadow-lg border-t-4 border-t-[#50cd89]">
+                    <div class="w-10 h-10 rounded-lg bg-[rgba(80,205,137,0.1)] text-[#50cd89] flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/></svg>
+                    </div>
+                    <h3 class="text-white font-bold text-lg mb-1">BOILED BB SKIN</h3>
+                    <p class="text-xs text-[#a1a5b7] mb-4">มีแพลนติดตามกระบวนการในอนาคต</p>
+                    <a href="#" target="_blank" class="text-[#50cd89] text-sm font-bold hover:text-white transition flex items-center gap-1">
+                        ไปที่ Dashboard <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="mb-6 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-white font-en">Executive Project Summary</h2>
+                    <p class="text-sm text-[#a1a5b7]">สรุปภาพรวมสถานะและความคืบหน้าของโครงการทั้งหมด (อัปเดตอัตโนมัติ)</p>
+                </div>
+                <span class="bg-[rgba(80,205,137,0.1)] text-[#50cd89] border border-[#50cd89]/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-[#50cd89] animate-pulse"></span> Live Status
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                    <div class="bg-card rounded-xl p-5 border border-[#323248] shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-[rgba(80,205,137,0.1)] flex items-center justify-center text-[#50cd89] flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M13.442 2.558a.625.625 0 0 1 0 .884l-8.5 8.5a.625.625 0 0 1-.884 0l-3.5-3.5a.625.625 0 1 1 .884-.884l3.058 3.058 8.058-8.058a.625.625 0 0 1 .884 0z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-[#a1a5b7] uppercase font-bold tracking-wider mb-0.5">Projects Active</p>
+                            <h4 class="text-2xl font-bold text-white font-en">3 <span class="text-xs font-normal text-[#6b7280]">Lines</span></h4>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card rounded-xl p-5 border border-[#323248] shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-[rgba(0,158,247,0.1)] flex items-center justify-center text-[#009ef7] flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-[#a1a5b7] uppercase font-bold tracking-wider mb-0.5">Avg Efficiency</p>
+                            <h4 class="text-2xl font-bold text-white font-en" id="avg-eff-display">--<span class="text-lg text-[#a1a5b7]">%</span></h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 bg-card rounded-xl border border-[#323248] shadow-sm p-6">
+                    <h3 class="text-sm font-bold text-white mb-5 border-b border-[#323248] pb-3">Productivity Progress vs Target (ไม้/คน/ชม.)</h3>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between items-end mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-[#8b5cf6]"></span>
+                                    <span class="text-sm font-bold text-white">BL 23G <span id="bl-round-text" class="text-xs text-[#a1a5b7] ml-1 font-normal">(Loading...)</span></span>
+                                </div>
+                                <div class="text-right flex items-baseline justify-end gap-2">
+                                    <span id="bl-prod-val" class="text-[#8b5cf6] font-bold font-en text-lg">--</span>
+                                    <span id="bl-target-display" class="text-[11px] text-[#6b7280] uppercase tracking-wide bg-[#2b2b40] px-2 py-0.5 rounded">Target: 106</span>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-1 mb-2">
+                                <div class="w-full bg-[#151521] rounded-full h-2.5 border border-[#323248] relative">
+                                    <div id="bl-prog-bar" class="bg-[#8b5cf6] h-2.5 rounded-full progress-bar-striped" style="width: 0%"></div>
+                                </div>
+                                <div class="w-full bg-[#151521] rounded-full h-1.5 border border-[#323248] relative">
+                                    <div id="bl-best-bar" class="bg-[#ffc700] h-1.5 rounded-full opacity-80" style="width: 0%; transition: width 1s ease-in-out;"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center mt-1">
+                                <p id="bl-prog-text" class="text-[11px] text-[#a1a5b7]">Efficiency Rate (%): --%</p>
+                                <p id="bl-best-text" class="text-[11px] text-[#ffc700] font-medium">Best Record: -- (Target: 106)</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-end mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-[#009ef7]"></span>
+                                    <span class="text-sm font-bold text-white">Gizzard 40G S18 <span id="giz-round-text" class="text-xs text-[#a1a5b7] ml-1 font-normal">(Loading...)</span></span>
+                                </div>
+                                <div class="text-right flex items-baseline justify-end gap-2">
+                                    <span id="giz-prod-val" class="text-[#009ef7] font-bold font-en text-lg">--</span>
+                                    <span id="giz-target-display" class="text-[11px] text-[#6b7280] uppercase tracking-wide bg-[#2b2b40] px-2 py-0.5 rounded">Target: 84</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1 mb-2">
+                                <div class="w-full bg-[#151521] rounded-full h-2.5 border border-[#323248] relative">
+                                    <div id="giz-prog-bar" class="bg-[#009ef7] h-2.5 rounded-full progress-bar-striped" style="width: 0%"></div>
+                                </div>
+                                <div class="w-full bg-[#151521] rounded-full h-1.5 border border-[#323248] relative">
+                                    <div id="giz-best-bar" class="bg-[#ffc700] h-1.5 rounded-full opacity-80" style="width: 0%; transition: width 1s ease-in-out;"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center mt-1">
+                                <p id="giz-prog-text" class="text-[11px] text-[#a1a5b7]">Efficiency Rate (%): --%</p>
+                                <p id="giz-best-text" class="text-[11px] text-[#ffc700] font-medium">Best Record: -- (Target: 84)</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-end mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-[#50cd89]"></span>
+                                    <span class="text-sm font-bold text-white">BB SKIN <span class="text-xs text-[#a1a5b7] ml-1 font-normal">(Planning)</span></span>
+                                </div>
+                                <div class="text-right flex items-baseline justify-end gap-2">
+                                    <span class="text-[#50cd89] font-bold font-en text-lg">--</span>
+                                    <span class="text-[11px] text-[#6b7280] uppercase tracking-wide bg-[#2b2b40] px-2 py-0.5 rounded">Target: --</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1 mb-2">
+                                <div class="w-full bg-[#151521] rounded-full h-2.5 border border-[#323248]">
+                                    <div class="bg-[#50cd89] h-2.5 rounded-full opacity-30" style="width: 5%"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center mt-1">
+                                <p class="text-[11px] text-[#a1a5b7]">รอเริ่มเก็บข้อมูล</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // ฟังก์ชันเปิด-ปิดเมนูด้านซ้าย
+        function toggleMenu(menuId, iconId) {
+            const menu = document.getElementById(menuId);
+            const icon = document.getElementById(iconId);
+            
+            if (menu.classList.contains('open')) {
+                menu.classList.remove('open');
+                icon.classList.remove('rotate-180');
+            } else {
+                menu.classList.add('open');
+                icon.classList.add('rotate-180');
+            }
+        }
+
+        // ==========================================
+        // ส่วนของการดึงข้อมูลจาก JSON เพื่อมาแสดงใน Progress Bar
+        // ==========================================
+        const targetGiz = 84;  
+        const targetBl = 106;  
+        let avgEffTotal = 0;
+        let activeProjectsCount = 0;
+
+        window.onload = function() {
+            fetchProjectData();
+        };
+
+        async function fetchProjectData() {
+            // 1. ดึงข้อมูล Gizzard
+            try {
+                const resGiz = await fetch('Gizzard Main Dashboard/GizzardS18_Main DashBoard_Yakitori.json');
+                if(resGiz.ok) {
+                    const dataGiz = await resGiz.json();
+                    updateProgressUI('giz', dataGiz, targetGiz);
+                } else {
+                    useMockData('giz', targetGiz);
+                }
+            } catch (e) {
+                useMockData('giz', targetGiz);
+            }
+
+            // 2. ดึงข้อมูล BL 
+            try {
+                const resBl = await fetch('BL23g Dashboard/BL23g_Main DashBoard_Yakitori.json');
+                if(resBl.ok) {
+                    const dataBl = await resBl.json();
+                    updateProgressUI('bl', dataBl, targetBl);
+                } else {
+                    useMockData('bl', targetBl);
+                }
+            } catch (e) {
+                useMockData('bl', targetBl);
+            }
+
+            // 3. คำนวณ Avg Efficiency (รอแป๊บให้ข้อมูลวิ่งเสร็จ)
+            setTimeout(() => {
+                if(activeProjectsCount > 0) {
+                    const avg = avgEffTotal / activeProjectsCount;
+                    document.getElementById('avg-eff-display').innerHTML = `${avg.toFixed(1)}<span class="text-lg text-[#a1a5b7]">%</span>`;
+                }
+            }, 300);
+        }
+
+        // ฟังก์ชันจำลองข้อมูล (Mock Data) ถ้าดึง JSON ไม่ได้ (Local Mode)
+        function useMockData(prefix, target) {
+            let mockData = {};
+            if (prefix === 'bl') {
+                // ข้อมูลจำลองสำหรับ BL
+                mockData = { "1": {prod:80}, "2": {prod:102}, "3": {prod:85}, "4": {prod:90} };
+            } else if (prefix === 'giz') {
+                // ข้อมูลจำลองสำหรับ Gizzard
+                mockData = { "1": {prod:60}, "2": {prod:65}, "3": {prod:82}, "4": {prod:68}, "5": {prod:70} };
+            }
+            
+            updateProgressUI(prefix, mockData, target);
+            document.getElementById(`${prefix}-round-text`).innerText += ` (Local Mode)`;
+        }
+
+        function updateProgressUI(prefix, data, target) {
+            // ดึง Key ทั้งหมดที่มีข้อมูล prod อยู่จริง
+            const keys = Object.keys(data).filter(k => !isNaN(k) && data[k].prod !== undefined);
+            if(keys.length === 0) return;
+            
+            // หาข้อมูลรอบล่าสุด
+            const latestKey = keys[keys.length - 1]; 
+            const latestData = data[latestKey];
+            
+            // หาข้อมูลรอบที่มี Productivity (และ Efficiency) ดีที่สุด
+            let bestKey = keys[0];
+            let bestProd = data[bestKey].prod;
+            keys.forEach(k => {
+                if (data[k].prod > bestProd) {
+                    bestProd = data[k].prod;
+                    bestKey = k;
+                }
+            });
+            
+            if(latestData && latestData.prod) {
+                const prodVal = latestData.prod;
+                
+                // คำนวณเปอร์เซ็นต์รอบล่าสุด
+                let percent = (prodVal / target) * 100;
+                avgEffTotal += percent;
+                activeProjectsCount++;
+
+                let displayPercent = percent > 100 ? 100 : percent; // ป้องกันบาร์ทะลุ 100%
+
+                // คำนวณเปอร์เซ็นต์รอบที่ดีที่สุด
+                let bestPercent = (bestProd / target) * 100;
+                let displayBestPercent = bestPercent > 100 ? 100 : bestPercent;
+
+                // อัปเดตข้อมูลบนหน้าจอ (ใส่ค่า Prod)
+                document.getElementById(`${prefix}-prod-val`).innerText = prodVal.toFixed(1);
+                // กำหนด Target ย้ำให้ชัด
+                document.getElementById(`${prefix}-target-display`).innerText = `Target: ${target}`;
+                
+                // ทำให้แท่งขยับอย่าง Smooth
+                setTimeout(() => {
+                    document.getElementById(`${prefix}-prog-bar`).style.width = `${displayPercent}%`;
+                    document.getElementById(`${prefix}-best-bar`).style.width = `${displayBestPercent}%`;
+                }, 100);
+                
+                document.getElementById(`${prefix}-prog-text`).innerText = `Efficiency Rate (%): ${percent.toFixed(1)}%`;
+                document.getElementById(`${prefix}-round-text`).innerText = `(Trial ${latestKey})`;
+                
+                // อัปเดตข้อความ Best Record
+                document.getElementById(`${prefix}-best-text`).innerText = `Best Record: ${bestProd.toFixed(1)} (${bestPercent.toFixed(1)}%) - Trial ${bestKey}`;
+            }
+        }
+    </script>
+
+</body>
+</html>
