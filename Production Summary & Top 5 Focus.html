@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Summary & Focus 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #151521;
+            color: #a1a5b7;
+        }
+        .font-en { font-family: 'Inter', sans-serif; }
+        .bg-card { background-color: #1e1e2d; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #151521; }
+        ::-webkit-scrollbar-thumb { background: #323248; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #474761; }
+
+        .top-nav {
+            background: #1a1d27;
+            border-bottom: 1px solid rgba(255,255,255,.07);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            height: 60px;
+            gap: 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-item {
+            color: #e8eaf0;
+            font-weight: 500;
+            font-size: 14px;
+            text-decoration: none;
+            transition: color 0.2s;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        .nav-item.active { color: #fff; }
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 0; right: 0;
+            height: 3px;
+            background: #009ef7;
+        }
+        
+        /* Animation สำหรับ Dropdown Table */
+        .child-row > td > div {
+            transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .child-row.open > td > div {
+            max-height: 1200px;
+            opacity: 1;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-8">
+
+    <nav class="top-nav mb-6 bg-[#1a1d27] border-b border-[#323248] text-[#e8eaf0]">
+      <a href="../Main.html" class="nav-item">HOME</a>
+      <a href="#" class="nav-item">Production Summary & Top 5 Focus</a>
+      
+      <div class="nav-search">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+      </div>
+    </nav>
+
+
+    <div class="p-4 md:p-8 flex-1 w-full max-w-[1400px] mx-auto">
+        <header class="mb-6 border-b border-[#323248] pb-4">
+            <h1 class="text-2xl md:text-3xl font-bold text-white mb-2 tracking-wide font-en">Production Summary & Top 5 Focus</h1>
+            <p class="text-sm text-[#009ef7]">วิเคราะห์ยอดการผลิตรายเดือน และกำหนดทิศทางสินค้า Focus ในปี 2026</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="bg-card rounded-xl p-5 border-t-4 border-[#009ef7] shadow-lg">
+                <p class="text-xs font-semibold mb-1 text-[#a1a5b7] uppercase tracking-wider">ยอดผลิตรวมทั้งปี (กก.)</p>
+                <div class="flex items-end gap-2 mt-2">
+                    <h2 class="text-3xl font-bold text-white font-en">419,480</h2>
+                </div>
+            </div>
+            <div class="bg-card rounded-xl p-5 border-t-4 border-[#50cd89] shadow-lg">
+                <p class="text-xs font-semibold mb-1 text-[#a1a5b7] uppercase tracking-wider">เดือนที่ผลิตสูงสุด (Peak)</p>
+                <div class="flex items-end gap-2 mt-2">
+                    <h2 class="text-3xl font-bold text-white font-en">MAR</h2>
+                    <span class="text-sm text-[#50cd89] mb-1 font-en">89,976 kg.</span>
+                </div>
+            </div>
+            <div class="bg-card rounded-xl p-5 border-t-4 border-[#f1416c] shadow-lg">
+                <p class="text-xs font-semibold mb-1 text-[#a1a5b7] uppercase tracking-wider">Top 1 Product Volume</p>
+                <div class="flex items-end gap-2 mt-2">
+                    <h2 class="text-3xl font-bold text-[#f1416c] font-en">120,724</h2>
+                </div>
+            </div>
+            <div class="bg-card rounded-xl p-5 border-t-4 border-[#8b5cf6] shadow-lg">
+                <p class="text-xs font-semibold mb-1 text-[#a1a5b7] uppercase tracking-wider">กลุ่ม BL (Type) Share</p>
+                <div class="flex items-end gap-2 mt-2">
+                    <h2 class="text-3xl font-bold text-white font-en">48.9%</h2>
+                    <span class="text-sm text-[#8b5cf6] mb-1">จากทั้งหมด</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="lg:col-span-2 bg-card rounded-xl p-5 shadow-lg border border-[#323248]">
+                <h3 class="text-sm font-bold text-white mb-4">แนวโน้มการผลิตรายเดือน (Monthly Production Trend)</h3>
+                <div class="h-[280px] w-full">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="lg:col-span-1 bg-card rounded-xl p-5 shadow-lg border border-[#323248]">
+                <h3 class="text-sm font-bold text-white mb-4">สัดส่วนสินค้า Top 5 (By Product)</h3>
+                <div class="h-[280px] w-full flex justify-center">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+            
+            <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden flex flex-col h-fit">
+                <div class="p-4 border-b border-[#323248] bg-[#1a1d27]">
+                    <h3 class="text-white font-bold text-sm">TOP FIVE FOCUS [2026] <span class="text-[#009ef7]">BY PRODUCT</span></h3>
+                </div>
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-[#151521] text-[#a1a5b7] text-xs uppercase">
+                            <tr>
+                                <th class="p-3 font-semibold text-center w-12">Rank</th>
+                                <th class="p-3 font-semibold">Product Name</th>
+                                <th class="p-3 font-semibold text-right">Volume (kg)</th>
+                                <th class="p-3 font-semibold text-center w-20">Share</th>
+                                <th class="p-3 font-semibold text-center w-20">Machine</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#2b2b40]">
+                            <tr class="hover:bg-[#2b2b40] transition">
+                                <td class="p-3 text-center"><span class="bg-[#f1416c] text-white px-2 py-1 rounded text-xs font-bold">1</span></td>
+                                <td class="p-3 text-white font-medium">HERB YTR BL 23 G R15 (BLACK INNER BOX)</td>
+                                <td class="p-3 text-right font-en text-[#009ef7]">120,724.20</td>
+                                <td class="p-3 text-center text-[#50cd89] font-en">28.8%</td>
+                                <td class="p-3 text-center text-[#50cd89] font-en font-bold">100%</td>
+                            </tr>
+                            <tr class="hover:bg-[#2b2b40] transition">
+                                <td class="p-3 text-center"><span class="bg-[#f59e0b] text-white px-2 py-1 rounded text-xs font-bold">2</span></td>
+                                <td class="p-3 text-white font-medium">YTR 35 G BOILED BB SKIN F15</td>
+                                <td class="p-3 text-right font-en text-[#009ef7]">42,252.00</td>
+                                <td class="p-3 text-center text-[#50cd89] font-en">10.1%</td>
+                                <td class="p-3 text-center text-[#50cd89] font-en font-bold">100%</td>
+                            </tr>
+                            <tr class="hover:bg-[#2b2b40] transition">
+                                <td class="p-3 text-center"><span class="bg-[#8b5cf6] text-white px-2 py-1 rounded text-xs font-bold">3</span></td>
+                                <td class="p-3 text-white font-medium">HERB FED YTR GIZZARD 35 G R15</td>
+                                <td class="p-3 text-right font-en text-[#009ef7]">33,258.75</td>
+                                <td class="p-3 text-center text-[#50cd89] font-en">7.9%</td>
+                                <td class="p-3 text-center text-[#50cd89] font-en font-bold">100%</td>
+                            </tr>
+                            <tr class="hover:bg-[#2b2b40] transition">
+                                <td class="p-3 text-center"><span class="bg-[#323248] text-white px-2 py-1 rounded text-xs font-bold">4</span></td>
+                                <td class="p-3 text-white font-medium">HERB YTR BL 23 G R15 (JUCT INNER BOX)</td>
+                                <td class="p-3 text-right font-en text-[#009ef7]">32,788.80</td>
+                                <td class="p-3 text-center text-[#50cd89] font-en">7.8%</td>
+                                <td class="p-3 text-center text-[#50cd89] font-en font-bold">100%</td>
+                            </tr>
+                            <tr class="hover:bg-[#2b2b40] transition">
+                                <td class="p-3 text-center"><span class="bg-[#323248] text-white px-2 py-1 rounded text-xs font-bold">5</span></td>
+                                <td class="p-3 text-white font-medium">HERB YTR BOILED NECK SKIN 40 G S18</td>
+                                <td class="p-3 text-right font-en text-[#009ef7]">25,006.80</td>
+                                <td class="p-3 text-center text-[#50cd89] font-en">6.0%</td>
+                                <td class="p-3 text-center text-[#eab308] font-en font-bold">66.7%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden flex flex-col h-fit">
+                <div class="p-4 border-b border-[#323248] bg-[#1a1d27] flex justify-between items-center">
+                    <h3 class="text-white font-bold text-sm">TOP FIVE FOCUS [2026] <span class="text-[#50cd89]">BY TYPE</span> <span class="text-[#a1a5b7] font-normal ml-2">(คลิกเพื่อดูรายละเอียด)</span></h3>
+                </div>
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-[#151521] text-[#a1a5b7] text-xs uppercase">
+                            <tr>
+                                <th class="p-3 font-semibold text-center w-12">Rank</th>
+                                <th class="p-3 font-semibold">Product Type</th>
+                                <th class="p-3 font-semibold text-right">Total Vol. (kg)</th>
+                                <th class="p-3 font-semibold text-center w-20">Share</th>
+                                <th class="p-3 font-semibold text-center w-20">Machine</th>
+                            </tr>
+                        </thead>
+                        <tbody id="typeTableBody" class="divide-y divide-[#2b2b40]">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden flex flex-col mb-8">
+            <div class="p-4 border-b border-[#323248] bg-[#1a1d27] flex justify-between items-center">
+                <h3 class="text-white font-bold text-sm">สรุปยอดรวมรายเดือน & สินค้าเด่น <span class="text-[#a1a5b7] font-normal">(คลิกที่รายเดือนเพื่อดูรายละเอียดสินค้า)</span></h3>
+            </div>
+            <div class="overflow-x-auto flex-1">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-[#151521] text-[#a1a5b7] text-xs uppercase sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="p-3 font-semibold pl-6 w-[15%]">Month</th>
+                            <th class="p-3 font-semibold text-right w-[25%]">Total Vol. (kg)</th>
+                            <th class="p-3 font-semibold pl-10 w-[40%]">Top Product in Month</th>
+                            <th class="p-3 font-semibold text-center w-[20%]">Machine (SKUs)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyTableBody" class="divide-y divide-[#2b2b40]">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="machineAnalysisContainer" class="mt-8">
+            </div>
+
+    </div>
+
+    <script>
+        // --- ข้อมูลสำหรับตาราง BY TYPE (Dropdown) ---
+        const typeData = [
+            {
+                rank: 1, type: 'BL', thName: '(เนื้อน่องสะโพก)', vol: 205316.80, share: '48.9%', color: 'bg-[#f1416c]',
+                details: [
+                    { name: 'HERB YTR BL 23 G R15 (BLACK INNER BOX)', machine: true },
+                    { name: 'HERB YTR BL 23 G R15 (JUCT INNER BOX)', machine: true },
+                    { name: 'HERB YTR BL 40 G S18', machine: true },
+                    { name: 'HERB YTR BL 25 G R15 (INNER BOX)', machine: true },
+                    { name: 'HERB YTR BL 30 G R15', machine: true },
+                    { name: 'HERB YTR BL NEGIMA 25 G R15 IVQF', machine: true },
+                    { name: 'HERB YTR BL 45 G TW18', machine: false },
+                    { name: 'HERB YTR BL+SOFT BONE 40 G TW18', machine: false }
+                ]
+            },
+            {
+                rank: 2, type: 'GIZZARD', thName: '(กึ๋น)', vol: 58966.35, share: '14.1%', color: 'bg-[#f59e0b]',
+                details: [
+                    { name: 'HERB YTR GIZZARD 25 G R15 IVQF', machine: true },
+                    { name: 'HERB FED YTR GIZZARD 35 G R15', machine: true },
+                    { name: 'HERB YTR GIZZARD 40 G S18', machine: true },
+                    { name: 'HERB YTR GIZZARD 35 G TW18', machine: false }
+                ]
+            },
+            {
+                rank: 3, type: 'BOILED BB SKIN', thName: '(หนังอกต้ม)', vol: 56003.90, share: '13.4%', color: 'bg-[#8b5cf6]',
+                details: [
+                    { name: 'YTR 35 G BOILED BB SKIN F15', machine: true },
+                    { name: 'HERB YTR BOILED BB SKIN 25 G R15 IVQF', machine: true },
+                    { name: 'HERB YTR BOILED BB SKIN 35 G TW18', machine: false }
+                ]
+            },
+            {
+                rank: 4, type: 'HEART', thName: '(หัวใจ)', vol: 34272.00, share: '8.2%', color: 'bg-[#323248]',
+                details: [
+                    { name: 'HERB YTR HEART OPEN CUT 40 G S18', machine: true },
+                    { name: 'YTR HEART HALF CUT 40 G F15', machine: true }
+                ]
+            },
+            {
+                rank: 5, type: 'BOILED NECK SKIN', thName: '(หนังคอต้ม)', vol: 25006.80, share: '6.0%', color: 'bg-[#323248]',
+                details: [
+                    { name: 'HERB YTR BOILED NECK SKIN 40 G S18 (เสียบได้)', machine: true }
+                ]
+            }
+        ];
+
+        // --- ข้อมูลรายละเอียดรายเดือนสำหรับการทำ Dropdown ---
+        const monthlyData = [
+            {
+                month: 'FEB', total: 15218.10, topProduct: 'BL 30 G R15', topVol: 6642,
+                details: [
+                    { name: 'HERB YTR BL 30 G R15', vol: 6642.00 },
+                    { name: 'HERB YTR BL 25 G R15 (INNER BOX)', vol: 3802.50 },
+                    { name: 'HERB YTR FILLET 40 G S18', vol: 1998.00 },
+                    { name: 'HERB YTR BL 40 G S18', vol: 1393.20 },
+                    { name: 'YTR HEART HALF CUT 40 G F15', vol: 1382.40 }
+                ]
+            },
+            {
+                month: 'MAR', total: 89976.82, topProduct: 'BL 23 G BLACK INNER', topVol: 34684,
+                details: [
+                    { name: 'HERB YTR BL 23 G R15 (BLACK INNER BOX)', vol: 34684.92 },
+                    { name: 'HERB YTR BL 23 G R15 (JUCT INNER BOX)', vol: 19540.80 },
+                    { name: 'HERB YTR HEART OPEN CUT 40 G S18', vol: 7884.00 },
+                    { name: 'HERB YTR BL 25 G R15 (INNER BOX)', vol: 7447.50 },
+                    { name: 'HERB YTR BL 40 G S18', vol: 7300.80 },
+                    { name: 'HERB YTR MEMBRANE 40 G R15', vol: 3494.40 },
+                    { name: 'HERB YTR BL 45 G TW18', vol: 3240.00 },
+                    { name: 'HERB YTR BOILED NECK SKIN 40 G S18', vol: 2721.60 },
+                    { name: 'HERB FED YTR NECK MEAT 30 G R15', vol: 2016.00 },
+                    { name: 'HERB YTR FILLET 40 G S18', vol: 1198.80 },
+                    { name: 'HERB YTR BOILED BB SKIN 25 G R15 IVQF', vol: 448.00 }
+                ]
+            },
+            {
+                month: 'APR', total: 88124.59, topProduct: 'BL 23 G BLACK INNER', topVol: 32234,
+                details: [
+                    { name: 'HERB YTR BL 23 G R15 (BLACK INNER BOX)', vol: 32234.04 },
+                    { name: 'HERB YTR BL 23 G R15 (JUCT INNER BOX)', vol: 13248.00 },
+                    { name: 'HERB YTR HEART OPEN CUT 40 G S18', vol: 8402.40 },
+                    { name: 'HERB YTR BL 40 G S18', vol: 7708.40 },
+                    { name: 'HERB YTR GIZZARD 40 G S18', vol: 7149.60 },
+                    { name: 'HERB YTR BOILED NECK SKIN 40 G S18', vol: 6174.00 },
+                    { name: 'HERB YTR BOILED BB SKIN 35 G TW18', vol: 4107.60 },
+                    { name: 'HERB YTR MEMBRANE 40 G R15', vol: 2496.00 },
+                    { name: 'HERB YTR GIZZARD 35 G TW18', vol: 2205.00 },
+                    { name: 'HERB YTR TAIL 40 G S18', vol: 2116.80 },
+                    { name: 'HERB YTR BB+YAGEN 45 G S18', vol: 1194.75 },
+                    { name: 'YTR HEART HALF CUT 40 G F15', vol: 768.00 },
+                    { name: 'HERB YTR BOILED BB SKIN 25 G R15 IVQF', vol: 480.00 },
+                    { name: 'HERB YTR BL+SOFT BONE 40 G TW18', vol: 360.00 },
+                    { name: 'HERB YTR BL NEGIMA 25 G R15 IVQF', vol: 240.00 },
+                    { name: 'HERB YTR TAIL 25 G R15 IVQF', vol: 240.00 }
+                ]
+            },
+            {
+                month: 'MAY', total: 89058.49, topProduct: 'BL 23 G BLACK INNER', topVol: 18489,
+                details: [
+                    { name: 'HERB YTR BL 23 G R15 (BLACK INNER BOX)', vol: 18489.24 },
+                    { name: 'YTR 35 G BOILED BB SKIN F15', vol: 14095.20 },
+                    { name: 'HERB YTR BOILED NECK SKIN 40 G S18', vol: 12339.60 },
+                    { name: 'HERB YTR HEART OPEN CUT 40 G S18', vol: 7387.20 },
+                    { name: 'HERB YTR TAIL 40 G S18', vol: 7387.20 },
+                    { name: 'HERB YTR BL 40 G S18', vol: 6284.00 },
+                    { name: 'HERB FED YTR GIZZARD 35 G R15', vol: 5608.75 },
+                    { name: 'HERB YTR BB+YAGEN 45 G S18', vol: 5332.50 },
+                    { name: 'HERB YTR GIZZARD 40 G S18', vol: 5259.60 },
+                    { name: 'YTR HEART HALF CUT 40 G F15', vol: 2304.00 },
+                    { name: 'HERB YTR BL 45 G TW18', vol: 1879.20 },
+                    { name: 'HERB FED YTR NECK MEAT 30 G R15', vol: 1800.00 },
+                    { name: 'HERB YTR TAIL 25 G R15 IVQF', vol: 904.00 },
+                    { name: 'HERB YTR BOILED BB SKIN 25 G R15 IVQF', vol: 520.00 },
+                    { name: 'HERB YTR BL NEGIMA 25 G R15 IVQF', vol: 488.00 }
+                ]
+            },
+            {
+                month: 'JUN', total: 58322.40, topProduct: 'BL 23 G BLACK INNER', topVol: 13248,
+                details: [
+                    { name: 'HERB YTR BL 23 G R15 (BLACK INNER BOX)', vol: 13248.00 },
+                    { name: 'YTR 35 G BOILED BB SKIN F15', vol: 6350.40 },
+                    { name: 'HERB YTR GIZZARD 40 G S18', vol: 6318.00 },
+                    { name: 'HERB FED YTR GIZZARD 35 G R15', vol: 5775.00 },
+                    { name: 'HERB YTR TAIL 40 G S18', vol: 5313.60 },
+                    { name: 'HERB YTR FILLET 40 G S18', vol: 4201.20 },
+                    { name: 'HERB YTR BOILED BB SKIN 35 G TW18', vol: 4095.00 },
+                    { name: 'HERB YTR BOILED NECK SKIN 40 G S18', vol: 3771.60 },
+                    { name: 'YTR HEART HALF CUT 40 G F15', vol: 3072.00 },
+                    { name: 'HERB YTR GIZZARD 35 G TW18', vol: 2381.40 },
+                    { name: 'HERB YTR BB+YAGEN 45 G S18', vol: 2241.00 },
+                    { name: 'HERB YTR BL 45 G TW18', vol: 1879.20 },
+                    { name: 'HERB YTR BL+SOFT BONE 40 G TW18', vol: 1555.20 }
+                ]
+            },
+            {
+                month: 'JUL', total: 21152.90, topProduct: '35 G BOILED BB SKIN', topVol: 7694,
+                details: [
+                    { name: 'YTR 35 G BOILED BB SKIN F15', vol: 7694.40 },
+                    { name: 'HERB YTR BOILED BB SKIN 35 G TW18', vol: 4101.30 },
+                    { name: 'HERB FED YTR GIZZARD 35 G R15', vol: 3500.00 },
+                    { name: 'HERB YTR GIZZARD 35 G TW18', vol: 2394.00 },
+                    { name: 'HERB YTR BL 45 G TW18', vol: 1879.20 },
+                    { name: 'HERB YTR BL+SOFT BONE 40 G TW18', vol: 1584.00 }
+                ]
+            },
+            {
+                month: 'AUG', total: 20248.00, topProduct: 'BL 23 G BLACK INNER', topVol: 13248,
+                details: [
+                    { name: 'HERB YTR BL 23 G R15 (BLACK INNER BOX)', vol: 13248.00 },
+                    { name: 'HERB FED YTR GIZZARD 35 G R15', vol: 7000.00 }
+                ]
+            },
+            {
+                month: 'SEP', total: 17184.00, topProduct: 'BL 23 G BLACK INNER', topVol: 8820,
+                details: [
+                    { name: 'HERB YTR BL 23 G R15 (BLACK INNER BOX)', vol: 8820.00 },
+                    { name: 'YTR 35 G BOILED BB SKIN F15', vol: 5292.00 },
+                    { name: 'YTR HEART HALF CUT 40 G F15', vol: 3072.00 }
+                ]
+            },
+            {
+                month: 'OCT', total: 14070.00, topProduct: '35 G BOILED BB SKIN', topVol: 8820,
+                details: [
+                    { name: 'YTR 35 G BOILED BB SKIN F15', vol: 8820.00 },
+                    { name: 'HERB FED YTR GIZZARD 35 G R15', vol: 5250.00 }
+                ]
+            },
+            {
+                month: 'NOV', total: 6125.00, topProduct: 'GIZZARD 35 G R15', topVol: 6125,
+                details: [
+                    { name: 'HERB FED YTR GIZZARD 35 G R15', vol: 6125.00 }
+                ]
+            }
+        ];
+
+        // ฟังก์ชันตรวจสอบความสามารถในการใช้เครื่อง (อ้างอิงจากรายชื่อสินค้าที่ไม่สามารถเสียบได้)
+        function checkMachineCapability(name) {
+            const manualKeywords = ['TW18', 'NECK MEAT', 'BB+YAGEN', 'MEMBRANE'];
+            return !manualKeywords.some(kw => name.includes(kw));
+        }
+
+        // --- 1. ฟังก์ชันสร้างตาราง BY TYPE แบบมี Dropdown (คำนวณจาก SKU) ---
+        function renderTypeTable() {
+            const tbody = document.getElementById('typeTableBody');
+            let html = '';
+
+            typeData.forEach((data, index) => {
+                let totalItems = data.details.length;
+                let machineItems = data.details.filter(item => item.machine).length;
+                let calcPct = totalItems > 0 ? Math.round((machineItems / totalItems) * 100) : 0;
+                let machineText = `${machineItems}/${totalItems} (${calcPct}%)`;
+                let textCol = calcPct >= 80 ? 'text-[#50cd89]' : (calcPct >= 50 ? 'text-[#eab308]' : 'text-[#f1416c]');
+
+                html += `
+                    <tr class="hover:bg-[#2b2b40] transition cursor-pointer" onclick="toggleTypeRow(${index})">
+                        <td class="p-3 text-center flex items-center justify-center gap-2">
+                            <svg id="type-icon-${index}" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="#a1a5b7" class="transition-transform duration-300 transform -rotate-90" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                            <span class="${data.color} text-white px-2 py-1 rounded text-xs font-bold">${data.rank}</span>
+                        </td>
+                        <td class="p-3 text-white font-medium">${data.type} <span class="text-xs text-[#a1a5b7]">${data.thName}</span></td>
+                        <td class="p-3 text-right font-en text-[#50cd89]">${data.vol.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                        <td class="p-3 text-center text-[#009ef7] font-en">${data.share}</td>
+                        <td class="p-3 text-center ${textCol} font-en font-bold">${machineText}</td>
+                    </tr>
+                `;
+
+                let detailsHtml = data.details.map((item, i) => {
+                    let badge = item.machine 
+                        ? `<span class="bg-[rgba(80,205,137,0.1)] text-[#50cd89] px-2 py-0.5 rounded text-[10px] font-bold border border-[rgba(80,205,137,0.2)]">100% (Machine)</span>`
+                        : `<span class="bg-[rgba(241,65,108,0.1)] text-[#f1416c] px-2 py-0.5 rounded text-[10px] font-bold border border-[rgba(241,65,108,0.2)]">0% (Manual)</span>`;
+
+                    return `
+                        <tr class="border-b border-[rgba(255,255,255,0.05)] last:border-0 hover:bg-[#222535] transition">
+                            <td class="py-2.5 text-[#e8eaf0] pl-4"><span class="text-[#a1a5b7] mr-2">${i+1}.</span> ${item.name}</td>
+                            <td class="py-2.5 text-right w-32 pr-2">${badge}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                html += `
+                    <tr id="type-child-${index}" class="child-row bg-[#1a1d27] border-b border-[#323248]">
+                        <td colspan="5" class="p-0">
+                            <div class="px-8 lg:px-14">
+                                <p class="text-[11px] text-[#009ef7] font-bold mb-2 uppercase tracking-wider">รายการสินค้าในกลุ่ม ${data.type}</p>
+                                <table class="w-full text-left text-xs mb-2">
+                                    <tbody>
+                                        ${detailsHtml}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function toggleTypeRow(index) {
+            const childRow = document.getElementById(`type-child-${index}`);
+            const icon = document.getElementById(`type-icon-${index}`);
+            
+            if (childRow.classList.contains('open')) {
+                childRow.classList.remove('open');
+                icon.classList.replace('rotate-0', '-rotate-90');
+                icon.setAttribute('fill', '#a1a5b7');
+            } else {
+                document.querySelectorAll('tr[id^="type-child-"].open').forEach(row => {
+                    row.classList.remove('open');
+                });
+                document.querySelectorAll('svg[id^="type-icon-"]').forEach(ic => {
+                    ic.classList.replace('rotate-0', '-rotate-90');
+                    ic.setAttribute('fill', '#a1a5b7');
+                });
+                
+                childRow.classList.add('open');
+                icon.classList.replace('-rotate-90', 'rotate-0');
+                icon.setAttribute('fill', '#009ef7');
+            }
+        }
+
+
+        // --- 2. ฟังก์ชันสร้างตารางรายเดือน (คำนวณจาก SKU) ---
+        function renderMonthlyTable() {
+            const tbody = document.getElementById('monthlyTableBody');
+            let html = '';
+            
+            monthlyData.forEach((data, index) => {
+                
+                let totalItems = data.details.length;
+                let machineItems = 0;
+                data.details.forEach(item => {
+                    if (checkMachineCapability(item.name)) machineItems++;
+                });
+                
+                let machinePct = totalItems > 0 ? Math.round((machineItems / totalItems) * 100) : 0;
+                let pctColor = machinePct >= 80 ? 'text-[#50cd89]' : (machinePct >= 50 ? 'text-[#eab308]' : 'text-[#f1416c]');
+                let displayPct = `${machineItems}/${totalItems} (${machinePct}%)`;
+
+                let isTopMonth = (data.month === 'MAR');
+                let rowBg = isTopMonth ? 'bg-[rgba(0,158,247,0.05)] border-l-2 border-[#009ef7]' : 'hover:bg-[#2b2b40]';
+                let textClass = isTopMonth ? 'text-white font-bold' : 'text-white';
+                let volClass = isTopMonth ? 'text-[#009ef7] font-bold' : 'text-[#50cd89]';
+                
+                html += `
+                    <tr class="${rowBg} transition cursor-pointer border-b border-[#2b2b40]" onclick="toggleRow(${index})">
+                        <td class="p-4 ${textClass} font-en flex items-center gap-3 pl-6">
+                            <svg id="icon-${index}" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#a1a5b7" class="transition-transform duration-300 transform -rotate-90" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                            ${data.month}
+                        </td>
+                        <td class="p-4 text-right ${volClass} font-en">${data.total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                        <td class="p-4 text-xs text-[#a1a5b7] pl-10">${data.topProduct} <span class="text-[#f59e0b]">(${data.topVol.toLocaleString()})</span></td>
+                        <td class="p-4 text-center font-en font-bold ${pctColor}">${displayPct}</td>
+                    </tr>
+                `;
+                
+                let detailsHtml = data.details.map((item, i) => {
+                    let isMachine = checkMachineCapability(item.name);
+                    let badge = isMachine 
+                        ? `<span class="bg-[rgba(80,205,137,0.1)] text-[#50cd89] px-2 py-0.5 rounded text-[10px] font-bold border border-[rgba(80,205,137,0.2)] ml-2">เสียบเครื่อง (Machine)</span>`
+                        : `<span class="bg-[rgba(241,65,108,0.1)] text-[#f1416c] px-2 py-0.5 rounded text-[10px] font-bold border border-[rgba(241,65,108,0.2)] ml-2">เสียบมือ (Manual)</span>`;
+
+                    return `
+                        <tr class="border-b border-[rgba(255,255,255,0.05)] last:border-0 hover:bg-[#222535] transition">
+                            <td class="py-2.5 text-[#e8eaf0] w-[70%]">
+                                <span class="text-[#a1a5b7] mr-2">${i+1}.</span> ${item.name} ${badge}
+                            </td>
+                            <td class="py-2.5 text-right text-white font-en w-[30%]">${item.vol.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} kg.</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                html += `
+                    <tr id="child-${index}" class="child-row bg-[#1a1d27] border-b border-[#323248]">
+                        <td colspan="4" class="p-0">
+                            <div class="px-14 lg:px-24">
+                                <p class="text-[11px] text-[#009ef7] font-bold mb-3 uppercase tracking-wider">รายละเอียดการผลิต (แยกตามความสามารถเครื่องจักร)</p>
+                                <table class="w-full text-left text-xs mb-2">
+                                    <tbody>
+                                        ${detailsHtml}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function toggleRow(index) {
+            const childRow = document.getElementById(`child-${index}`);
+            const icon = document.getElementById(`icon-${index}`);
+            
+            if (childRow.classList.contains('open')) {
+                childRow.classList.remove('open');
+                icon.classList.replace('rotate-0', '-rotate-90');
+                icon.setAttribute('fill', '#a1a5b7');
+            } else {
+                document.querySelectorAll('tr[id^="child-"].open').forEach(row => {
+                    if(!row.id.startsWith('type-child-')) row.classList.remove('open');
+                });
+                document.querySelectorAll('svg[id^="icon-"]').forEach(ic => {
+                    if(!ic.id.startsWith('type-icon-')){
+                        ic.classList.replace('rotate-0', '-rotate-90');
+                        ic.setAttribute('fill', '#a1a5b7');
+                    }
+                });
+                
+                childRow.classList.add('open');
+                icon.classList.replace('-rotate-90', 'rotate-0');
+                icon.setAttribute('fill', '#009ef7');
+            }
+        }
+
+        // --- 3. ฟังก์ชันสร้าง Section สรุปการใช้เครื่องจักร ---
+        function renderMachineAnalysis() {
+            const container = document.getElementById('machineAnalysisContainer');
+            let monthlyAnalysisHtml = '';
+
+            monthlyData.forEach(data => {
+                let totalItems = data.details.length;
+                let machineItems = 0;
+                let machineVol = 0;
+                let manualVol = 0;
+                
+                data.details.forEach(item => {
+                    if (checkMachineCapability(item.name)) {
+                        machineVol += item.vol;
+                        machineItems++;
+                    } else {
+                        manualVol += item.vol;
+                    }
+                });
+                
+                let manualItems = totalItems - machineItems;
+                let machinePct = totalItems > 0 ? Math.round((machineItems / totalItems) * 100) : 0;
+                let manualPct = totalItems > 0 ? Math.round((manualItems / totalItems) * 100) : 0;
+                
+                monthlyAnalysisHtml += `
+                    <tr class="hover:bg-[#2b2b40] transition border-b border-[#2b2b40] last:border-0">
+                        <td class="p-3 text-white font-en font-medium pl-6">${data.month}</td>
+                        <td class="p-3 text-right text-[#a1a5b7] font-en">${data.total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                        <td class="p-3 text-right">
+                            <span class="text-[#50cd89] font-en font-bold">${machineVol.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                            <span class="text-xs text-[#a1a5b7] ml-1">(${machineItems}/${totalItems} = ${machinePct}%)</span>
+                        </td>
+                        <td class="p-3 text-right pr-6">
+                            <span class="text-[#f1416c] font-en font-bold">${manualVol.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                            <span class="text-xs text-[#a1a5b7] ml-1">(${manualItems}/${totalItems} = ${manualPct}%)</span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            // สร้างสรุปข้อมูลตามกลุ่มสินค้าแบบไดนามิก แทนการฮาร์ดโค้ด
+            let typeStatsHtml = '';
+            typeData.forEach(typeObj => {
+                let tTotal = typeObj.details.length;
+                let tMach = typeObj.details.filter(i => i.machine).length;
+                let tMan = tTotal - tMach;
+                let tMachPct = tTotal > 0 ? Math.round((tMach / tTotal) * 100) : 0;
+                let tManPct = tTotal > 0 ? Math.round((tMan / tTotal) * 100) : 0;
+                
+                typeStatsHtml += `
+                    <div class="flex justify-between items-center border-b border-[rgba(255,255,255,0.05)] pb-2">
+                        <span class="text-white font-medium text-sm">${typeObj.rank}. ${typeObj.type}</span>
+                        <div class="text-xs font-en">
+                            <span class="text-[#50cd89]">${tMach}/${tTotal} (${tMachPct}%) Can</span> 
+                            <span class="text-[#323248] mx-1">|</span> 
+                            <span class="text-[#f1416c]">${tMan}/${tTotal} (${tManPct}%) Cannot</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = `
+                <header class="mb-4 border-b border-[#323248] pb-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-white mb-2 tracking-wide font-en">Machine Capability Analysis</h2>
+                    <p class="text-sm text-[#009ef7]">วิเคราะห์ความสามารถในการใช้เครื่องเสียบไม้ (แยกตามกลุ่มสินค้าหลัก และรายเดือน)</p>
+                </header>
+
+                <div class="bg-card rounded-xl shadow-lg border border-[#323248] p-5 mb-6">
+                    <h3 class="text-white font-bold text-sm mb-4">เปรียบเทียบจำนวนชนิดสินค้าในแต่ละเดือน (Total Types vs Machine Skewerable Types)</h3>
+                    <div class="h-[280px] w-full">
+                        <canvas id="machineCapabilityChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden flex flex-col h-fit xl:col-span-1">
+                        <div class="p-4 border-b border-[#323248] bg-[#1a1d27]">
+                            <h3 class="text-white font-bold text-sm">สัดส่วนตามกลุ่มสินค้า <span class="text-[#a1a5b7]">(Top 5 Focus)</span></h3>
+                        </div>
+                        <div class="p-5 flex-1">
+                            <div class="space-y-4">
+                                ${typeStatsHtml}
+                            </div>
+                            <div class="mt-5 p-3 bg-[rgba(241,65,108,0.05)] border border-[rgba(241,65,108,0.2)] rounded-lg">
+                                <p class="text-xs text-[#f1416c] font-medium mb-1 flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                                    สินค้าหลักที่ใช้เครื่องไม่ได้ (Manual 100%)
+                                </p>
+                                <p class="text-[11px] text-[#a1a5b7] leading-relaxed">รหัส TW18 ทั้งหมด, NECK MEAT, BB+YAGEN และ MEMBRANE</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden flex flex-col h-fit xl:col-span-2">
+                        <div class="p-4 border-b border-[#323248] bg-[#1a1d27]">
+                            <h3 class="text-white font-bold text-sm">ปริมาณการผลิตแยกตามการใช้งานเครื่องจักร <span class="text-[#009ef7]">(รายเดือน)</span></h3>
+                        </div>
+                        <div class="overflow-x-auto flex-1 custom-scrollbar">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="bg-[#151521] text-[#a1a5b7] text-xs uppercase">
+                                    <tr>
+                                        <th class="p-3 font-semibold pl-6">Month</th>
+                                        <th class="p-3 font-semibold text-right">Total Volume</th>
+                                        <th class="p-3 font-semibold text-right text-[#50cd89]">Machine Skewerable (kg)</th>
+                                        <th class="p-3 font-semibold text-right text-[#f1416c] pr-6">Manual Skewer (kg)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[#2b2b40]">
+                                    ${monthlyAnalysisHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- ฟังก์ชัน Render กราฟแท่งเปรียบเทียบในหัวข้อ Machine Capability ---
+        function renderMachineCapabilityChart() {
+            const ctx = document.getElementById('machineCapabilityChart').getContext('2d');
+            const labels = monthlyData.map(d => d.month);
+            
+            const totalProducts = monthlyData.map(d => d.details.length);
+            const machineProducts = monthlyData.map(d => {
+                return d.details.filter(item => checkMachineCapability(item.name)).length;
+            });
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Total Unique Products (จำนวนชนิดสินค้าทั้งหมด)', data: totalProducts, backgroundColor: '#323248', borderRadius: 4 },
+                        { label: 'Machine Skewerable (จำนวนชนิดที่ใช้เครื่องได้)', data: machineProducts, backgroundColor: '#50cd89', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom', 
+                            labels: { color: '#a1a5b7', boxWidth: 12, padding: 20 } 
+                        } 
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#2b2b40' }, ticks: { stepSize: 2 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // --- ตั้งค่า Chart ทั่วไป ---
+        Chart.defaults.color = '#a1a5b7';
+        Chart.defaults.borderColor = '#323248';
+        Chart.defaults.font.family = "'Sarabun', 'Inter', sans-serif";
+
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: ['FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV'],
+                datasets: [{
+                    label: 'Production Volume',
+                    data: [15218.1, 89976.82, 88124.59, 89058.49, 58322.4, 21152.9, 20248, 17184, 14070, 6125],
+                    borderColor: '#009ef7',
+                    backgroundColor: 'rgba(0, 158, 247, 0.1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#1e1e2d',
+                    pointBorderColor: '#009ef7',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function(context) { return ' ' + context.parsed.y.toLocaleString() + ' kg.'; } } }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#2b2b40' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        const pieCtx = document.getElementById('pieChart').getContext('2d');
+        new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['1. BL 23G (Black Inner)', '2. 35G Boiled BB Skin', '3. Gizzard 35G', '4. BL 23G (Juct)', '5. Boiled Neck Skin 40G', 'Others'],
+                datasets: [{
+                    data: [120724, 42252, 33259, 32789, 25007, 165449],
+                    backgroundColor: ['#f1416c', '#f59e0b', '#8b5cf6', '#009ef7', '#50cd89', '#323248'],
+                    borderWidth: 0,
+                    hoverOffset: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#a1a5b7', boxWidth: 10, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let total = 419480;
+                                let val = context.parsed;
+                                let pct = ((val/total)*100).toFixed(1);
+                                return ` ${val.toLocaleString()} kg (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // โหลดข้อมูลและตารางตอนเปิดหน้า
+        window.onload = function() {
+            renderTypeTable();
+            renderMonthlyTable();
+            renderMachineAnalysis();
+            
+            // เรียกสร้างกราฟหลังจาก Container (machineAnalysisContainer) ถูกสร้างใน DOM แล้ว
+            renderMachineCapabilityChart();
+        };
+    </script>
+</body>
+</html>

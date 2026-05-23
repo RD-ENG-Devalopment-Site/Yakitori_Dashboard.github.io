@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idle Production Time Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #151521;
+            color: #a1a5b7;
+        }
+        .font-en { font-family: 'Inter', sans-serif; }
+        .bg-card { background-color: #1e1e2d; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #151521; }
+        ::-webkit-scrollbar-thumb { background: #323248; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #474761; }
+
+        .top-nav {
+            background: #1a1d27;
+            border-bottom: 1px solid rgba(255,255,255,.07);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            height: 60px;
+            gap: 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-item {
+            color: #a1a5b7;
+            font-weight: 500;
+            font-size: 14px;
+            text-decoration: none;
+            transition: color 0.2s;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        .nav-item:hover { color: #fff; }
+        .nav-item.active { color: #fff; }
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 0; right: 0;
+            height: 3px;
+            background: #009ef7;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <nav class="top-nav mb-6 bg-[#1a1d27] border-b border-[#323248] text-[#e8eaf0] justify-between">
+        <div class="flex items-center gap-6 h-full">
+            <a href="Main Dashboard_Yakitori.html" class="nav-item">BL23G R15 Experimental data</a>
+            
+        </div>
+        <div class="nav-search cursor-pointer text-[#a1a5b7] hover:text-white transition">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+    </nav>
+
+    <div class="p-4 md:p-8 flex-1 w-full max-w-[1400px] mx-auto">
+        
+        <header class="mb-6 border-b border-[#323248] pb-4">
+            <h1 class="text-2xl md:text-3xl font-bold text-white mb-2 tracking-wide font-en">Idle Production Time Analysis</h1>
+            <p class="text-sm text-[#009ef7]">วิเคราะห์เวลาสูญเปล่าแต่ละขั้นตอน เปรียบเทียบ Gap เพื่อหาคอขวด (Bottleneck) ของการผลิต</p>
+        </header>
+
+        <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden flex flex-col mb-8">
+            <div class="p-4 border-b border-[#323248] bg-[#1a1d27]">
+                <h3 class="text-white font-bold text-sm">ข้อมูลเวลา Idle Production Time (วินาที/ไม้) <span class="text-[#a1a5b7] font-normal ml-2">(คลิกที่แถวเพื่อวิเคราะห์)</span></h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-[#151521] text-[#a1a5b7] text-[11px] uppercase sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="p-3 font-semibold pl-6 w-12 text-center">Select</th>
+                            <th class="p-3 font-semibold">รหัสสินค้า / ชื่อสินค้า</th>
+                            <th class="p-3 font-semibold text-right">เตรียม (RM)</th>
+                            <th class="p-3 font-semibold text-right">เรียงลงบล็อค</th>
+                            <th class="p-3 font-semibold text-right">เข้าเครื่องเสียบ</th>
+                            <th class="p-3 font-semibold text-right">เช็คสเปค</th>
+                            <th class="p-3 font-semibold text-right">แพ็คสินค้า</th>
+                            <th class="p-3 font-semibold text-right">รวม (วิ)</th>
+                            <th class="p-3 font-semibold text-right text-[#009ef7] pr-6">จำนวนไม้/ชม.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="masterTableBody" class="divide-y divide-[#2b2b40]">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="analysisSection" class="hidden animate-[fadeIn_0.5s_ease-in-out]">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-2 h-6 bg-[#f1416c] rounded-full"></div>
+                <h2 id="selectedProductName" class="text-xl font-bold text-white font-en">Selected Product</h2>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+                
+                <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden">
+                    <div class="p-4 border-b border-[#323248] bg-[#1a1d27]">
+                        <h3 class="text-white font-bold text-sm">วิเคราะห์เวลาแต่ละขั้นตอน <span class="text-[#f1416c] font-normal">(Focus: คอขวด Actual vs รอบที่เลือก)</span></h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-[#151521] text-[#a1a5b7] text-[10px] uppercase">
+                                <tr>
+                                    <th class="p-4 font-semibold pl-6 w-[35%]">ขั้นตอน (Station)</th>
+                                    <th class="p-4 font-semibold text-center">Idle Time (วิ)</th>
+                                    <th class="p-4 font-semibold text-center text-[#009ef7]">Actual/Trial (วิ)</th>
+                                    <th class="p-4 font-semibold text-center">ส่วนต่าง GAP</th>
+                                    <th class="p-4 font-semibold text-right pr-6">% ความแตกต่าง</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gapTableBody" class="divide-y divide-[rgba(255,255,255,0.03)] text-xs md:text-sm">
+                                </tbody>
+                            <tfoot id="gapTableFoot" class="bg-[#1a1d27] border-t-2 border-[#323248] font-bold">
+                                </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-card rounded-xl shadow-lg border border-[#323248] p-5">
+                    <h3 class="text-white font-bold text-sm mb-4">กราฟเปรียบเทียบเวลา (Idle vs Actual)</h3>
+                    <div class="h-[300px] w-full">
+                        <canvas id="gapChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const productionData = [
+            {
+                id: '111319220',
+                name: 'HERB YTR BL 23 G R15 (BLACK INNER BOX)',
+                idle: [0.00, 22.30, 1.25, 5.00, 5.40], 
+                actual: [0.00, 23.55, 1.25, 7.35, 8.30] 
+            },
+            {
+                id: '111365203',
+                name: 'HERB YTR HEART OPEN CUT 40 G S18',
+                idle: [14.00, 19.30, 1.25, 5.00, 5.50],
+                actual: [14.50, 20.00, 1.50, 5.50, 6.20]
+            },
+            {
+                id: '111319221',
+                name: 'HERB YTR BL 23 G R15 (JUCT INNER BOX)',
+                idle: [0.00, 22.30, 1.25, 5.00, 5.40],
+                actual: [8.50, 23.00, 1.25, 6.50, 7.00] 
+            },
+            {
+                id: '111365201',
+                name: 'YTR HEART HALF CUT 40 G F15',
+                idle: [14.00, 19.30, 1.25, 5.00, 5.50],
+                actual: [15.00, 22.00, 1.25, 5.10, 5.80] 
+            },
+            {
+                id: '111366205',
+                name: 'HERB YTR GIZZARD 40 G S18',
+                idle: [23.25, 25.00, 1.25, 5.00, 5.50],
+                actual: [25.00, 28.50, 1.50, 8.00, 6.00] 
+            },
+            {
+                id: '111319217',
+                name: 'HERB YTR BL 40 G S18',
+                idle: [40.25, 28.00, 1.25, 5.00, 5.50],
+                actual: [42.00, 29.00, 1.25, 5.50, 5.50] 
+            },
+            {
+                id: '111319222',
+                name: 'HERB YTR BL 25 G R15 (INNER BOX)',
+                idle: [0.00, 22.30, 1.25, 5.00, 5.40],
+                actual: [9.00, 24.50, 1.25, 5.00, 6.50] 
+            },
+            {
+                id: '111319219',
+                name: 'HERB YTR BL 30 G R15',
+                idle: [18.95, 20.00, 1.25, 5.00, 5.50],
+                actual: [20.00, 21.50, 1.25, 5.50, 7.00] 
+            },
+            {
+                id: '111327201',
+                name: 'YTR 35 G BOILED BB SKIN F15',
+                idle: [15.25, 25.00, 1.25, 5.00, 5.50],
+                actual: [16.00, 26.50, 1.30, 6.00, 8.50] 
+            }
+        ];
+
+        const stepNames = [
+            "1. เตรียม (RM)", 
+            "2. เรียงเนื้อลงบล็อค", 
+            "3. การเข้าเครื่องเสียบ", 
+            "4. การเช็คสเปค", 
+            "5. การ Packing"
+        ];
+
+        let selectedIndex = 0;
+        let gapChartInstance = null;
+
+        // คำนวณผลรวมของ Array
+        const sumArray = (arr) => arr.reduce((a, b) => a + b, 0);
+
+        // Format ทศนิยม 2 ตำแหน่ง
+        const formatNum = (num) => num.toFixed(2);
+        
+        // แสดง + หรือ - ด้านหน้าตัวเลข
+        const formatGap = (num) => (num > 0 ? '+' : '') + num.toFixed(2);
+
+        // ฟังก์ชันสร้างตาราง Master Data ด้านบน
+        function renderMasterTable() {
+            const tbody = document.getElementById('masterTableBody');
+            let html = '';
+
+            productionData.forEach((data, index) => {
+                const totalIdle = sumArray(data.idle);
+                
+                // คำนวณจำนวนไม้ต่อชั่วโมง (3600 วิ / รอบเวลาต่อไม้)
+                const sticksPerHour = totalIdle > 0 ? (3600 / totalIdle).toFixed(0) : 0; 
+
+                const isSelected = index === selectedIndex;
+                const rowBg = isSelected ? 'bg-[rgba(0,158,247,0.1)] border-l-2 border-[#009ef7]' : 'hover:bg-[#2b2b40]';
+                const checkColor = isSelected ? 'text-[#009ef7]' : 'text-transparent border-[#323248]';
+                
+                html += `
+                    <tr class="${rowBg} transition cursor-pointer border-b border-[#2b2b40]" onclick="selectProduct(${index})">
+                        <td class="p-3 pl-6 text-center">
+                            <div class="w-4 h-4 rounded-full border-2 border-[#009ef7] flex items-center justify-center mx-auto">
+                                <div class="w-2 h-2 rounded-full bg-current ${checkColor}"></div>
+                            </div>
+                        </td>
+                        <td class="p-3">
+                            <p class="text-white font-medium text-xs lg:text-sm truncate w-[200px] md:w-auto">${data.name}</p>
+                            <p class="text-[10px] text-[#a1a5b7] font-en">CODE: ${data.id}</p>
+                        </td>
+                        <td class="p-3 text-right font-en text-[#a1a5b7]">${formatNum(data.idle[0])}</td>
+                        <td class="p-3 text-right font-en text-[#a1a5b7]">${formatNum(data.idle[1])}</td>
+                        <td class="p-3 text-right font-en text-[#a1a5b7]">${formatNum(data.idle[2])}</td>
+                        <td class="p-3 text-right font-en text-[#a1a5b7]">${formatNum(data.idle[3])}</td>
+                        <td class="p-3 text-right font-en text-[#a1a5b7]">${formatNum(data.idle[4])}</td>
+                        <td class="p-3 text-right font-en text-[#50cd89] font-bold">${formatNum(totalIdle)}</td>
+                        <td class="p-3 text-right font-en text-[#009ef7] font-bold pr-6">${sticksPerHour}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // ฟังก์ชันเมื่อคลิกเลือกสินค้า
+        function selectProduct(index) {
+            selectedIndex = index;
+            document.getElementById('analysisSection').classList.remove('hidden');
+            renderMasterTable();
+            renderAnalysisSection();
+        }
+
+        // ฟังก์ชันสร้างตาราง Gap Analysis ด้านล่าง
+        function renderAnalysisSection() {
+            const data = productionData[selectedIndex];
+            document.getElementById('selectedProductName').innerText = data.name;
+
+            const tbody = document.getElementById('gapTableBody');
+            const tfoot = document.getElementById('gapTableFoot');
+            let rowsHtml = '';
+
+            let totalIdle = 0;
+            let totalActual = 0;
+
+            for (let i = 0; i < 5; i++) {
+                let idle = data.idle[i];
+                let actual = data.actual[i];
+                let gap = actual - idle;
+                let pctDiff = idle === 0 ? 0 : (gap / idle) * 100;
+
+                totalIdle += idle;
+                totalActual += actual;
+
+                // ตรรกะตรวจจับ Bottleneck (ถ้าต่างกัน > 15% และ Gap เป็นบวก ให้ขึ้นตัวแดง)
+                let isBottleneck = gap > 0 && pctDiff >= 15;
+                let nameClass = isBottleneck ? 'text-[#f1416c]' : 'text-[#e8eaf0]';
+                let stepLabel = stepNames[i] + (isBottleneck ? ' <span class="text-[#f1416c] font-bold text-[10px] ml-1">(Bottleneck)</span>' : '');
+                let gapColor = gap > 0 ? 'text-[#f1416c]' : (gap < 0 ? 'text-[#50cd89]' : 'text-[#a1a5b7]');
+
+                rowsHtml += `
+                    <tr class="hover:bg-[#222535] transition">
+                        <td class="p-4 pl-6 ${nameClass} font-medium">${stepLabel}</td>
+                        <td class="p-4 text-center text-[#009ef7] font-en">${formatNum(idle)}</td>
+                        <td class="p-4 text-center text-white font-en">${formatNum(actual)}</td>
+                        <td class="p-4 text-center ${gapColor} font-en font-bold">${formatGap(gap)}</td>
+                        <td class="p-4 text-right pr-6 ${gapColor} font-en font-bold">${formatGap(pctDiff)}%</td>
+                    </tr>
+                `;
+            }
+
+            let totalGap = totalActual - totalIdle;
+            let totalPct = totalIdle === 0 ? 0 : (totalGap / totalIdle) * 100;
+            let totalColor = totalGap > 0 ? 'text-[#f1416c]' : 'text-[#50cd89]';
+
+            let footHtml = `
+                <tr>
+                    <td class="p-4 pl-6 text-white text-right">ระยะเวลารวม (TOTAL CT)</td>
+                    <td class="p-4 text-center text-[#009ef7] font-en">${formatNum(totalIdle)}</td>
+                    <td class="p-4 text-center text-white font-en">${formatNum(totalActual)}</td>
+                    <td class="p-4 text-center ${totalColor} font-en">${formatGap(totalGap)}</td>
+                    <td class="p-4 text-right pr-6 ${totalColor} font-en">${formatGap(totalPct)}%</td>
+                </tr>
+            `;
+
+            tbody.innerHTML = rowsHtml;
+            tfoot.innerHTML = footHtml;
+
+            updateChart(data.idle, data.actual);
+        }
+
+        // ฟังก์ชันสร้างและอัปเดตกราฟแท่ง
+        function updateChart(idleData, actualData) {
+            const ctx = document.getElementById('gapChart').getContext('2d');
+
+            Chart.defaults.color = '#a1a5b7';
+            Chart.defaults.borderColor = '#323248';
+            Chart.defaults.font.family = "'Sarabun', 'Inter', sans-serif";
+
+            if (gapChartInstance) {
+                gapChartInstance.destroy();
+            }
+
+            const actualBgColors = actualData.map((val, i) => {
+                let gap = val - idleData[i];
+                let pctDiff = idleData[i] === 0 ? 0 : (gap / idleData[i]) * 100;
+                return (gap > 0 && pctDiff >= 15) ? '#f1416c' : '#50cd89'; 
+            });
+
+            gapChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['RM', 'เรียงเนื้อ', 'เครื่องเสียบ', 'เช็คสเปค', 'Packing'],
+                    datasets: [
+                        {
+                            label: 'Idle Time (Target)',
+                            data: idleData,
+                            backgroundColor: '#009ef7',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Actual/Trial Time',
+                            data: actualData,
+                            backgroundColor: actualBgColors,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.dataset.label}: ${context.parsed.y.toFixed(2)} วิ`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#2b2b40' }, title: { display: true, text: 'วินาที (Seconds)', color: '#a1a5b7' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Initial Load
+        window.onload = function() {
+            renderMasterTable();
+            selectProduct(0); 
+        };
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</body>
+</html>
