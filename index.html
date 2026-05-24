@@ -211,7 +211,7 @@
                     
                     <div class="bg-card rounded-xl p-5 border border-[#323248] shadow-sm flex items-center gap-4">
                         <div class="w-12 h-12 rounded-full bg-[rgba(0,158,247,0.1)] flex items-center justify-center text-[#009ef7] flex-shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h-2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/></svg>
                         </div>
                         <div>
                             <p class="text-[11px] text-[#a1a5b7] uppercase font-bold tracking-wider mb-0.5">Avg Efficiency</p>
@@ -228,7 +228,7 @@
                             <div class="flex justify-between items-end mb-2">
                                 <div class="flex items-center gap-2">
                                     <span class="w-2 h-2 rounded-full bg-[#8b5cf6]"></span>
-                                    <span class="text-sm font-bold text-white">BL 23G <span id="bl-round-text" class="text-xs text-[#a1a5b7] ml-1 font-normal">(Syncing...)</span></span>
+                                    <span class="text-sm font-bold text-white">BL 23G <span id="bl-round-text" class="text-xs text-[#a1a5b7] ml-1 font-normal">(Loading...)</span></span>
                                 </div>
                                 <div class="text-right flex items-baseline justify-end gap-2">
                                     <span id="bl-prod-val" class="text-[#8b5cf6] font-bold font-en text-lg">--</span>
@@ -246,8 +246,8 @@
                             </div>
 
                             <div class="flex justify-between items-center mt-1">
-                                <div id="bl-prog-text" class="text-[11px] text-[#a1a5b7]">Efficiency Rate (%): --%</div>
-                                <div id="bl-best-text" class="text-[11px] text-[#ffc700] font-medium">Best Record: -- (Target: 106)</div>
+                                <p id="bl-prog-text" class="text-[11px] text-[#a1a5b7]">Efficiency Rate (%): --%</p>
+                                <p id="bl-best-text" class="text-[11px] text-[#ffc700] font-medium">Best Record: -- (Target: 106)</p>
                             </div>
                         </div>
 
@@ -255,7 +255,7 @@
                             <div class="flex justify-between items-end mb-2">
                                 <div class="flex items-center gap-2">
                                     <span class="w-2 h-2 rounded-full bg-[#009ef7]"></span>
-                                    <span class="text-sm font-bold text-white">Gizzard 40G S18 <span id="giz-round-text" class="text-xs text-[#a1a5b7] ml-1 font-normal">(Syncing...)</span></span>
+                                    <span class="text-sm font-bold text-white">Gizzard 40G S18 <span id="giz-round-text" class="text-xs text-[#a1a5b7] ml-1 font-normal">(Loading...)</span></span>
                                 </div>
                                 <div class="text-right flex items-baseline justify-end gap-2">
                                     <span id="giz-prod-val" class="text-[#009ef7] font-bold font-en text-lg">--</span>
@@ -273,8 +273,8 @@
                             </div>
 
                             <div class="flex justify-between items-center mt-1">
-                                <div id="giz-prog-text" class="text-[11px] text-[#a1a5b7]">Efficiency Rate (%): --%</div>
-                                <div id="giz-best-text" class="text-[11px] text-[#ffc700] font-medium">Best Record: -- (Target: 84)</div>
+                                <p id="giz-prog-text" class="text-[11px] text-[#a1a5b7]">Efficiency Rate (%): --%</p>
+                                <p id="giz-best-text" class="text-[11px] text-[#ffc700] font-medium">Best Record: -- (Target: 84)</p>
                             </div>
                         </div>
 
@@ -346,79 +346,69 @@
 
         const targetGiz = 84;  
         const targetBl = 106;  
-        
-        // ศูนย์รวม Web App URL ตัวควบคุมหลังบ้านฐานข้อมูลกลางผ่าน API คลาวด์
-        const baseWebAppUrl = "https://script.google.com/macros/s/AKfycbzCP20irjQdA65MEQXeB4KW8kkvmYRMJYbL8Zm1IdklPpKvvmTIIFcx0Zs_pm3Nwyel/exec?page=api";
-
-        let blEffCached = 0;
-        let gizEffCached = 0;
 
         window.onload = function() {
+            // ดึงข้อมูลครั้งแรกเมื่อโหลดหน้าจอสำเร็จ
             fetchProjectData();
             
-            // 🔥 ENGINE AUTO-REFRESH: วนลูปทำงานดึงข้อมูลจากชีตแบบ Real-time ทุกๆ 10 วินาที
-            setInterval(fetchProjectData, 10000);
+            // 🔄 อัปเดตข้อมูลอัตโนมัติแบบ Real-time ทุกๆ 5 วินาทีเมื่อมีข้อมูลไหลเข้ามาใหม่
+            setInterval(fetchProjectData, 5000);
         };
 
         async function fetchProjectData() {
-            let activeCount = 0;
-            let sumEff = 0;
+            // เคลียร์ค่าตัวแปรสะสมทุกรอบการทำงานเพื่อป้องกันตัวเลขเฉลี่ยสะสมซ้ำซ้อน
+            let avgEffTotal = 0;
+            let activeProjectsCount = 0;
 
-            // 1. ดึงข้อมูล Gizzard 40G (ชีตหลัก S18) จากคลาวด์โดยตรง
+            // 1. ดึงข้อมูล Gizzard ล่าสุดจากไฟล์ JSON หลัก
             try {
-                const responseGiz = await fetch(`${baseWebAppUrl}&sheet=GZ40gS18_DataLog`);
-                if(responseGiz.ok) {
-                    const dataGiz = await responseGiz.json();
-                    if(dataGiz && !dataGiz.error) {
-                        let eff = updateProgressUI('giz', dataGiz, targetGiz);
-                        if(eff > 0) { gizEffCached = eff; activeCount++; sumEff += eff; }
-                    } else { throw new Error(); }
-                } else { throw new Error(); }
+                const resGiz = await fetch('Gizzard Main Dashboard/GizzardS18_Main DashBoard_Yakitori.json');
+                if(resGiz.ok) {
+                    const dataGiz = await resGiz.json();
+                    let eff = updateProgressUI('giz', dataGiz, targetGiz);
+                    if(eff > 0) {
+                        avgEffTotal += eff;
+                        activeProjectsCount++;
+                    }
+                }
             } catch (e) {
-                // ระบบ Fallback ประคอง UI เมื่อตัดการเชื่อมต่อเครือข่าย
-                let mockGiz = { "1": {prod:37.0}, "2": {prod:19.3}, "3": {prod:42.4}, "4": {prod:32.0}, "5": {prod:45.1}, "6": {prod:37.0}, "7": {prod:36.8} };
-                let eff = updateProgressUI('giz', mockGiz, targetGiz);
-                document.getElementById(`giz-round-text`).innerText += ` (Backup Mode)`;
-                if(eff > 0) { gizEffCached = eff; activeCount++; sumEff += eff; }
+                console.error("Error fetching Gizzard data:", e);
             }
 
-            // 2. ดึงข้อมูล BL 23G (ชีตหลัก R15) จากคลาวด์แบบ Dynamic (ปลดล็อก Local Mode เก่าแล้ว)
+            // 2. ดึงข้อมูล BL ล่าสุดโดยตรง (อัปเดตแบบ Dynamic อิงตามโครงสร้างข้อมูลจริงถึงกลุ่มที่ 37)
             try {
-                const responseBl = await fetch(`${baseWebAppUrl}&sheet=BL23gS15_DataLog`);
-                if(responseBl.ok) {
-                    const dataBl = await responseBl.json();
-                    if(dataBl && !dataBl.error) {
-                        let eff = updateProgressUI('bl', dataBl, targetBl);
-                        if(eff > 0) { blEffCached = eff; activeCount++; sumEff += eff; }
-                    } else { throw new Error(); }
-                } else { throw new Error(); }
+                const resBl = await fetch('BL23g Dashboard/BL23g_Main DashBoard_Yakitori.json');
+                if(resBl.ok) {
+                    const dataBl = await resBl.json();
+                    let eff = updateProgressUI('bl', dataBl, targetBl);
+                    if(eff > 0) {
+                        avgEffTotal += eff;
+                        activeProjectsCount++;
+                    }
+                }
             } catch (e) {
-                // ระบบ Fallback ประคอง UI เมื่อตัดการเชื่อมต่อเครือข่าย ป้องกันแถบกราฟเสียหาย
-                let mockBl = { "1": {prod:80}, "4": {prod:90}, "34": {prod:91.0} };
-                let eff = updateProgressUI('bl', mockBl, targetBl);
-                document.getElementById(`bl-round-text`).innerText += ` (Backup Mode)`;
-                if(eff > 0) { blEffCached = eff; activeCount++; sumEff += eff; }
+                console.error("Error fetching BL data:", e);
             }
 
-            // 3. อัปเดตและคำนวณ Avg Efficiency ภาพรวมของโครงการบนบอร์ดบริหาร
-            if(activeCount > 0) {
-                const finalAvg = sumEff / activeCount;
-                document.getElementById('avg-eff-display').innerHTML = `${finalAvg.toFixed(1)}<span class="text-lg text-[#a1a5b7]">%</span>`;
+            // 3. คำนวณหาค่าเฉลี่ยประสิทธิภาพ (Avg Efficiency) รวมของหน้า Portal
+            if(activeProjectsCount > 0) {
+                const avg = avgEffTotal / activeProjectsCount;
+                document.getElementById('avg-eff-display').innerHTML = `${avg.toFixed(1)}<span class="text-lg text-[#a1a5b7]">%</span>`;
             }
         }
 
         function updateProgressUI(prefix, data, target) {
-            if (data["เดิม"]) delete data["เดิม"];
-            
+            // คัดกรองเอาเฉพาะคีย์ที่เป็นตัวเลขกลุ่มทดลอง (Trial) และมีข้อมูลการผลิตอยู่จริง
             const keys = Object.keys(data).filter(k => !isNaN(k) && data[k] && data[k].prod !== undefined);
             if(keys.length === 0) return 0;
             
-            // เรียงลำดับคีย์เพื่อค้นหา Trial ล่าสุด
+            // เรียงลำดับคีย์จากน้อยไปมากเพื่อการันตีว่าตัวสุดท้ายคือตัวล่าสุดจริง
             keys.sort((a, b) => parseInt(a) - parseInt(b));
             
             const latestKey = keys[keys.length - 1]; 
             const latestData = data[latestKey];
             
+            // ค้นหาจุดทดสอบที่ทำสถิติกำลังผลิตได้ดีที่สุด (Best Record)
             let bestKey = keys[0];
             let bestProd = data[bestKey].prod;
             keys.forEach(k => {
@@ -431,17 +421,17 @@
             if(latestData && latestData.prod !== undefined) {
                 const prodVal = latestData.prod;
                 
-                // คำนวณหา % ประสิทธิภาพจริงเทียบตามสมการวิศวกรรมสัดส่วนกำลังผลิต
                 let percent = (prodVal / target) * 100;
                 let displayPercent = percent > 100 ? 100 : percent;
 
                 let bestPercent = (bestProd / target) * 100;
                 let displayBestPercent = bestPercent > 100 ? 100 : bestPercent;
 
+                // อัปเดตข้อมูลฝั่ง UI Elements
                 document.getElementById(`${prefix}-prod-val`).innerText = prodVal.toFixed(1);
                 document.getElementById(`${prefix}-target-display`).innerText = `Target: ${target}`;
                 
-                // ขับเคลื่อนแท่งอนิเมชันให้เคลื่อนไหวสอดรับกับค่าล่าสุด
+                // สั่งขยับแท่งแอนิเมชัน Progress Bar 
                 document.getElementById(`${prefix}-prog-bar`).style.width = `${displayPercent}%`;
                 document.getElementById(`${prefix}-best-bar`).style.width = `${displayBestPercent}%`;
                 
@@ -449,7 +439,7 @@
                 document.getElementById(`${prefix}-round-text`).innerText = `(Trial ${latestKey})`;
                 document.getElementById(`${prefix}-best-text`).innerText = `Best Record: ${bestProd.toFixed(1)} (${bestPercent.toFixed(1)}%) - Trial ${bestKey}`;
                 
-                return percent;
+                return percent; // ส่งค่าเปอร์เซ็นต์กลับไปใช้วิเคราะห์ค่าเฉลี่ยรวม
             }
             return 0;
         }
