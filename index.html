@@ -171,7 +171,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/></svg>
                     </div>
                     <h3 class="text-white font-bold text-lg mb-1">BOILED BB SKIN</h3>
-                    <p class="text-xs text-[#a1a5b7] mb-4">มีแพลนติดตามกระบวนการในอนาค</p>
+                    <p class="text-xs text-[#a1a5b7] mb-4">มีแพลนติดตามกระบวนการในอนาคต</p>
                     <a href="#" target="_blank" class="text-[#50cd89] text-sm font-bold hover:text-white transition flex items-center gap-1">
                         ไปที่ Dashboard <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
                     </a>
@@ -271,7 +271,7 @@
                             </div>
                         </div>
 
-                        <!-- 3. Gz 30G R15 (เพิ่มใหม่ตามความต้องการ) -->
+                        <!-- 3. Gz 30G R15 -->
                         <div>
                             <div class="flex justify-between items-end mb-2">
                                 <div class="flex items-center gap-2">
@@ -387,7 +387,8 @@
         function useMockData(prefix, target) {
             let mockData = {};
             if (prefix === 'bl') {
-                mockData = { "1": {prod:80}, "2": {prod:45}, "3": {prod:85}, "4": {prod:90} };
+                // อัปเดต Mock Data ให้สะท้อนข้อมูลสถิติที่แท้จริงตามความต้องการ (Trial 34 = 91.0)
+                mockData = { "1": {prod:80}, "4": {prod:90}, "34": {prod:91.0} };
             } else if (prefix === 'giz') {
                 mockData = { "1": {prod:37.0}, "2": {prod:19.3}, "3": {prod:42.4}, "4": {prod:32.0}, "5": {prod:45.0}, "6": {prod:37.0}, "7": {prod:36.8} };
             }
@@ -397,15 +398,12 @@
         }
 
         function updateProgressUI(prefix, data, target) {
-            // คัดแยกกรองคีย์เพื่อหลีกเลี่ยงข้อผิดพลาดจาก String หรือวัตถุที่ไม่เกี่ยวข้อง
             const keys = Object.keys(data).filter(k => !isNaN(k) && data[k] && data[k].prod !== undefined);
             if(keys.length === 0) return;
             
-            // ค้นหาข้อมูล Trial รอบล่าสุด
             const latestKey = keys[keys.length - 1]; 
             const latestData = data[latestKey];
             
-            // ลอจิกคัดสรรหา Best Record อ้างอิงจากข้อมูลจำลองภายในหรือ JSON เพื่อความเที่ยงตรง
             let bestKey = keys[0];
             let bestProd = data[bestKey].prod;
             keys.forEach(k => {
