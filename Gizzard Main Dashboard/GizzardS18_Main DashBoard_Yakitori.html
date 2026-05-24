@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HERB YTR Gizzard 40G S18 - Main Dashboard</title>
+    <title>BL23g_Main Dashboard_Yakitori</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -86,50 +86,6 @@
           transition: transform 0.2s;
         }
         .nav-item:hover .dropdown-icon { transform: rotate(180deg); }
-        .nav-dropdown {
-          position: absolute;
-          top: 60px;
-          left: 0;
-          background: #222535;
-          border: 1px solid rgba(255,255,255,.07);
-          border-radius: 0 0 8px 8px;
-          min-width: 280px;
-          opacity: 0;
-          visibility: hidden;
-          transform: translateY(-10px);
-          transition: all 0.2s ease;
-          z-index: 1001;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .nav-item:hover .nav-dropdown {
-          opacity: 1;
-          visibility: visible;
-          transform: translateY(0);
-        }
-        .dropdown-item {
-          padding: 12px 16px;
-          color: #e8eaf0;
-          display: block;
-          text-decoration: none;
-          transition: background 0.15s;
-          border-bottom: 1px solid rgba(255,255,255,.07);
-          line-height: 1.4;
-        }
-        .dropdown-item:last-child { border-bottom: none; }
-        .dropdown-item:hover { background: #1a1d27; color: #fff; }
-        .dropdown-subtext { display: block; font-size: 11px; color: #6b7280; margin-top: 2px; }
-        .nav-search {
-          margin-left: auto;
-          color: #e8eaf0;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          opacity: 0.8;
-          transition: opacity 0.2s;
-        }
-        .nav-search:hover { opacity: 1; color: #fff; }
-        .nav-search svg { width: 20px; height: 20px; }
-        
         .glow-text-green { text-shadow: 0 0 15px rgba(80, 205, 137, 0.4); }
         .glow-text-blue { text-shadow: 0 0 15px rgba(0, 158, 247, 0.4); }
     </style>
@@ -138,11 +94,7 @@
 
     <nav class="top-nav mb-6 bg-[#1a1d27] border-b border-[#323248] text-[#e8eaf0]">
       <a href="../index.html" class="nav-item">HOME</a>
-      <a href="#" class="nav-item">HERB YTR Gizzard 40G S18</a>
-  
-      <div class="nav-search">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-      </div>
+      <a href="#" class="nav-item active">BL23G Experimental</a>
     </nav>
 
     <header class="mb-6 border-b border-[#323248] pb-6">
@@ -155,10 +107,10 @@
             <div class="flex flex-wrap gap-3">
                 <div class="bg-[#151521] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm">
                     <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">1. ยอดผลิตเป้าหมาย (Actual)</p>
-                    <p class="text-xl font-bold text-white font-en">1,440 <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
+                    <p class="text-xl font-bold text-white font-en">1,510 <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
                 </div>
                 <div class="bg-[#151521] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm">
-                    <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">2. ผลผลิตสูงสุด</p>
+                    <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">2. ผลผลิตสูงสุด (Best Record)</p>
                     <p class="text-xl font-bold text-[#50cd89] font-en" id="header-max-yield">-- <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
                 </div>
                 <div class="bg-[#1e1e2d] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm border-b-2 border-b-[#009ef7]">
@@ -173,14 +125,14 @@
         </div>
     </header>
 
-    <nav class="flex-1 w-full pb-8">
+    <main class="flex-1 w-full pb-8">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#009ef7] shadow-lg">
                 <p class="text-sm font-semibold mb-2">Productivity (ไม้/คน/ชม.)</p>
                 <div class="flex items-end gap-3 mt-1">
                     <h2 class="text-4xl font-bold text-white font-en" id="kpi-prod">--</h2>
                 </div>
-                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">เป้าหมาย Target: <span id="kpi-target-prod">84</span></p>
+                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">เป้าหมาย Target: 84</p>
             </div>
 
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#50cd89] shadow-lg">
@@ -211,7 +163,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             <div class="lg:col-span-2 space-y-6">
                 <div class="bg-card rounded-xl p-6 shadow-lg">
-                    <h3 class="text-sm font-bold text-white mb-4">แนวโน้มประสิทธิภาพ Efficiency Rate (%) (ตั้งแต่วันเริ่มต้น - ปัจจุบัน)</h3>
+                    <h3 class="text-sm font-bold text-white mb-4">แนวโน้มประสิทธิภาพ Productivity (ตั้งแต่วันเริ่มต้น - ปัจจุบัน)</h3>
                     <div class="h-[350px] relative">
                         <canvas id="trendChart"></canvas>
                     </div>
@@ -307,7 +259,7 @@
             <div class="p-5 border-b border-[#323248] flex justify-between items-center">
                 <div>
                     <h3 class="text-white font-bold text-sm">วิเคราะห์เวลาแต่ละขั้นตอน (Focus: คอขวด Actual vs รอบที่เลือก)</h3>
-                    <p class="text-xs text-[#a1a5b7] mt-1">เปรียบเทียบหา Gap และ % ความแตกต่างเพื่อวิเคราะห์</p>
+                    <p class="text-xs text-[#a1a5b7] mt-1">เปรียบเทียบหา Gap และ % ความแตกต่างเพื่อวิเคราะห์วัตถุดิบและระบบเวลา</p>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -315,7 +267,7 @@
                     <thead>
                         <tr class="bg-[#151521] text-[11px] uppercase tracking-wider text-[#a1a5b7] border-b border-[#323248]">
                             <th class="p-4 font-medium text-left">ขั้นตอน (STATION)</th>
-                            <th class="p-4 font-medium text-center">Baseline เวลา (วิ)</th>
+                            <th class="p-4 font-medium text-center">Baseline เวลาเป้าหมาย (วิ)</th>
                             <th class="p-4 font-medium text-center text-[#009ef7]" id="gap-header-selected">รอบปัจจุบัน (วิ)</th>
                             <th class="p-4 font-medium text-center">ส่วนต่าง GAP</th>
                             <th class="p-4 font-medium text-center">% ความแตกต่าง</th>
@@ -365,7 +317,7 @@
             </div>
         </div>
 
-        <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden flex flex-col mb-10">
+        <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden mb-6 mt-4">
             <div class="p-5 border-b border-[#323248] bg-[#1a1d27] flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="text-[#009ef7]" viewBox="0 0 16 16">
@@ -395,7 +347,7 @@
         <div class="mt-8 pt-8 border-t-2 border-[#323248]">
             <h2 class="text-2xl font-bold text-white mb-6 font-en flex items-center">
                 Efficiency Growth & Impact Analysis 
-                <span id="executive-summary-tag" class="text-xs font-normal text-[#50cd89] bg-[rgba(80,205,137,0.1)] border border-[#50cd89] px-3 py-1 rounded-full ml-4">Executive Summary</span>
+                <span class="text-xs font-normal text-[#50cd89] bg-[rgba(80,205,137,0.1)] border border-[#50cd89] px-3 py-1 rounded-full ml-4">Executive Summary</span>
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -403,16 +355,16 @@
                     <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Productivity (ไม้/คน/ชม.)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p id="summary-prod-sub" class="text-[10px] text-[#7e8299] mb-1">ครั้งที่ 1 -> ดีที่สุด</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-prod">ครั้งที่ 1 -> ดีที่สุด</p>
                             <div class="flex items-baseline gap-2">
-                                <span id="summary-prod-start" class="text-2xl font-bold text-white font-en">--</span>
+                                <span class="text-2xl font-bold text-white font-en" id="val-t1-prod">0.0</span>
                                 <span class="text-xs text-[#a1a5b7]">➔</span>
-                                <span id="summary-prod-end" class="text-3xl font-bold text-[#50cd89] font-en glow-text-green">--</span>
+                                <span class="text-3xl font-bold text-[#50cd89] font-en glow-text-green" id="val-best-prod">0.0</span>
                             </div>
                         </div>
                         <div class="border border-[#323248] bg-[#151521] px-2 py-1.5 rounded-lg text-center">
-                            <span class="block text-[10px] text-[#50cd89] mb-0.5">อัตราการโต</span>
-                            <span id="summary-prod-rate" class="text-sm font-bold text-[#50cd89] font-en">--%</span>
+                            <span class="block text-[10px] text-[#50cd89] mb-0.5">เพิ่มขึ้น</span>
+                            <span class="text-sm font-bold text-[#50cd89] font-en" id="growth-prod">+0.0%</span>
                         </div>
                     </div>
                 </div>
@@ -421,34 +373,34 @@
                     <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Efficiency Leap (%)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p id="summary-eff-sub" class="text-[10px] text-[#7e8299] mb-1">ครั้งที่ 1 -> ดีที่สุด</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-eff">ครั้งที่ 1 -> ดีที่สุด</p>
                             <div class="flex items-baseline gap-2">
-                                <span id="summary-eff-start" class="text-2xl font-bold text-white font-en">--</span>
+                                <span class="text-2xl font-bold text-white font-en" id="val-t1-eff">0.00</span>
                                 <span class="text-xs text-[#a1a5b7]">➔</span>
-                                <span id="summary-eff-end" class="text-3xl font-bold text-[#50cd89] font-en glow-text-green">--</span>
+                                <span class="text-3xl font-bold text-[#50cd89] font-en glow-text-green" id="val-best-eff">0.00</span>
                             </div>
                         </div>
                         <div class="border border-[#323248] bg-[#151521] px-2 py-1.5 rounded-lg text-center">
-                            <span class="block text-[10px] text-[#50cd89] mb-0.5">ประสิทธิภาพเพิ่ม</span>
-                            <span id="summary-eff-rate" class="text-sm font-bold text-[#50cd89] font-en">--%</span>
+                            <span class="block text-[10px] text-[#50cd89] mb-0.5">เพิ่มขึ้น</span>
+                            <span class="text-sm font-bold text-[#50cd89] font-en" id="growth-eff">+0.0%</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-card-gradient rounded-xl p-5 border-t-4 border-[#8b5cf6] shadow-lg">
-                    <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Cycle Time ลดลง (%)</p>
+                    <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Cycle Time เรียงบล็อค (วิ)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p id="summary-ct-sub" class="text-[10px] text-[#7e8299] mb-1">ครั้งที่ 1 -> ดีที่สุด</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-arrange">ครั้งที่ 1 -> ดีที่สุด</p>
                             <div class="flex items-baseline gap-2">
-                                <span id="summary-ct-start" class="text-2xl font-bold text-white font-en">--</span>
+                                <span class="text-2xl font-bold text-white font-en" id="val-t1-arrange">0.00</span>
                                 <span class="text-xs text-[#a1a5b7]">➔</span>
-                                <span id="summary-ct-end" class="text-3xl font-bold text-[#50cd89] font-en glow-text-green">--</span>
+                                <span class="text-3xl font-bold text-[#50cd89] font-en glow-text-green" id="val-best-arrange">0.00</span>
                             </div>
                         </div>
                         <div class="border border-[#323248] bg-[#151521] px-2 py-1.5 rounded-lg text-center">
-                            <span class="block text-[10px] text-[#50cd89] mb-0.5">ประหยัดเวลา</span>
-                            <span id="summary-ct-rate" class="text-sm font-bold text-[#50cd89] font-en">--%</span>
+                            <span class="block text-[10px] text-[#50cd89] mb-0.5">เวลาลดลง</span>
+                            <span class="text-sm font-bold text-[#50cd89] font-en" id="growth-arrange">-0.0%</span>
                         </div>
                     </div>
                 </div>
@@ -457,16 +409,16 @@
                     <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Total Output (ไม้/ชม.)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p id="summary-out-sub" class="text-[10px] text-[#7e8299] mb-1">ครั้งที่ 1 -> ดีที่สุด</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-total">ครั้งที่ 1 -> ดีที่สุด</p>
                             <div class="flex items-baseline gap-2">
-                                <span id="summary-out-start" class="text-2xl font-bold text-white font-en">--</span>
+                                <span class="text-2xl font-bold text-white font-en" id="val-t1-total">0</span>
                                 <span class="text-xs text-[#a1a5b7]">➔</span>
-                                <span id="summary-out-end" class="text-3xl font-bold text-[#50cd89] font-en glow-text-green">--</span>
+                                <span class="text-3xl font-bold text-[#50cd89] font-en glow-text-green" id="val-best-total">0</span>
                             </div>
                         </div>
                         <div class="border border-[#323248] bg-[#151521] px-2 py-1.5 rounded-lg text-center">
-                            <span class="block text-[10px] text-[#50cd89] mb-0.5">ส่วนต่างสุทธิ</span>
-                            <span id="summary-out-rate" class="text-sm font-bold text-[#50cd89] font-en">--</span>
+                            <span class="block text-[10px] text-[#50cd89] mb-0.5">ส่วนต่าง</span>
+                            <span class="text-sm font-bold text-[#50cd89] font-en" id="growth-total">+0</span>
                         </div>
                     </div>
                 </div>
@@ -475,7 +427,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div class="bg-card rounded-xl p-6 border border-[#323248] shadow-lg flex flex-col">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-white font-bold text-sm">Productivity & Efficiency Journey (1 vs Best)</h3>
+                        <h3 class="text-white font-bold text-sm">Productivity & Efficiency Journey (Focus: T1 vs Best vs Target)</h3>
                         <span class="text-xs text-[#f1416c] bg-[rgba(241,65,108,0.1)] px-2 py-1 rounded border border-[rgba(241,65,108,0.2)]">Target 84</span>
                     </div>
                     <div class="h-[250px] w-full relative flex-1">
@@ -485,7 +437,7 @@
 
                 <div class="bg-card rounded-xl p-6 border border-[#323248] shadow-lg flex flex-col">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-white font-bold text-sm">Cycle Time Reduction (1 vs Best Bottlenecks)</h3>
+                        <h3 class="text-white font-bold text-sm">Cycle Time Reduction (Bottlenecks Comparison)</h3>
                         <span class="text-xs text-[#a1a5b7]">หน่วย: วินาที (Seconds)</span>
                     </div>
                     <div class="h-[250px] w-full relative flex-1">
@@ -499,7 +451,7 @@
                     <div class="p-5 border-b border-[#323248] bg-[#1a1d27] flex justify-between items-center">
                         <div>
                             <h3 class="text-white font-bold text-sm">วิเคราะห์ระยะห่าง (Gap Analysis)</h3>
-                            <p class="text-xs text-[#a1a5b7] mt-1">เปรียบเทียบ T5 และรอบที่คุณเลือกปัจจุบันเทียบกับเป้าหมาย</p>
+                            <p class="text-xs text-[#a1a5b7] mt-1">เปรียบเทียบ Trial 1 และรอบที่คุณเลือกปัจจุบันเทียบกับเป้าหมายแต่ละสายงาน</p>
                         </div>
                     </div>
                     <div class="overflow-x-auto flex-1">
@@ -508,72 +460,15 @@
                                 <tr class="bg-[#151521] text-xs uppercase tracking-wider text-[#a1a5b7] border-b border-[#323248]">
                                     <th class="p-3 font-bold text-white">สายงาน</th>
                                     <th class="p-3 font-medium text-center border-l border-[#323248]">เป้าหมาย</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7] bg-[rgba(0,158,247,0.05)]">Trial 5</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">ส่วนต่าง</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">GAP %</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7] bg-[rgba(0,158,247,0.05)]" id="gap-header-t1">Trial 1</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">ส่วนต่าง (T1)</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">GAP % (T1)</th>
                                     <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-header">ล่าสุด</th>
                                     <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6]">ส่วนต่าง</th>
                                     <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6]">GAP %</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-[#2b2b40]">
-                                <tr class="hover:bg-[#2b2b40] transition duration-150">
-                                    <td class="p-3 text-white font-medium pl-4">G1 <span class="text-[11px] text-[#a1a5b7] block font-normal">(สูงสุด)</span></td>
-                                    <td class="p-3 text-center font-en text-white font-bold">84</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#009ef7] bg-[rgba(0,158,247,0.05)]">42.4</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#f1416c]">+41.6</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#f1416c]">49.5%</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-g1-val">--</td>
-                                    <td class="p-3 text-center font-en font-bold" id="gap-dyn-g1-diff">--</td>
-                                    <td class="p-3 text-center font-en font-bold" id="gap-dyn-g1-pct">--</td>
-                                </tr>
-                                <tr class="hover:bg-[#2b2b40] transition duration-150">
-                                    <td class="p-3 text-white font-medium pl-4">G2</td>
-                                    <td class="p-3 text-center font-en text-white font-bold">53</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#009ef7] bg-[rgba(0,158,247,0.05)]">42.4</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#f1416c]">+10.6</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#f1416c]">20.0%</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-g2-val">--</td>
-                                    <td class="p-3 text-center font-en font-bold" id="gap-dyn-g2-diff">--</td>
-                                    <td class="p-3 text-center font-en font-bold" id="gap-dyn-g2-pct">--</td>
-                                </tr>
-                                <tr class="hover:bg-[#2b2b40] transition duration-150">
-                                    <td class="p-3 text-white font-medium pl-4">G3</td>
-                                    <td class="p-3 text-center font-en text-white font-bold">44</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#009ef7] bg-[rgba(0,158,247,0.05)]">42.4</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#f1416c]">+1.6</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#f1416c]">3.6%</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-g3-val">--</td>
-                                    <td class="p-3 text-center font-en font-bold" id="gap-dyn-g3-diff">--</td>
-                                    <td class="p-3 text-center font-en font-bold" id="gap-dyn-g3-pct">--</td>
-                                </tr>
-                                <tr class="border-t-2 border-[#323248] bg-[#151521]">
-                                    <td colspan="8" class="p-2 text-[#8b5cf6] text-[11px] font-bold uppercase tracking-wider text-center">ข้อมูลอ้างอิงสายงานอื่นๆ</td>
-                                </tr>
-                                <tr class="hover:bg-[#2b2b40] transition duration-150 text-[#a1a5b7]">
-                                    <td class="p-3 pl-4">BB Conv. 2</td>
-                                    <td class="p-3 text-center font-en">40</td>
-                                    <td class="p-3 text-center font-en bg-[rgba(0,158,247,0.05)]">42.4</td>
-                                    <td colspan="2" class="p-3 text-center text-[11px] text-[#50cd89]">สูงกว่าสายงานนี้ +2.4</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-bb-val">--</td>
-                                    <td colspan="2" class="p-3 text-center text-[11px]" id="gap-dyn-bb-diff">--</td>
-                                </tr>
-                                <tr class="hover:bg-[#2b2b40] transition duration-150 text-[#a1a5b7]">
-                                    <td class="p-3 pl-4">SWP</td>
-                                    <td class="p-3 text-center font-en">40</td>
-                                    <td class="p-3 text-center font-en bg-[rgba(0,158,247,0.05)]">42.4</td>
-                                    <td colspan="2" class="p-3 text-center text-[11px] text-[#50cd89]">สูงกว่าสายงานนี้ +2.4</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-swp-val">--</td>
-                                    <td colspan="2" class="p-3 text-center text-[11px]" id="gap-dyn-swp-diff">--</td>
-                                </tr>
-                                <tr class="hover:bg-[#2b2b40] transition duration-150 text-[#a1a5b7]">
-                                    <td class="p-3 pl-4">Cut-Up 1</td>
-                                    <td class="p-3 text-center font-en">40</td>
-                                    <td class="p-3 text-center font-en bg-[rgba(0,158,247,0.05)]">42.4</td>
-                                    <td colspan="2" class="p-3 text-center text-[11px] text-[#50cd89]">สูงกว่าสายงานนี้ +2.4</td>
-                                    <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-cut-val">--</td>
-                                    <td colspan="2" class="p-3 text-center text-[11px]" id="gap-dyn-cut-diff">--</td>
-                                </tr>
+                            <tbody class="divide-y divide-[#2b2b40]" id="executiveGapTableBody">
                             </tbody>
                         </table>
                     </div>
@@ -581,31 +476,27 @@
             </div>
         </div>
 
-    </nav>
+    </main>
 
     <script>
         // ==========================================
         // 1. ตัวแปรสำหรับจัดการข้อมูล (Global Variables)
         // ==========================================
         let db = {}; 
-        
-        // ขยาย Array keys ให้รองรับรอบที่ 6 และ 7
-        const keys = ["1", "2", "3", "4", "5", "6", "7"];
-        
+        let keys = [];
         const targetProductivity = 84; 
-        const targetEfficiency = 100;
         const actualBaseline = { prep: 15.10, arrange: 16.00, machine: 1.25, inspec: 5.00, pack: 5.50 };
 
         const popup = document.getElementById('iterDropdown');
         const icon = document.getElementById('dropdownIcon');
         let isOpen = false;
         let selectedDataIndex = -1;
-        let bestKey = "1"; // ตัวแปรเก็บ Key ของรอบที่ดีที่สุด
 
         let trendChart;
         let cycleChart;
         let prodJourneyChart;
         let bottleneckChart;
+        
         let chartLabels = [];
         let chartData = [];
 
@@ -613,77 +504,110 @@
         Chart.defaults.borderColor = '#323248';
         Chart.defaults.font.family = "'Sarabun', sans-serif";
 
+        let bestTrialKey = "2"; 
+
         // ==========================================
-        // 2. ฟังก์ชันดึงข้อมูล JSON และเริ่มต้น Dashboard
+        // 🌟 [จุดที่ต้องแก้ไข] เติมลิงก์ Web App URL แท้จริงที่นี่ 🌟
         // ==========================================
+        const googleWebAppUrl = "https://script.google.com/macros/s/AKfycbzCP20irjQdA65MEQXeB4KW8kkvmYRMJYbL8Zm1IdklPpKvvmTIIFcx0Zs_pm3Nwyel/exec";
+
         window.onload = function() {
             loadData(); 
         };
 
         async function loadData() {
             try {
-                const response = await fetch('GizzardS18_Main DashBoard_Yakitori.json');
-                const contentType = response.headers.get("content-type");
-                
-                if (contentType && contentType.indexOf("application/json") === -1) {
-                    throw new Error("หาไฟล์ GizzardS18_Main DashBoard_Yakitori.json ไม่พบ หรือไม่ได้เปิดผ่าน Live Server");
+                let fetchUrl = googleWebAppUrl;
+                if (!fetchUrl.includes('page=api')) {
+                    fetchUrl += fetchUrl.includes('?') ? '&page=api' : '?page=api';
                 }
 
+                const response = await fetch(fetchUrl);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
                 db = await response.json();
                 
-                if (Object.keys(db).length === 0) {
-                    throw new Error("ไฟล์ JSON ไม่มีข้อมูล");
+                if (db.error) {
+                    throw new Error("หลังบ้านแจ้งข้อผิดพลาด: " + db.error);
                 }
-
-                Object.keys(db).forEach(k => {
-                    if (db[k] && db[k].prod !== undefined) {
-                        db[k].eff = (db[k].prod / targetProductivity) * 100;
-                    }
-                });
-
-                initializeDashboard();
+                if (Object.keys(db).length === 0) {
+                    throw new Error("ไม่มีข้อมูลส่งกลับมาจาก Google Sheets");
+                }
+                
+                initializeDashboardFromSheets();
             } catch (error) {
-                console.error("Error loading JSON:", error);
-                // Fallback Mock Data รองรับรอบ 1-7 เผื่อเปิดทดสอบแบบ Local mode
+                console.warn("ไม่สามารถดึงข้อมูลจาก Google Sheets ได้สำเร็จ ระบบเปิดใช้งาน Fallback Mock Data สำรอง:", error);
+                
                 db = {
-                    "1": { prod: 37.0, total: 479, man: 13, layout: {prep:2, block:6, inspec:2, pack:2, op:1}, cycle_detail: {prep:15.1, arrange:30.45, machine:1.25, inspec:29.5, pack:5.5} },
-                    "2": { prod: 38.5, total: 500, man: 13, layout: {prep:2, block:6, inspec:2, pack:2, op:1}, cycle_detail: {prep:14.8, arrange:28.20, machine:1.25, inspec:25.0, pack:5.4} },
-                    "3": { prod: 41.0, total: 533, man: 13, layout: {prep:2, block:6, inspec:2, pack:2, op:1}, cycle_detail: {prep:14.5, arrange:26.10, machine:1.25, inspec:21.3, pack:5.2} },
-                    "4": { prod: 41.8, total: 627, man: 15, layout: {prep:2, block:7, inspec:3, pack:2, op:1}, cycle_detail: {prep:14.0, arrange:24.00, machine:1.25, inspec:15.0, pack:5.0} },
-                    "5": { prod: 42.4, total: 855, man: 20, layout: {prep:3, block:10, inspec:4, pack:2, op:1}, cycle_detail: {prep:13.5, arrange:20.50, machine:1.25, inspec:8.5, pack:4.8} },
-                    "6": { prod: 46.2, total: 970, man: 21, layout: {prep:3, block:11, inspec:4, pack:2, op:1}, cycle_detail: {prep:13.0, arrange:18.90, machine:1.25, inspec:7.8, pack:4.5} },
-                    "7": { prod: 52.0, total: 1144, man: 22, layout: {prep:3, block:12, inspec:4, pack:2, op:1}, cycle_detail: {prep:12.5, arrange:16.20, machine:1.25, inspec:6.2, pack:4.2} }
+                    "เดิม": { "prod": 29.0, "eff": 34.52, "man": 18, "total": 530, "layout": { "prep": 6, "block": 6, "inspec": 3, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 15.00, "arrange": 55.65, "machine": 3.5, "inspec": 45.00, "pack": 20 } },
+                    "1": { "prod": 40.0, "eff": 47.62, "man": 18, "total": 720, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 15.10, "arrange": 44.85, "machine": 3.5, "inspec": 25.00, "pack": 20 } },
+                    "2": { "prod": 102.0, "eff": 121.43, "man": 21, "total": 2142, "layout": { "prep": 4, "block": 10, "inspec": 4, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 15.10, "arrange": 15.90, "machine": 1.25, "inspec": 4.80, "pack": 5.10 } },
+                    "3": { "prod": 43.0, "eff": 51.19, "man": 17, "total": 731, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 35.22, "machine": 3.5, "inspec": 25.00, "pack": 20 } },
+                    "4": { "prod": 45.0, "eff": 53.57, "man": 17, "total": 765, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 35.46, "machine": 1.25, "inspec": 21.05, "pack": 20 } },
+                    "5": { "prod": 48.0, "eff": 57.14, "man": 17, "total": 818, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 38.00, "machine": 1.25, "inspec": 18.60, "pack": 15 } },
+                    "6": { "prod": 61.0, "eff": 72.62, "man": 17, "total": 818, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 32.50, "machine": 1.25, "inspec": 14.50, "pack": 11.20 } },
+                    "7": { "prod": 68.0, "eff": 80.95, "man": 17, "total": 1035, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 32.00, "machine": 1.25, "inspec": 11.00, "pack": 8.69 } },
+                    "8": { "prod": 76.0, "eff": 90.48, "man": 17, "total": 1156, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 30.84, "machine": 1.25, "inspec": 8.52, "pack": 6.75 } },
+                    "9": { "prod": 75.0, "eff": 89.29, "man": 18, "total": 1368, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 32.77, "machine": 1.25, "inspec": 7.43, "pack": 6.55 } },
+                    "10": { "prod": 75.0, "eff": 89.29, "man": 17, "total": 1350, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 31.87, "machine": 1.25, "inspec": 9.63, "pack": 5.40 } },
+                    "11": { "prod": 77.0, "eff": 91.67, "man": 18, "total": 1358, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 32.68, "machine": 1.25, "inspec": 7.43, "pack": 5.40 } },
+                    "12": { "prod": 72.0, "eff": 85.71, "man": 18, "total": 1379, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 33.85, "machine": 1.25, "inspec": 8.49, "pack": 6.34 } },
+                    "13": { "prod": 77.0, "eff": 91.67, "man": 19, "total": 1370, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 31.86, "machine": 1.25, "inspec": 7.43, "pack": 6.23 } },
+                    "14": { "prod": 76.0, "eff": 90.48, "man": 19, "total": 1446, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 31.29, "machine": 1.25, "inspec": 9.42, "pack": 5.35 } },
+                    "15": { "prod": 79.0, "eff": 94.05, "man": 19, "total": 1493, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 29.89, "machine": 1.25, "inspec": 7.23, "pack": 7.2 } },
+                    "16": { "prod": 77.0, "eff": 91.67, "man": 18, "total": 1386, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 35.46, "machine": 1.25, "inspec": 7.43, "pack": 5.40 } },
+                    "17": { "prod": 80.0, "eff": 95.24, "man": 18, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 31.95, "machine": 1.25, "inspec": 6.60, "pack": 5.20 } },
+                    "18": { "prod": 80.0, "eff": 95.24, "man": 18, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 33.05, "machine": 1.25, "inspec": 5.80, "pack": 4.90 } },
+                    "19": { "prod": 77.0, "eff": 91.67, "man": 18, "total": 1386, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 32.50, "machine": 1.25, "inspec": 8.30, "pack": 4.70 } },
+                    "20": { "prod": 86.0, "eff": 102.38, "man": 18, "total": 1548, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 28.31, "machine": 1.25, "inspec": 6.30, "pack": 6.20 } },
+                    "21": { "prod": 77.0, "eff": 91.67, "man": 18, "total": 1386, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 33.20, "machine": 1.25, "inspec": 7.30, "pack": 5.00 } },
+                    "22": { "prod": 80.0, "eff": 95.24, "man": 18, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 32.91, "machine": 1.25, "inspec": 6.50, "pack": 6.20 } },
+                    "23": { "prod": 78.0, "eff": 92.86, "man": 18, "total": 1404, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 31.37, "machine": 1.25, "inspec": 7.43, "pack": 6.10 } },
+                    "24": { "prod": 74.0, "eff": 88.10, "man": 18, "total": 1332, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 29.61, "machine": 1.25, "inspec": 10.29, "pack": 7.50 } },
+                    "25": { "prod": 78.1, "eff": 92.98, "man": 18, "total": 1406, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 24.83, "machine": 1.25, "inspec": 10.48, "pack": 8.59 } },
+                    "26": { "prod": 80.3, "eff": 95.60, "man": 19, "total": 1526, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 24.75, "machine": 1.25, "inspec": 10.01, "pack": 9.56 } },
+                    "27": { "prod": 88.0, "eff": 104.76, "man": 19, "total": 1665, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 23.89, "machine": 1.25, "inspec": 7.42, "pack": 8.35 } },
+                    "28": { "prod": 88.3, "eff": 105.12, "man": 19, "total": 1678, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 23.55, "machine": 1.25, "inspec": 7.35, "pack": 8.30 } },
+                    "29": { "prod": 76.0, "eff": 90.48, "man": 19, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 25.35, "machine": 1.25, "inspec": 11.15, "pack": 9.62 } },
+                    "30": { "prod": 74.0, "eff": 88.10, "man": 19, "total": 1413, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 24.65, "machine": 1.25, "inspec": 11.65, "pack": 11.1 } },
+                    "31": { "prod": 69.0, "eff": 82.14, "man": 21, "total": 1377, "layout": { "prep": 4, "block": 8, "inspec": 5, "pack": 4, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 27.52, "machine": 1.25, "inspec": 10.85, "pack": 12.55 } },
+                    "32": { "prod": 84.0, "eff": 100.00, "man": 19, "total": 1584, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 24.65, "machine": 1.25, "inspec": 7.55, "pack": 9.41 } },
+                    "33": { "prod": 85.0, "eff": 101.19, "man": 19, "total": 1616, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 24.45, "machine": 1.25, "inspec": 7.40, "pack": 9.25 } },
+                    "34": { "prod": 81.0, "eff": 96.43, "man": 19, "total": 1539, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 19.50, "machine": 1.25, "inspec": 6.70, "pack": 7.10 } },
+                    "35": { "prod": 80.0, "eff": 95.24, "man": 19, "total": 1520, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 19.80, "machine": 1.25, "inspec": 6.85, "pack": 7.30 } },
+                    "36": { "prod": 82.5, "eff": 98.21, "man": 19, "total": 1567, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 18.20, "machine": 1.25, "inspec": 6.40, "pack": 6.80 } },
+                    "37": { "prod": 83.2, "eff": 99.05, "man": 19, "total": 1580, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 17.10, "machine": 1.25, "inspec": 5.90, "pack": 6.10 } },
+                    "38": { "prod": 83.8, "eff": 99.76, "man": 19, "total": 1592, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 16.50, "machine": 1.25, "inspec": 5.20, "pack": 5.80 } },
+                    "39": { "prod": 84.5, "eff": 100.60, "man": 19, "total": 1605, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 15.10, "arrange": 16.00, "machine": 1.25, "inspec": 5.00, "pack": 5.50 } }
                 };
-                Object.keys(db).forEach(k => {
-                    db[k].eff = (db[k].prod / targetProductivity) * 100;
-                });
-                initializeDashboard();
+                initializeDashboardFromSheets();
             }
         }
 
-       function initializeDashboard() {
-            const activeKeys = keys.filter(k => db[k] !== undefined);
+        function initializeDashboardFromSheets() {
+            const allSheetKeys = Object.keys(db);
             
-            // ค้นหาหา Trial ที่ดีที่สุดจากค่า Productivity สูงสุด (Best Trial)
+            allSheetKeys.sort((a, b) => {
+                if (a === "เดิม") return -1;
+                if (b === "เดิม") return 1;
+                return parseInt(a) - parseInt(b);
+            });
+            
+            keys.length = 0; 
+            allSheetKeys.forEach(k => keys.push(k));
+
             let maxProd = -1;
-            activeKeys.forEach(k => {
-                if (db[k].prod > maxProd) {
+            keys.forEach(k => {
+                if(db[k] && db[k].prod > maxProd) {
                     maxProd = db[k].prod;
-                    bestKey = k;
+                    bestTrialKey = k;
                 }
             });
 
-            // อัปเดตข้อความหัวข้อกลุ่มใน Executive Summary ให้เจาะจงว่าเทียบกับครั้งไหนที่ดีที่สุด
-            document.getElementById('summary-prod-sub').innerText = `ครั้งที่ 1 -> ครั้งที่ ${bestKey} (ดีที่สุด)`;
-            document.getElementById('summary-eff-sub').innerText = `ครั้งที่ 1 -> ครั้งที่ ${bestKey} (ดีที่สุด)`;
-            document.getElementById('summary-ct-sub').innerText = `ครั้งที่ 1 -> ครั้งที่ ${bestKey} (ดีที่สุด)`;
-            document.getElementById('summary-out-sub').innerText = `ครั้งที่ 1 -> ครั้งที่ ${bestKey} (ดีที่สุด)`;
+            chartLabels = keys.map(k => k === "เดิม" ? "เดิม" : `${k}`);
+            chartData = keys.map(k => db[k] ? db[k].prod : 0);
 
-            chartLabels = activeKeys.map(k => `ครั้งที่ ${k}`);
-            chartData = activeKeys.map(k => db[k].eff);
-
-            let maxYield = Math.max(...activeKeys.map(k => db[k] ? Number(db[k].total) : 0));
+            let maxYield = Math.max(...keys.map(k => db[k] ? Number(db[k].total) : 0));
             if (maxYield === -Infinity) maxYield = 0;
             document.getElementById('header-max-yield').innerHTML = `${maxYield.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
 
@@ -691,12 +615,11 @@
             renderTable();
             initCharts();
             
-            // คำนวณค่าและแสดงผลใน Executive Summary คงไว้ที่รอบที่ดีที่สุด (Static Best Comparison)
-            calculateExecutiveBestMetrics();
+            calculateExecutiveSummary();
+            initSummaryCharts(); 
 
-            // แสดงผลหลักและ Panel ขวาของรอบล่าสุดเป็นค่าเริ่มต้นแดชบอร์ด
-            const lastKey = activeKeys[activeKeys.length - 1] || "1";
-            selectIteration(lastKey); 
+            let defaultKey = keys[keys.length - 1] || "เดิม";
+            selectIteration(defaultKey); 
         }
 
         // ==========================================
@@ -724,34 +647,40 @@
             return Number(val).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}); 
         }
 
+        function highlightTableRow(key) {
+            keys.forEach(k => {
+                const row = document.getElementById(`row-${k}`);
+                if (row) row.classList.remove('row-active');
+            });
+            const activeRow = document.getElementById(`row-${key}`);
+            if (activeRow) activeRow.classList.add('row-active');
+        }
+
         // ==========================================
-        // 4. การสร้างตารางและตัวเลือก
+        // 4. การสร้างตารางและตัวเลือก (Render Logic)
         // ==========================================
         function renderList() {
             const listContainer = document.getElementById('dropdownList');
-            const activeKeys = keys.filter(k => db[k] !== undefined);
             let html = '';
-            activeKeys.forEach(k => {
-                let text = `ครั้งที่ ${k}`;
-                let colorClass = "text-[#a1a5b7] hover:bg-[#323248] hover:text-white";
-                if (k === bestKey) {
-                    text += " 🏆";
-                }
+            keys.forEach(k => {
+                let text = k === "เดิม" ? "เดิม" : `ครั้งที่ ${k}`;
+                if (k === bestTrialKey) text += " 🏆 (Best)";
+                let colorClass = k === "เดิม" ? "text-white bg-[#323248]" : "text-[#a1a5b7] hover:bg-[#323248] hover:text-white";
                 html += `<button onclick="selectIteration('${k}')" class="w-full text-center px-2 py-2 rounded text-xs font-medium border border-[#323248] ${colorClass} transition">${text}</button>`;
             });
             listContainer.innerHTML = html;
         }
 
         function renderInsight(key, data) {
-            let roundText = `ครั้งที่ ${key}`;
+            let roundText = key === 'เดิม' ? 'กระบวนการเดิม' : `Trial ${key}`;
             document.getElementById('insight-round').innerText = `[${roundText}]`;
             
             let man = data.man || 0;
             let total = data.total || 0;
             let prodPerMan = man > 0 ? (total / man).toFixed(1) : 0;
             
-            let layout = data.layout; 
-            let cycle = data.cycle_detail; 
+            let layout = data.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 }; 
+            let cycle = data.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 }; 
 
             let arrangeGap = actualBaseline.arrange - cycle.arrange;
             let arrangeStatus = arrangeGap >= 0 
@@ -764,7 +693,7 @@
                 : `<span class="text-[#f1416c]">ใช้เวลาเพิ่มขึ้น ${Math.abs(inspecGap).toFixed(2)} วินาที</span>`;
 
             let headerHtml = `ผลผลิตตามสัดส่วนพนักงานทั้งกระบวนการอยู่ที่ <span class="font-bold text-[#009ef7] text-[15px]">${man} คน</span> ` +
-                             `ได้จำนวนไม้อยู่ที่ <span class="font-bold text-[#50cd89] text-[15px]">${prodPerMan} ไม้ / Hr / Man</span> ` +
+                             `ได้จำนวนไม้อยู่ที่ <span class="font-bold text-[#50cd89] text-[15px]">${data.prod ? data.prod.toFixed(1) : prodPerMan} ไม้ / Hr / Man</span> ` +
                              `<span class="text-[#a1a5b7]">[ยอดการผลิตรวม ${total.toLocaleString()} ไม้/ชั่วโมง]</span> ` +
                              `พบสถานะการทำงานและจุดโฟกัสดังนี้:`;
             document.getElementById('insight-overall').innerHTML = headerHtml;
@@ -815,15 +744,15 @@
 
         function updateGapAnalysis(key, currentData) {
             const tbody = document.getElementById('gapTableBody');
-            let headerText = `TRIAL ${key} (วิ)`;
-            document.getElementById('gap-header-selected').innerText = headerText;
+            document.getElementById('gap-header-selected').innerText = key === 'เดิม' ? 'ข้อมูลเดิม (วิ)' : `TRIAL ${key} (วิ)`;
 
+            const cycle = currentData.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
             const steps = [
-                { id: 'prep', name: '1. เตรียม (RM)', actual: actualBaseline.prep, current: currentData.cycle_detail.prep },
-                { id: 'arrange', name: '2. เรียงเนื้อลงบล็อค', actual: actualBaseline.arrange, current: currentData.cycle_detail.arrange },
-                { id: 'machine', name: '3. การเข้าเครื่องเสียบ', actual: actualBaseline.machine, current: currentData.cycle_detail.machine },
-                { id: 'inspec', name: '4. การเช็คสเปค', actual: actualBaseline.inspec, current: currentData.cycle_detail.inspec },
-                { id: 'pack', name: '5. การ Packing', actual: actualBaseline.pack, current: currentData.cycle_detail.pack }
+                { id: 'prep', name: '1. เตรียม (RM)', actual: actualBaseline.prep, current: cycle.prep },
+                { id: 'arrange', name: '2. เรียงเนื้อลงบล็อค', actual: actualBaseline.arrange, current: cycle.arrange },
+                { id: 'machine', name: '3. การเข้าเครื่องเสียบ', actual: actualBaseline.machine, current: cycle.machine },
+                { id: 'inspec', name: '4. การเช็คสเปค', actual: actualBaseline.inspec, current: cycle.inspec },
+                { id: 'pack', name: '5. การ Packing', actual: actualBaseline.pack, current: cycle.pack }
             ];
 
             let html = '';
@@ -841,6 +770,7 @@
 
                 let gapColor = gap > 0 ? 'text-[#f1416c]' : (gap < 0 ? 'text-[#50cd89]' : 'text-[#a1a5b7]');
                 let gapSign = gap > 0 ? '+' : '';
+
                 let rowBg = isBottleneck ? 'bg-[rgba(241,65,108,0.05)] border-l-4 border-[#f1416c]' : 'hover:bg-[#2b2b40] border-l-4 border-transparent';
                 let nameClass = isBottleneck ? 'text-[#f1416c] font-bold' : 'text-white';
                 let displayName = isBottleneck ? `${step.name} <span class="text-xs text-[#f1416c] ml-1">(Bottleneck)</span>` : step.name;
@@ -867,34 +797,39 @@
                     <td class="p-4 font-bold text-[#009ef7]">${formatVal(totalActual)}</td>
                     <td class="p-4 font-bold text-white">${formatVal(totalCurrent)}</td>
                     <td class="p-4 font-bold ${totalGapColor}">${totalGapSign}${formatVal(totalGap)}</td>
-                    <td class="p-4 font-bold ${totalGapColor}">${totalGapSign}${formatVal(totalPercent)}%</td>
+                    <td class="p-4 font-bold ${totalPercent > 0 ? totalGapColor : 'text-[#50cd89]'}">${totalGapSign}${formatVal(totalPercent)}%</td>
                 </tr>
             `;
+
             tbody.innerHTML = html;
         }
 
         function renderTable() {
             const tableBody = document.getElementById('tableBody');
-            const activeKeys = keys.filter(k => db[k] !== undefined);
             let html = '';
-            
-            activeKeys.forEach(k => {
+            keys.forEach(k => {
                 const d = db[k];
-                let titleText = `ครั้งที่ ${k}`;
-                if (k === bestKey) titleText += " ⭐ (Best)";
+                if(!d) return; 
                 
-                let m_prep = Number(d.cycle_detail.prep) || 0;
-                let m_arrange = Number(d.cycle_detail.arrange) || 0;
-                let m_machine = Number(d.cycle_detail.machine) || 0;
-                let m_inspec = Number(d.cycle_detail.inspec) || 0;
-                let m_pack = Number(d.cycle_detail.pack) || 0;
+                let titleText = k === "เดิม" ? "กระบวนการเดิม" : `ครั้งที่ ${k}`;
+                if (k === bestTrialKey) titleText += " ⭐ (Best)";
+                let cycle = d.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
+                let layout = d.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 };
+
+                let m_prep = Number(cycle.prep) || 0;
+                let m_arrange = Number(cycle.arrange) || 0;
+                let m_machine = Number(cycle.machine) || 0;
+                let m_inspec = Number(cycle.inspec) || 0;
+                let m_pack = Number(cycle.pack) || 0;
+                
                 let total_ct = m_prep + m_arrange + m_machine + m_inspec + m_pack;
+                let totalOutput = d.total || 0;
 
                 html += `
                     <tr id="row-${k}" class="hover:bg-[#2b2b40] transition duration-150 cursor-pointer text-center" onclick="selectIteration('${k}')">
                         <td class="p-3 font-medium text-white sticky left-0 bg-[#1e1e2d] border-r border-[#323248] text-left">${titleText}</td>
-                        <td class="p-3 text-[#50cd89] font-bold">${d.prod.toFixed(1)}</td>
-                        <td class="p-3">${d.eff.toFixed(2)}%</td>
+                        <td class="p-3 text-[#50cd89] font-bold">${(d.prod || 0).toFixed(1)}</td>
+                        <td class="p-3">${(d.eff || 0).toFixed(2)}%</td>
                         
                         <td class="p-3 border-l border-[#323248] text-[#009ef7] bg-[rgba(139,92,246,0.05)]">${formatVal(m_prep)}</td>
                         <td class="p-3 bg-[rgba(139,92,246,0.05)] text-[#8b5cf6] font-bold text-[15px]">${formatVal(m_arrange)}</td>
@@ -902,14 +837,14 @@
                         <td class="p-3 bg-[rgba(139,92,246,0.05)] text-[#f1416c]">${formatVal(m_inspec)}</td>
                         <td class="p-3 bg-[rgba(139,92,246,0.05)] text-[#50cd89]">${formatVal(m_pack)}</td>
                         <td class="p-3 bg-[#2b2b40] font-bold text-white border-l border-[#323248]">${formatVal(total_ct)}</td>
-                        <td class="p-3 bg-[#2b2b40] font-bold text-[#009ef7]">${d.total.toLocaleString()}</td>
+                        <td class="p-3 bg-[#2b2b40] font-bold text-[#009ef7]">${totalOutput.toLocaleString()}</td>
                         
-                        <td class="p-3 border-l border-[#323248] text-[#009ef7] font-bold bg-[rgba(0,158,247,0.05)]">${d.man}</td>
-                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${d.layout.prep}</td>
-                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${d.layout.block}</td>
-                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${d.layout.inspec}</td>
-                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${d.layout.pack}</td>
-                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${d.layout.op}</td>
+                        <td class="p-3 border-l border-[#323248] text-[#009ef7] font-bold bg-[rgba(0,158,247,0.05)]">${d.man || 0}</td>
+                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.prep}</td>
+                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.block}</td>
+                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.inspec}</td>
+                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.pack}</td>
+                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.op}</td>
                     </tr>
                 `;
             });
@@ -917,57 +852,153 @@
         }
 
         // ==========================================
-        // 5. ระบบอัปเดตข้อมูลบนหน้าจอเมื่อผู้ใช้คลิก
+        // 5. คำนวณและแสดงค่าใน Executive Summary (Trial 1 vs Best Trial)
         // ==========================================
-        function highlightTableRow(key) {
-            keys.forEach(k => {
-                const row = document.getElementById(`row-${k}`);
-                if(row) row.classList.remove('row-active');
-            });
-            const activeRow = document.getElementById(`row-${key}`);
-            if (activeRow) activeRow.classList.add('row-active');
+        function calculateExecutiveSummary() {
+            const t1 = db["1"];
+            const best = db[bestTrialKey];
+
+            if(!t1 || !best) return;
+
+            document.getElementById('lbl-summary-prod').innerText = `ครั้งที่ 1 ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-eff').innerText = `ครั้งที่ 1 ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-arrange').innerText = `ครั้งที่ 1 ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-total').innerText = `ครั้งที่ 1 ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
+
+            // 1. Productivity
+            document.getElementById('val-t1-prod').innerText = t1.prod.toFixed(1);
+            document.getElementById('val-best-prod').innerText = best.prod.toFixed(1);
+            let pGrowth = ((best.prod - t1.prod) / t1.prod) * 100;
+            document.getElementById('growth-prod').innerText = `+${pGrowth.toFixed(1)}%`;
+
+            // 2. Efficiency
+            document.getElementById('val-t1-eff').innerText = t1.eff.toFixed(2);
+            document.getElementById('val-best-eff').innerText = best.eff.toFixed(2);
+            let eGrowth = ((best.eff - t1.eff) / t1.eff) * 100;
+            document.getElementById('growth-eff').innerText = `+${eGrowth.toFixed(1)}%`;
+
+            // 3. Cycle Time เรียงเนื้อ (arrange)
+            let t1Arrange = t1.cycle_detail ? t1.cycle_detail.arrange : 0;
+            let bestArrange = best.cycle_detail ? best.cycle_detail.arrange : 0;
+            document.getElementById('val-t1-arrange').innerText = t1Arrange.toFixed(2);
+            document.getElementById('val-best-arrange').innerText = bestArrange.toFixed(2);
+            let aReduction = t1Arrange > 0 ? (((t1Arrange - bestArrange) / t1Arrange) * 100) : 0;
+            document.getElementById('growth-arrange').innerText = `-${aReduction.toFixed(1)}%`;
+
+            // 4. Total Output
+            document.getElementById('val-t1-total').innerText = t1.total.toLocaleString();
+            document.getElementById('val-best-total').innerText = best.total.toLocaleString();
+            let totalDiff = best.total - t1.total;
+            document.getElementById('growth-total').innerText = `+${totalDiff.toLocaleString()}`;
+
+            renderExecutiveGapTable();
         }
 
+        function renderExecutiveGapTable() {
+            const tableBody = document.getElementById('executiveGapTableBody');
+            const t1 = db["1"];
+            if(!t1) return;
+
+            document.getElementById('gap-header-t1').innerText = `Trial 1 (ไม้/คน/ชม.)`;
+
+            const rowsData = [
+                { name: 'G1 <span class="text-[11px] text-[#a1a5b7] block font-normal">(สูงสุด)</span>', target: 84, id: 'g1' },
+                { name: 'G2', target: 94, id: 'g2' },
+                { name: 'G3 <span class="text-[11px] text-[#50cd89] block font-normal">(บรรลุเป้า)</span>', target: 61, id: 'g3' },
+                { name: 'BB Conv. 2', target: 39, id: 'bb_ref', isRef: true },
+                { name: 'SWP', target: 31, id: 'swp_ref', isRef: true },
+                { name: 'Cut-Up 1', target: 30, id: 'cut_ref', isRef: true }
+            ];
+
+            let html = '';
+            rowsData.forEach(row => {
+                let t1Prod = t1.prod || 0;
+
+                html += `<tr class="hover:bg-[#2b2b40] transition duration-150">
+                    <td class="p-3 text-white font-medium pl-4">${row.name}</td>
+                    <td class="p-3 text-center font-en text-white font-bold">${row.target}</td>`;
+
+                if (!row.isRef) {
+                    let t1Diff = row.target - t1Prod;
+                    let t1Pct = (t1Diff / row.target) * 100;
+                    let t1DiffText = t1Diff <= 0 ? t1Diff.toFixed(1) : `+${t1Diff.toFixed(1)}`;
+                    let t1PctText = t1Diff <= 0 ? "ทะลุเป้า" : `${t1Pct.toFixed(1)}%`;
+                    let t1Color = t1Diff <= 0 ? "text-[#50cd89]" : "text-[#f1416c]";
+
+                    html += `
+                        <td class="p-3 text-center font-en font-bold text-[#009ef7] bg-[rgba(0,158,247,0.05)]">${t1Prod.toFixed(1)}</td>
+                        <td class="p-3 text-center font-en font-bold ${t1Color}">${t1DiffText}</td>
+                        <td class="p-3 text-center font-en font-bold ${t1Color}">${t1PctText}</td>
+                    `;
+                } else {
+                    let t1Diff = t1Prod - row.target;
+                    let t1DiffText = t1Diff >= 0 ? `สูงกว่าสายงานนี้ +${t1Diff.toFixed(1)}` : `ต่ำกว่าสายงานนี้ ${t1Diff.toFixed(1)}`;
+                    let t1Color = t1Diff >= 0 ? "text-[#50cd89]" : "text-[#f1416c]";
+
+                    html += `
+                        <td class="p-3 text-center font-en bg-[rgba(0,158,247,0.05)]">${t1Prod.toFixed(1)}</td>
+                        <td colspan="2" class="p-3 text-center text-[11px] ${t1Color}">${t1DiffText}</td>
+                    `;
+                }
+
+                html += `
+                    <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-${row.id}-val">--</td>
+                    <td class="p-3 text-center font-en font-bold" id="gap-dyn-${row.id}-diff">--</td>
+                    <td class="p-3 text-center font-en font-bold" id="gap-dyn-${row.id}-pct" ${row.isRef ? 'style="display:none;" text-align:center;' : ''}>--</td>
+                </tr>`;
+            });
+
+            tableBody.innerHTML = html;
+        }
+
+        // ==========================================
+        // 6. ระบบอัปเดตข้อมูลบนหน้าจอเมื่อผู้ใช้คลิก
+        // ==========================================
         function selectIteration(key) {
             const data = db[key];
             if(!data) return;
-            const activeKeys = keys.filter(k => db[k] !== undefined);
-            selectedDataIndex = activeKeys.indexOf(key);
+            selectedDataIndex = keys.indexOf(key);
 
-            let titleText = `ปรับปรุงกระบวนการครั้งที่ ${key}`;
-            let roundLabel = `(ครั้งที่ ${key})`;
-
-            let m_prep = Number(data.cycle_detail.prep) || 0;
-            let m_arrange = Number(data.cycle_detail.arrange) || 0;
-            let m_machine = Number(data.cycle_detail.machine) || 0;
-            let m_inspec = Number(data.cycle_detail.inspec) || 0;
-            let m_pack = Number(data.cycle_detail.pack) || 0;
-            let total_ct = m_prep + m_arrange + m_machine + m_inspec + m_pack;
+            let titleText = key === "เดิม" ? "กระบวนการเดิม" : `ปรับปรุงกระบวนการครั้งที่ ${key}`;
+            let roundLabel = key === "เดิม" ? "(เดิม)" : `(ครั้งที่ ${key})`;
 
             document.getElementById('selectedIterText').innerText = titleText;
-            document.getElementById('header-current-yield').innerHTML = `${data.total.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
-            document.getElementById('header-current-man').innerHTML = `${data.man} <span class="text-xs font-normal text-[#6b7280]">คน</span>`;
+            
+            let totalOutput = data.total || 0;
+            let totalMan = data.man || 0;
+            document.getElementById('header-current-yield').innerHTML = `${totalOutput.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
+            document.getElementById('header-current-man').innerHTML = `${totalMan} <span class="text-xs font-normal text-[#6b7280]">คน</span>`;
             document.getElementById('header-selected-round').innerText = roundLabel;
             document.getElementById('header-man-round').innerText = roundLabel;
 
+            let cycle = data.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
+            let layout = data.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 };
+
+            let m_prep = Number(cycle.prep) || 0;
+            let m_arrange = Number(cycle.arrange) || 0;
+            let m_machine = Number(cycle.machine) || 0;
+            let m_inspec = Number(cycle.inspec) || 0;
+            let m_pack = Number(cycle.pack) || 0;
+            let total_ct = m_prep + m_arrange + m_machine + m_inspec + m_pack;
+
             const kpiProdEl = document.getElementById('kpi-prod');
-            kpiProdEl.innerText = data.prod.toFixed(1);
+            kpiProdEl.innerText = (data.prod || 0).toFixed(1);
             if (data.prod >= targetProductivity) {
                 kpiProdEl.style.color = '#50cd89'; 
             } else {
                 kpiProdEl.style.color = '#f1416c'; 
             }
 
-            document.getElementById('kpi-eff').innerText = data.eff.toFixed(2) + '%';
+            document.getElementById('kpi-eff').innerText = (data.eff || 0).toFixed(2) + '%';
             document.getElementById('kpi-cycle').innerHTML = `${formatVal(total_ct)} <span class="text-lg font-normal text-[#a1a5b7]">Sec</span>`;
-            document.getElementById('kpi-total').innerText = data.total.toLocaleString();
+            document.getElementById('kpi-total').innerText = totalOutput.toLocaleString();
             
-            document.getElementById('kpi-man').innerText = data.man;
-            document.getElementById('man-prep').innerText = data.layout.prep;
-            document.getElementById('man-block').innerText = data.layout.block;
-            document.getElementById('man-inspec').innerText = data.layout.inspec;
-            document.getElementById('man-pack').innerText = data.layout.pack;
-            document.getElementById('man-op').innerText = data.layout.op;
+            document.getElementById('kpi-man').innerText = totalMan;
+            document.getElementById('man-prep').innerText = layout.prep;
+            document.getElementById('man-block').innerText = layout.block;
+            document.getElementById('man-inspec').innerText = layout.inspec;
+            document.getElementById('man-pack').innerText = layout.pack;
+            document.getElementById('man-op').innerText = layout.op;
 
             document.getElementById('ct-prep').innerHTML = `${formatVal(m_prep)}`;
             document.getElementById('ct-arrange').innerHTML = `${formatVal(m_arrange)}`;
@@ -975,43 +1006,55 @@
             document.getElementById('ct-inspec').innerHTML = `${formatVal(m_inspec)}`;
             document.getElementById('ct-pack').innerHTML = `${formatVal(m_pack)}`;
             document.getElementById('ct-total').innerHTML = `${formatVal(total_ct)}`;
-            document.getElementById('ct-yield').innerHTML = `${data.total.toLocaleString()}`;
+            document.getElementById('ct-yield').innerHTML = totalOutput.toLocaleString();
 
             updateGapAnalysis(key, data);
             renderInsight(key, data);
 
-            let currentProd = data.prod;
-            let dynHeaderTitle = `Trial ${key}`;
-            document.getElementById('gap-dyn-header').innerText = dynHeaderTitle;
+            let currentProd = data.prod || 0;
+            let headerTitle = key === 'เดิม' ? 'เดิม' : `Trial ${key}`;
+            document.getElementById('gap-dyn-header').innerText = headerTitle;
 
             function updateDynamicGapRow(idPrefix, targetVal) {
-                document.getElementById(`gap-dyn-${idPrefix}-val`).innerText = currentProd.toFixed(1);
+                const valEl = document.getElementById(`gap-dyn-${idPrefix}-val`);
+                const diffEl = document.getElementById(`gap-dyn-${idPrefix}-diff`);
+                const pctEl = document.getElementById(`gap-dyn-${idPrefix}-pct`);
+                
+                if(!valEl) return;
+
+                valEl.innerText = currentProd.toFixed(1);
                 let diff = targetVal - currentProd;
-                let diffEl = document.getElementById(`gap-dyn-${idPrefix}-diff`);
-                let pctEl = document.getElementById(`gap-dyn-${idPrefix}-pct`);
 
                 if (diff <= 0) {
                     diffEl.innerText = diff.toFixed(1);
                     diffEl.className = "p-3 text-center font-en font-bold text-[#50cd89]";
-                    pctEl.innerText = "ทะลุเป้า";
-                    pctEl.className = "p-3 text-center font-en font-bold text-[#50cd89]";
+                    if(pctEl) {
+                        pctEl.innerText = "ทะลุเป้า";
+                        pctEl.className = "p-3 text-center font-en font-bold text-[#50cd89]";
+                    }
                 } else {
                     diffEl.innerText = "+" + diff.toFixed(1);
                     diffEl.className = "p-3 text-center font-en font-bold text-[#f1416c]";
-                    let pct = (diff / targetVal) * 100;
-                    pctEl.innerText = pct.toFixed(1) + "%";
-                    pctEl.className = "p-3 text-center font-en font-bold text-[#f1416c]";
+                    if(pctEl) {
+                        let pct = (diff / targetVal) * 100;
+                        pctEl.innerText = pct.toFixed(1) + "%";
+                        pctEl.className = "p-3 text-center font-en font-bold text-[#f1416c]";
+                    }
                 }
             }
 
             updateDynamicGapRow('g1', 84);
-            updateDynamicGapRow('g2', 53);
-            updateDynamicGapRow('g3', 44);
+            updateDynamicGapRow('g2', 94);
+            updateDynamicGapRow('g3', 61);
 
             function updateDynamicRefRow(idPrefix, refVal) {
-                document.getElementById(`gap-dyn-${idPrefix}-val`).innerText = currentProd.toFixed(1);
+                const valEl = document.getElementById(`gap-dyn-${idPrefix}-val`);
+                const diffEl = document.getElementById(`gap-dyn-${idPrefix}-diff`);
+                
+                if(!valEl) return;
+
+                valEl.innerText = currentProd.toFixed(1);
                 let diff = currentProd - refVal;
-                let diffEl = document.getElementById(`gap-dyn-${idPrefix}-diff`);
                 if (diff >= 0) {
                     diffEl.innerHTML = `สูงกว่าสายงานนี้ <span class="font-bold">+${diff.toFixed(1)}</span>`;
                     diffEl.className = "p-3 text-center text-[11px] text-[#50cd89]";
@@ -1021,18 +1064,16 @@
                 }
             }
 
-            updateDynamicRefRow('bb', 40);
-            updateDynamicRefRow('swp', 40);
-            updateDynamicRefRow('cut', 40);
+            updateDynamicRefRow('bb_ref', 39);
+            updateDynamicRefRow('swp_ref', 31);
+            updateDynamicRefRow('cut_ref', 30);
 
             if (trendChart) {
                 const pRadii = new Array(chartLabels.length).fill(3);
                 const pColors = new Array(chartLabels.length).fill('#1e1e2d');
-                const pBgColors = new Array(chartLabels.length).fill('#50cd89');
                 if (selectedDataIndex !== -1) {
                     pRadii[selectedDataIndex] = 8;
-                    pColors[selectedDataIndex] = '#009ef7'; 
-                    pBgColors[selectedDataIndex] = '#009ef7';
+                    pColors[selectedDataIndex] = '#50cd89'; 
                 }
                 trendChart.data.datasets[0].pointRadius = pRadii;
                 trendChart.data.datasets[0].pointBorderColor = pColors;
@@ -1075,51 +1116,8 @@
             if (isOpen) toggleDropdown();
         }
 
-        // ฟังก์ชันคำนวณสถิติของครั้งที่ 1 เทียบกับรอบที่ดีที่สุดเพื่อล็อกค่าไว้ใน Executive Summary
-        function calculateExecutiveBestMetrics() {
-            const firstKey = "1";
-            
-            if(!db[firstKey] || !db[bestKey]) return;
-
-            // 1. การเติบโตของ Productivity (ไม้/คน/ชม.)
-            let prodStart = db[firstKey].prod;
-            let prodEnd = db[bestKey].prod;
-            let prodRate = ((prodEnd - prodStart) / prodStart) * 100;
-            document.getElementById('summary-prod-start').innerText = prodStart.toFixed(1);
-            document.getElementById('summary-prod-end').innerText = prodEnd.toFixed(1);
-            document.getElementById('summary-prod-rate').innerText = (prodRate >= 0 ? '+' : '') + prodRate.toFixed(1) + '%';
-
-            // 2. การเพิ่มขึ้นของ Efficiency
-            let effStart = db[firstKey].eff;
-            let effEnd = db[bestKey].eff;
-            let effRate = effEnd - effStart;
-            document.getElementById('summary-eff-start').innerText = effStart.toFixed(2);
-            document.getElementById('summary-eff-end').innerText = effEnd.toFixed(2);
-            document.getElementById('summary-eff-rate').innerText = (effRate >= 0 ? '+' : '') + effRate.toFixed(1) + '%';
-
-            // 3. เปอร์เซ็นต์เวลารวมที่ลดลง (Cycle Time Reduction)
-            let ctStart = Object.values(db[firstKey].cycle_detail).reduce((a, b) => a + Number(b), 0);
-            let ctEnd = Object.values(db[bestKey].cycle_detail).reduce((a, b) => a + Number(b), 0);
-            // คำนวณหาค่าเวลาที่ประหยัดไปได้เป็น % (ติดลบหมายถึงเวลาลดลง ซึ่งแปลว่ากระบวนการทำงานเร็วขึ้น)
-            let ctRate = ((ctEnd - ctStart) / ctStart) * 100;
-            document.getElementById('summary-ct-start').innerText = ctStart.toFixed(2);
-            document.getElementById('summary-ct-end').innerText = ctEnd.toFixed(2);
-            document.getElementById('summary-ct-rate').innerText = (ctRate >= 0 ? '+' : '') + ctRate.toFixed(1) + '%';
-
-            // 4. ส่วนต่างยอดรวมผลผลิต (Total Output Volume Gap)
-            let outStart = db[firstKey].total;
-            let outEnd = db[bestKey].total;
-            let outDiff = outEnd - outStart;
-            document.getElementById('summary-out-start').innerText = outStart.toLocaleString();
-            document.getElementById('summary-out-end').innerText = outEnd.toLocaleString();
-            document.getElementById('summary-out-rate').innerText = (outDiff >= 0 ? '+' : '') + outDiff.toLocaleString();
-
-            // เรียกวาดแท่งกราฟเปรียบเทียบในส่วน Impact Analysis ล็อกไว้ระหว่าง ครั้งที่ 1 และ รอบที่ดีที่สุด
-            initSummaryCharts(prodStart, prodEnd, effStart, effEnd, firstKey, bestKey);
-        }
-
         // ==========================================
-        // 6. การตั้งค่าและสร้างกราฟ
+        // 7. การตั้งค่าและสร้างกราฟหลัก
         // ==========================================
         const gapLabelPlugin = {
             id: 'gapLabelPlugin',
@@ -1130,62 +1128,45 @@
                 const point = meta.data[selectedDataIndex];
                 if (!point) return;
 
-                const value = chart.data.datasets[0].data[selectedDataIndex];
-                const diff = Math.abs(targetEfficiency - value).toFixed(2); 
+                const value = chart.data.datasets[0].data[selectedDataIndex] || 0;
+                const diff = Math.abs(targetProductivity - value).toFixed(1); 
                 const x = point.x;
                 const y = point.y;
-                const targetY = chart.scales.y.getPixelForValue(targetEfficiency);
+                const targetY = chart.scales.y.getPixelForValue(targetProductivity);
 
                 ctx.save();
                 ctx.beginPath();
                 ctx.setLineDash([4, 4]);
-                ctx.moveTo(x, y);
-                ctx.lineTo(x, targetY);
-                ctx.lineWidth = 1.5;
-                ctx.strokeStyle = '#f1416c';
-                ctx.stroke();
+                ctx.moveTo(x, y);ctx.lineTo(x, targetY);
+                ctx.lineWidth = 1.5; ctx.strokeStyle = '#f1416c'; ctx.stroke();
 
                 ctx.font = 'bold 12px Inter, Sarabun';
-                const text = `Gap ${diff}%`;
+                const text = `Gap ${diff}`;
                 const textWidth = ctx.measureText(text).width;
-                const textX = x;
-                const textY = (y + targetY) / 2;
+                const textX = x; const textY = (y + targetY) / 2;
 
-                ctx.fillStyle = '#1e1e2d';
-                ctx.fillRect(textX - textWidth / 2 - 8, textY - 12, textWidth + 16, 24);
-                ctx.strokeStyle = '#323248';
-                ctx.setLineDash([]);
-                ctx.lineWidth = 1;
+                ctx.fillStyle = '#1e1e2d'; ctx.fillRect(textX - textWidth / 2 - 8, textY - 12, textWidth + 16, 24);
+                ctx.strokeStyle = '#323248'; ctx.setLineDash([]); ctx.lineWidth = 1;
                 ctx.strokeRect(textX - textWidth / 2 - 8, textY - 12, textWidth + 16, 24);
 
-                ctx.fillStyle = '#f1416c';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#f1416c'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(text, textX, textY);
 
-                const activeKeys = keys.filter(k => db[k] !== undefined);
-                const dataKey = activeKeys[selectedDataIndex];
-                const prodValue = db[dataKey].prod;
-                const prodText = `Prod: ${prodValue.toFixed(1)}`;
+                const currentKey = keys[selectedDataIndex];
+                const effValue = db[currentKey] ? db[currentKey].eff : 0;
+                const effText = `Eff: ${effValue.toFixed(2)}%`;
                 ctx.font = 'bold 11px Inter, Sarabun';
-                const prodWidth = ctx.measureText(prodText).width;
-                const prodY = y + 20;
+                const effWidth = ctx.measureText(effText).width; const effY = y + 20;
 
-                ctx.fillStyle = '#1e1e2d';
-                ctx.fillRect(x - prodWidth / 2 - 6, prodY - 10, prodWidth + 12, 20);
-                ctx.strokeStyle = '#009ef7'; 
-                ctx.strokeRect(x - prodWidth / 2 - 6, prodY - 10, prodWidth + 12, 20);
-
-                ctx.fillStyle = '#009ef7';
-                ctx.fillText(prodText, x, prodY);
+                ctx.fillStyle = '#1e1e2d'; ctx.fillRect(x - effWidth / 2 - 6, effY - 10, effWidth + 12, 20);
+                ctx.strokeStyle = '#50cd89'; ctx.strokeRect(x - effWidth / 2 - 6, effY - 10, effWidth + 12, 20);
+                ctx.fillStyle = '#50cd89'; ctx.fillText(effText, x, effY);
                 ctx.restore();
             }
         };
 
         function initCharts() {
-            const activeKeys = keys.filter(k => db[k] !== undefined);
             const trendCtx = document.getElementById('trendChart').getContext('2d');
-            
             if (trendChart) trendChart.destroy();
             trendChart = new Chart(trendCtx, {
                 type: 'line',
@@ -1193,32 +1174,19 @@
                     labels: chartLabels,
                     datasets: [
                         {
-                            label: 'Efficiency Rate (%)',
-                            data: chartData,
-                            borderColor: '#50cd89', 
-                            backgroundColor: 'rgba(80, 205, 137, 0.1)',
-                            borderWidth: 2,
-                            pointBackgroundColor: '#1e1e2d',
-                            pointBorderColor: '#50cd89',
-                            pointBorderWidth: 2,
-                            pointRadius: 3,
-                            fill: true,
-                            tension: 0.2
+                            label: 'Productivity', data: chartData,
+                            borderColor: '#009ef7', backgroundColor: 'rgba(0, 158, 247, 0.1)', borderWidth: 2,
+                            pointBackgroundColor: '#1e1e2d', pointBorderColor: '#009ef7', pointBorderWidth: 2, pointRadius: 3,
+                            fill: true, tension: 0.2
                         },
                         {
-                            label: 'เป้าหมาย (100%)',
-                            data: Array(chartLabels.length).fill(targetEfficiency),
-                            borderColor: '#f1416c',
-                            borderDash: [5, 5],
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            fill: false
+                            label: 'เป้าหมาย', data: Array(chartLabels.length).fill(targetProductivity),
+                            borderColor: '#f1416c', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, fill: false
                         }
                     ]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     plugins: { 
                         legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
                         tooltip: {
@@ -1226,79 +1194,74 @@
                                 label: function(context) {
                                     let label = context.dataset.label || '';
                                     if (label) label += ': ';
-                                    if (context.parsed.y !== null) label += context.parsed.y.toFixed(2) + '%';
+                                    if (context.parsed.y !== null) label += context.parsed.y;
                                     if (context.datasetIndex === 0) {
-                                        const dataKey = activeKeys[context.dataIndex];
-                                        const prod = db[dataKey].prod;
-                                        return [label, `Productivity: ${prod.toFixed(1)} ไม้/คน/ชม.`];
+                                        const dataKey = keys[context.dataIndex];
+                                        const eff = db[dataKey] ? db[dataKey].eff : 0;
+                                        return [label, `Efficiency: ${eff.toFixed(2)}%`];
                                     }
                                     return label;
                                 }
                             }
                         }
                     },
-                    scales: { y: { beginAtZero: true, max: 150, grid: { color: '#2b2b40' } }, x: { grid: { display: false } } }
+                    scales: { y: { beginAtZero: true, max: 120, grid: { color: '#2b2b40' } }, x: { grid: { display: false } } }
                 },
                 plugins: [gapLabelPlugin]
             });
 
-            const cycleCtx = document.getElementById('cycleChart').getContext('2d');
+            const cycleChartCtx = document.getElementById('cycleChart').getContext('2d');
             if (cycleChart) cycleChart.destroy();
-            cycleChart = new Chart(cycleCtx, {
+            cycleChart = new Chart(cycleChartCtx, {
                 type: 'bar',
                 data: {
                     labels: chartLabels,
                     datasets: [
                         {
                             label: 'เวลารวมทั้งหมด',
-                            data: activeKeys.map(k => (Number(db[k].cycle_detail.prep) || 0) + (Number(db[k].cycle_detail.arrange) || 0) + (Number(db[k].cycle_detail.machine) || 0) + (Number(db[k].cycle_detail.inspec) || 0) + (Number(db[k].cycle_detail.pack) || 0)),
-                            type: 'line',
-                            borderColor: '#009ef7',
-                            backgroundColor: '#009ef7',
-                            borderWidth: 2,
-                            pointRadius: new Array(chartLabels.length).fill(3),
-                            pointBackgroundColor: '#1e1e2d',
-                            pointBorderColor: new Array(chartLabels.length).fill('#009ef7'),
-                            pointBorderWidth: 2,
-                            yAxisID: 'y',
-                            tension: 0.2,
-                            fill: false
+                            data: keys.map(k => {
+                                const cycle = db[k] ? db[k].cycle_detail : null;
+                                return cycle ? (Number(cycle.prep)||0)+(Number(cycle.arrange)||0)+(Number(cycle.machine)||0)+(Number(cycle.inspec)||0)+(Number(cycle.pack)||0) : 0;
+                            }),
+                            type: 'line', borderColor: '#009ef7', backgroundColor: '#009ef7', borderWidth: 2,
+                            pointRadius: new Array(chartLabels.length).fill(3), pointBackgroundColor: '#1e1e2d',
+                            pointBorderColor: new Array(chartLabels.length).fill('#009ef7'), pointBorderWidth: 2,
+                            yAxisID: 'y', tension: 0.2, fill: false
                         },
                         {
                             label: '1. เตรียม RM',
-                            data: activeKeys.map(k => Number(db[k].cycle_detail.prep) || 0),
+                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.prep) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(0, 158, 247, 0.25)'),
-                            stack: 'Stack 0', borderRadius: 2
+                            stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         },
                         {
                             label: '2. เรียงเนื้อ',
-                            data: activeKeys.map(k => Number(db[k].cycle_detail.arrange) || 0),
+                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.arrange) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(139, 92, 246, 0.3)'),
-                            stack: 'Stack 0', borderRadius: 2
+                            stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         },
                         {
                             label: '3. เข้าเครื่อง',
-                            data: activeKeys.map(k => Number(db[k].cycle_detail.machine) || 0),
+                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.machine) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(255, 199, 0, 0.3)'),
-                            stack: 'Stack 0', borderRadius: 2
+                            stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         },
                         {
                             label: '4. เช็คสเปค',
-                            data: activeKeys.map(k => Number(db[k].cycle_detail.inspec) || 0),
+                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.inspec) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(241, 65, 108, 0.3)'),
-                            stack: 'Stack 0', borderRadius: 2
+                            stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         },
                         {
                             label: '5. PACKING',
-                            data: activeKeys.map(k => Number(db[k].cycle_detail.pack) || 0),
+                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.pack) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(80, 205, 137, 0.3)'),
-                            stack: 'Stack 0', borderRadius: 4
+                            stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         }
                     ]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
                     scales: {
                         x: { stacked: true, grid: { display: false } },
@@ -1314,13 +1277,16 @@
         }
 
         // ==========================================
-        // 7. ฟังก์ชันกราฟสำหรับ Summary / Impact Analysis
+        // 8. ฟังก์ชันกราฟสำหรับ Executive Summary
         // ==========================================
-        function initSummaryCharts(prodStart, prodEnd, effStart, effEnd, firstKey, targetBestKey) {
-            const summaryLabels = [`ครั้งที่ ${firstKey}`, `ครั้งที่ ${targetBestKey} (Best)`];
+        function initSummaryCharts() {
+            const t1 = db["1"] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
+            const best = db[bestTrialKey] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
+
+            const summaryLabels = ['Trial 1 (เริ่มต้นปรับปรุง)', `Trial ${bestTrialKey} (กระบวนการที่ดีที่สุด)`, 'Target (เป้าหมายสูงสุด)'];
 
             const prodJourneyCtx = document.getElementById('prodJourneyChart').getContext('2d');
-            if(prodJourneyChart) prodJourneyChart.destroy();
+            if (prodJourneyChart) prodJourneyChart.destroy();
             prodJourneyChart = new Chart(prodJourneyCtx, {
                 type: 'bar',
                 data: {
@@ -1328,13 +1294,13 @@
                     datasets: [
                         {
                             label: 'Productivity (ไม้/คน/ชม.)',
-                            data: [prodStart, prodEnd],
-                            backgroundColor: ['#323248', '#009ef7'],
+                            data: [t1.prod, best.prod, 84],
+                            backgroundColor: ['#323248', '#009ef7', '#f1416c'],
                             borderRadius: 4, barPercentage: 0.5, yAxisID: 'y'
                         },
                         {
                             label: 'Efficiency (%)',
-                            data: [effStart, effEnd],
+                            data: [t1.eff, best.eff, 100.0],
                             type: 'line', borderColor: '#50cd89', borderWidth: 3,
                             pointBackgroundColor: '#1e1e2d', pointBorderColor: '#50cd89', pointBorderWidth: 2, pointRadius: 5, yAxisID: 'y1'
                         }
@@ -1347,37 +1313,45 @@
                     scales: {
                         x: { grid: { display: false } },
                         y: { beginAtZero: true, max: 120, title: { display: true, text: 'Productivity', color: '#a1a5b7', font: { size: 10 } }, grid: { color: '#2b2b40' } },
-                        y1: { beginAtZero: true, max: 100, position: 'right', grid: { display: false }, title: { display: true, text: 'Efficiency (%)', color: '#a1a5b7', font: { size: 10 } } }
+                        y1: { beginAtZero: true, max: 150, position: 'right', grid: { display: false }, title: { display: true, text: 'Efficiency (%)', color: '#a1a5b7', font: { size: 10 } } }
                     }
                 },
                 plugins: [{
                     id: 'targetLineSummary',
                     afterDraw: chart => {
                         const ctx = chart.ctx;
-                        const yG1 = chart.scales.y.getPixelForValue(targetProductivity); 
+                        const yG1 = chart.scales.y.getPixelForValue(84);
                         const xAxis = chart.scales.x;
-                        ctx.save(); ctx.beginPath(); ctx.moveTo(xAxis.left, yG1); ctx.lineTo(xAxis.right, yG1);
-                        ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(241, 65, 108, 1)'; ctx.stroke(); ctx.restore();
+                        
+                        ctx.save();
+                        ctx.beginPath(); ctx.moveTo(xAxis.left, yG1); ctx.lineTo(xAxis.right, yG1);
+                        ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(241, 65, 108, 1)'; ctx.setLineDash([]); ctx.stroke();
+                        ctx.restore();
                     }
                 }]
             });
 
-            const bottleneckCtx = document.getElementById('bottleneckChart').getContext('2d');
-            if(bottleneckChart) bottleneckChart.destroy();
-            bottleneckChart = new Chart(bottleneckCtx, {
+            let t1Arrange = t1.cycle_detail ? Number(t1.cycle_detail.arrange)||0 : 0;
+            let bestArrange = best.cycle_detail ? Number(best.cycle_detail.arrange)||0 : 0;
+            let t1Inspec = t1.cycle_detail ? Number(t1.cycle_detail.inspec)||0 : 0;
+            let bestInspec = best.cycle_detail ? Number(best.cycle_detail.inspec)||0 : 0;
+
+            const bottleneckChartCtx = document.getElementById('bottleneckChart').getContext('2d');
+            if (bottleneckChart) bottleneckChart.destroy();
+            bottleneckChart = new Chart(bottleneckChartCtx, {
                 type: 'bar',
                 data: {
-                    labels: summaryLabels,
+                    labels: ['Trial 1', `Trial ${bestTrialKey} (Best)`],
                     datasets: [
                         {
                             label: 'เวลาเรียงลงบล็อค (sec)',
-                            data: [db[firstKey].cycle_detail.arrange, db[targetBestKey].cycle_detail.arrange],
-                            backgroundColor: 'rgba(139, 92, 246, 0.8)', borderRadius: 4, barPercentage: 0.5
+                            data: [t1Arrange, bestArrange],
+                            backgroundColor: 'rgba(139, 92, 246, 0.8)', borderRadius: 4, barPercentage: 0.4
                         },
                         {
                             label: 'เวลาเช็คสเปค (sec)',
-                            data: [db[firstKey].cycle_detail.inspec, db[targetBestKey].cycle_detail.inspec],
-                            backgroundColor: 'rgba(241, 65, 108, 0.8)', borderRadius: 4, barPercentage: 0.5
+                            data: [t1Inspec, bestInspec],
+                            backgroundColor: 'rgba(241, 65, 108, 0.8)', borderRadius: 4, barPercentage: 0.4
                         }
                     ]
                 },
