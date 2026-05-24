@@ -479,9 +479,6 @@
     </main>
 
     <script>
-        // ==========================================
-        // 1. ตัวแปรสำหรับจัดการข้อมูล (Global Variables)
-        // ==========================================
         let db = {}; 
         let keys = [];
         const targetProductivity = 106; 
@@ -506,9 +503,6 @@
 
         let bestTrialKey = "34"; 
 
-        // ==========================================
-        // 🌟 Web App URL
-        // ==========================================
         const googleWebAppUrl = "https://script.google.com/macros/s/AKfycbzCP20irjQdA65MEQXeB4KW8kkvmYRMJYbL8Zm1IdklPpKvvmTIIFcx0Zs_pm3Nwyel/exec";
 
         window.onload = function() {
@@ -521,6 +515,9 @@
                 if (!fetchUrl.includes('page=api')) {
                     fetchUrl += fetchUrl.includes('?') ? '&page=api' : '?page=api';
                 }
+                
+                // 🎯 บังคับดึงข้อมูลจากแผ่นงาน GZ30gR15_DataLog ให้ตรงกับ Dashboard นี้
+                fetchUrl += '&sheet=GZ30gR15_DataLog';
 
                 const response = await fetch(fetchUrl);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -534,7 +531,6 @@
                     throw new Error("ไม่มีข้อมูลส่งกลับมาจาก Google Sheets");
                 }
                 
-                // ปรับปรุงคอลัมน์ประสิทธิภาพหลังดึงข้อมูลจริงจากชีตให้ถูกต้องตามเป้าหมาย 106 เสมอ
                 Object.keys(db).forEach(k => {
                     if (db[k] && db[k].prod !== undefined) {
                         db[k].eff = (db[k].prod / targetProductivity) * 100;
@@ -585,9 +581,6 @@
             selectIteration(defaultKey); 
         }
 
-        // ==========================================
-        // 3. ฟังก์ชันควบคุม UI และจัดรูปแบบ
-        // ==========================================
         function toggleDropdown() {
             isOpen = !isOpen;
             if (isOpen) {
@@ -619,9 +612,6 @@
             if (activeRow) activeRow.classList.add('row-active');
         }
 
-        // ==========================================
-        // 4. การสร้างตารางและตัวเลือก (Render Logic)
-        // ==========================================
         function renderList() {
             const listContainer = document.getElementById('dropdownList');
             let html = '';
@@ -640,7 +630,7 @@
             
             let man = data.man || 0;
             let total = data.total || 0;
-            let prodPerMan = man > 0 ? (total / man).toFixed(1) : 0;
+            let p_prod = data.prod || 0;
             
             let layout = data.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 }; 
             let cycle = data.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 }; 
@@ -656,7 +646,7 @@
                 : `<span class="text-[#f1416c]">ใช้เวลาเพิ่มขึ้น ${Math.abs(inspecGap).toFixed(2)} วินาที</span>`;
 
             let headerHtml = `ผลผลิตตามสัดส่วนพนักงานทั้งกระบวนการอยู่ที่ <span class="font-bold text-[#009ef7] text-[15px]">${man} คน</span> ` +
-                             `ได้จำนวนไม้อยู่ที่ <span class="font-bold text-[#50cd89] text-[15px]">${data.prod ? data.prod.toFixed(1) : prodPerMan} ไม้ / Hr / Man</span> ` +
+                             `ได้จำนวนไม้อยู่ที่ <span class="font-bold text-[#50cd89] text-[15px]">${p_prod.toFixed(1)} ไม้ / Hr / Man</span> ` +
                              `<span class="text-[#a1a5b7]">[ยอดการผลิตรวม ${total.toLocaleString()} ไม้/ชั่วโมง]</span> ` +
                              `พบสถานะการทำงานและจุดโฟกัสดังนี้:`;
             document.getElementById('insight-overall').innerHTML = headerHtml;
@@ -814,9 +804,6 @@
             tableBody.innerHTML = html;
         }
 
-        // ==========================================
-        // 5. คำนวณและแสดงค่าใน Executive Summary (กระบวนการเดิม vs Best Trial)
-        // ==========================================
         function calculateExecutiveSummary() {
             const baseline = db["เดิม"];
             const best = db[bestTrialKey];
@@ -828,19 +815,16 @@
             document.getElementById('lbl-summary-arrange').innerText = `กระบวนการเดิม ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
             document.getElementById('lbl-summary-total').innerText = `กระบวนการเดิม ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
 
-            // 1. Productivity
             document.getElementById('val-t1-prod').innerText = baseline.prod.toFixed(1);
             document.getElementById('val-best-prod').innerText = best.prod.toFixed(1);
             let pGrowth = ((best.prod - baseline.prod) / baseline.prod) * 100;
             document.getElementById('growth-prod').innerText = `+${pGrowth.toFixed(1)}%`;
 
-            // 2. Efficiency
             document.getElementById('val-t1-eff').innerText = baseline.eff.toFixed(2);
             document.getElementById('val-best-eff').innerText = best.eff.toFixed(2);
             let eGrowth = ((best.eff - baseline.eff) / baseline.eff) * 100;
             document.getElementById('growth-eff').innerText = `+${eGrowth.toFixed(1)}%`;
 
-            // 3. Cycle Time เรียงเนื้อ (arrange)
             let baselineArrange = baseline.cycle_detail ? baseline.cycle_detail.arrange : 0;
             let bestArrange = best.cycle_detail ? best.cycle_detail.arrange : 0;
             document.getElementById('val-t1-arrange').innerText = baselineArrange.toFixed(2);
@@ -848,7 +832,6 @@
             let aReduction = baselineArrange > 0 ? (((baselineArrange - bestArrange) / baselineArrange) * 100) : 0;
             document.getElementById('growth-arrange').innerText = `-${aReduction.toFixed(1)}%`;
 
-            // 4. Total Output
             document.getElementById('val-t1-total').innerText = baseline.total.toLocaleString();
             document.getElementById('val-best-total').innerText = best.total.toLocaleString();
             let totalDiff = best.total - baseline.total;
@@ -864,7 +847,7 @@
 
             document.getElementById('gap-header-t1').innerText = `กระบวนการเดิม (ไม้/คน/ชม.)`;
 
-            // 🎯 แก้ไขโครงสร้างกลุ่มตัวเลขเป้าหมายสายงานชุดใหม่ตามกำหนด
+            // 🎯 ชุดข้อมูลโครงสร้างเป้าหมายสายงานกลุ่มใหม่ (69, 58, 54, 46, 24)
             const rowsData = [
                 { name: 'G1 <span class="text-[11px] text-[#a1a5b7] block font-normal">(สูงสุด)</span>', target: 69, id: 'g1' },
                 { name: 'G2', target: 58, id: 'g2' },
@@ -914,9 +897,6 @@
             tableBody.innerHTML = html;
         }
 
-        // ==========================================
-        // 6. ระบบอัปเดตข้อมูลบนหน้าจอเมื่อผู้ใช้คลิก
-        // ==========================================
         function selectIteration(key) {
             const data = db[key];
             if(!data) return;
@@ -1006,7 +986,7 @@
                 }
             }
 
-            // 🎯 ผูกค่ากลุ่มเป้าหมายใหม่ให้ใช้คำนวณเปรียบเทียบในฟังก์ชัน UI Real-time
+            // 🎯 ผูกเป้าหมายการคำนวณแบบ Real-time ของหน้าแดชบอร์ดตามโครงสร้างกลุ่มใหม่
             updateDynamicGapRow('g1', 69);
             updateDynamicGapRow('g2', 58);
             updateDynamicGapRow('g3', 54);
@@ -1075,13 +1055,10 @@
                 cycleChart.update();
             }
 
-            if (row) highlightTableRow(key);
+            highlightTableRow(key);
             if (isOpen) toggleDropdown();
         }
 
-        // ==========================================
-        // 7. การตั้งค่าและสร้างกราฟหลัก
-        // ==========================================
         const gapLabelPlugin = {
             id: 'gapLabelPlugin',
             afterDatasetsDraw(chart, args, plugins) {
@@ -1098,9 +1075,7 @@
                 const targetY = chart.scales.y.getPixelForValue(targetProductivity);
 
                 ctx.save();
-                ctx.beginPath();
-                ctx.setLineDash([4, 4]);
-                ctx.moveTo(x, y);ctx.lineTo(x, targetY);
+                ctx.beginPath(); ctx.setLineDash([4, 4]); ctx.moveTo(x, y); ctx.lineTo(x, targetY);
                 ctx.lineWidth = 1.5; ctx.strokeStyle = '#f1416c'; ctx.stroke();
 
                 ctx.font = 'bold 12px Inter, Sarabun';
@@ -1109,8 +1084,7 @@
                 const textX = x; const textY = (y + targetY) / 2;
 
                 ctx.fillStyle = '#1e1e2d'; ctx.fillRect(textX - textWidth / 2 - 8, textY - 12, textWidth + 16, 24);
-                ctx.strokeStyle = '#323248'; ctx.setLineDash([]); ctx.lineWidth = 1;
-                ctx.strokeRect(textX - textWidth / 2 - 8, textY - 12, textWidth + 16, 24);
+                ctx.strokeStyle = '#323248'; ctx.setLineDash([]); ctx.lineWidth = 1; ctx.strokeRect(textX - textWidth / 2 - 8, textY - 12, textWidth + 16, 24);
 
                 ctx.fillStyle = '#f1416c'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(text, textX, textY);
@@ -1233,9 +1207,6 @@
             });
         }
 
-        // ==========================================
-        // 8. ฟังก์ชันกราฟสำหรับ Executive Summary
-        // ==========================================
         function initSummaryCharts() {
             const baseline = db["เดิม"] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
             const best = db[bestTrialKey] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
@@ -1277,8 +1248,8 @@
                     id: 'targetLineSummary',
                     afterDraw: chart => {
                         const ctx = chart.ctx;
-                        const yG2 = chart.scales.y.getPixelForValue(94);
-                        const yG1 = chart.scales.y.getPixelForValue(106);
+                        const yG2 = chart.scales.y.getPixelForValue(58);
+                        const yG1 = chart.scales.y.getPixelForValue(69);
                         const xAxis = chart.scales.x;
                         
                         ctx.save();
