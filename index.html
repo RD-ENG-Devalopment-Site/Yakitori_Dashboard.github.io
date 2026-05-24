@@ -171,7 +171,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/></svg>
                     </div>
                     <h3 class="text-white font-bold text-lg mb-1">BOILED BB SKIN</h3>
-                    <p class="text-xs text-[#a1a5b7] mb-4">มีแพลนติดตามกระบวนการในอนาคต</p>
+                    <p class="text-xs text-[#a1a5b7] mb-4">มีแพลนติดตามกระบวนการในอนาค</p>
                     <a href="#" target="_blank" class="text-[#50cd89] text-sm font-bold hover:text-white transition flex items-center gap-1">
                         ไปที่ Dashboard <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
                     </a>
@@ -196,7 +196,7 @@
                         </div>
                         <div>
                             <p class="text-[11px] text-[#a1a5b7] uppercase font-bold tracking-wider mb-0.5">Projects Active</p>
-                            <h4 class="text-2xl font-bold text-white font-en">3 <span class="text-xs font-normal text-[#6b7280]">Lines</span></h4>
+                            <h4 class="text-2xl font-bold text-white font-en">4 <span class="text-xs font-normal text-[#6b7280]">Lines</span></h4>
                         </div>
                     </div>
                     
@@ -215,6 +215,7 @@
                     <h3 class="text-sm font-bold text-white mb-5 border-b border-[#323248] pb-3">Productivity Progress vs Target (ไม้/คน/ชม.)</h3>
                     
                     <div class="space-y-6">
+                        <!-- 1. BL 23G -->
                         <div>
                             <div class="flex justify-between items-end mb-2">
                                 <div class="flex items-center gap-2">
@@ -242,6 +243,7 @@
                             </div>
                         </div>
 
+                        <!-- 2. Gizzard 40G S18 -->
                         <div>
                             <div class="flex justify-between items-end mb-2">
                                 <div class="flex items-center gap-2">
@@ -269,6 +271,31 @@
                             </div>
                         </div>
 
+                        <!-- 3. Gz 30G R15 (เพิ่มใหม่ตามความต้องการ) -->
+                        <div>
+                            <div class="flex justify-between items-end mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-[#ffc700]"></span>
+                                    <span class="text-sm font-bold text-white">Gz 30G R15 <span class="text-xs text-[#a1a5b7] ml-1 font-normal">(Planning)</span></span>
+                                </div>
+                                <div class="text-right flex items-baseline justify-end gap-2">
+                                    <span class="text-[#ffc700] font-bold font-en text-lg">--</span>
+                                    <span class="text-[11px] text-[#6b7280] uppercase tracking-wide bg-[#2b2b40] px-2 py-0.5 rounded">Target: --</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1 mb-2">
+                                <div class="w-full bg-[#151521] rounded-full h-2.5 border border-[#323248]">
+                                    <div class="bg-[#ffc700] h-2.5 rounded-full opacity-30" style="width: 5%"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center mt-1">
+                                <p class="text-[11px] text-[#a1a5b7]">รอเริ่มเก็บข้อมูลกระบวนการในอนาคต</p>
+                            </div>
+                        </div>
+
+                        <!-- 4. BB SKIN -->
                         <div>
                             <div class="flex justify-between items-end mb-2">
                                 <div class="flex items-center gap-2">
@@ -299,7 +326,6 @@
     </main>
 
     <script>
-        // ฟังก์ชันเปิด-ปิดเมนูด้านซ้าย
         function toggleMenu(menuId, iconId) {
             const menu = document.getElementById(menuId);
             const icon = document.getElementById(iconId);
@@ -313,9 +339,6 @@
             }
         }
 
-        // ==========================================
-        // ส่วนของการดึงข้อมูลจาก JSON เพื่อมาแสดงใน Progress Bar
-        // ==========================================
         const targetGiz = 84;  
         const targetBl = 106;  
         let avgEffTotal = 0;
@@ -352,7 +375,7 @@
                 useMockData('bl', targetBl);
             }
 
-            // 3. คำนวณ Avg Efficiency (รอแป๊บให้ข้อมูลวิ่งเสร็จ)
+            // 3. คำนวณ Avg Efficiency
             setTimeout(() => {
                 if(activeProjectsCount > 0) {
                     const avg = avgEffTotal / activeProjectsCount;
@@ -361,15 +384,12 @@
             }, 300);
         }
 
-        // ฟังก์ชันจำลองข้อมูล (Mock Data) ถ้าดึง JSON ไม่ได้ (Local Mode)
         function useMockData(prefix, target) {
             let mockData = {};
             if (prefix === 'bl') {
-                // ข้อมูลจำลองสำหรับ BL
-                mockData = { "1": {prod:80}, "2": {prod:102}, "3": {prod:85}, "4": {prod:90} };
+                mockData = { "1": {prod:80}, "2": {prod:45}, "3": {prod:85}, "4": {prod:90} };
             } else if (prefix === 'giz') {
-                // ข้อมูลจำลองสำหรับ Gizzard
-                mockData = { "1": {prod:60}, "2": {prod:65}, "3": {prod:82}, "4": {prod:68}, "5": {prod:70} };
+                mockData = { "1": {prod:37.0}, "2": {prod:19.3}, "3": {prod:42.4}, "4": {prod:32.0}, "5": {prod:45.0}, "6": {prod:37.0}, "7": {prod:36.8} };
             }
             
             updateProgressUI(prefix, mockData, target);
@@ -377,15 +397,15 @@
         }
 
         function updateProgressUI(prefix, data, target) {
-            // ดึง Key ทั้งหมดที่มีข้อมูล prod อยู่จริง
-            const keys = Object.keys(data).filter(k => !isNaN(k) && data[k].prod !== undefined);
+            // คัดแยกกรองคีย์เพื่อหลีกเลี่ยงข้อผิดพลาดจาก String หรือวัตถุที่ไม่เกี่ยวข้อง
+            const keys = Object.keys(data).filter(k => !isNaN(k) && data[k] && data[k].prod !== undefined);
             if(keys.length === 0) return;
             
-            // หาข้อมูลรอบล่าสุด
+            // ค้นหาข้อมูล Trial รอบล่าสุด
             const latestKey = keys[keys.length - 1]; 
             const latestData = data[latestKey];
             
-            // หาข้อมูลรอบที่มี Productivity (และ Efficiency) ดีที่สุด
+            // ลอจิกคัดสรรหา Best Record อ้างอิงจากข้อมูลจำลองภายในหรือ JSON เพื่อความเที่ยงตรง
             let bestKey = keys[0];
             let bestProd = data[bestKey].prod;
             keys.forEach(k => {
@@ -395,26 +415,21 @@
                 }
             });
             
-            if(latestData && latestData.prod) {
+            if(latestData && latestData.prod !== undefined) {
                 const prodVal = latestData.prod;
                 
-                // คำนวณเปอร์เซ็นต์รอบล่าสุด
                 let percent = (prodVal / target) * 100;
                 avgEffTotal += percent;
                 activeProjectsCount++;
 
-                let displayPercent = percent > 100 ? 100 : percent; // ป้องกันบาร์ทะลุ 100%
+                let displayPercent = percent > 100 ? 100 : percent;
 
-                // คำนวณเปอร์เซ็นต์รอบที่ดีที่สุด
                 let bestPercent = (bestProd / target) * 100;
                 let displayBestPercent = bestPercent > 100 ? 100 : bestPercent;
 
-                // อัปเดตข้อมูลบนหน้าจอ (ใส่ค่า Prod)
                 document.getElementById(`${prefix}-prod-val`).innerText = prodVal.toFixed(1);
-                // กำหนด Target ย้ำให้ชัด
                 document.getElementById(`${prefix}-target-display`).innerText = `Target: ${target}`;
                 
-                // ทำให้แท่งขยับอย่าง Smooth
                 setTimeout(() => {
                     document.getElementById(`${prefix}-prog-bar`).style.width = `${displayPercent}%`;
                     document.getElementById(`${prefix}-best-bar`).style.width = `${displayBestPercent}%`;
@@ -423,7 +438,6 @@
                 document.getElementById(`${prefix}-prog-text`).innerText = `Efficiency Rate (%): ${percent.toFixed(1)}%`;
                 document.getElementById(`${prefix}-round-text`).innerText = `(Trial ${latestKey})`;
                 
-                // อัปเดตข้อความ Best Record
                 document.getElementById(`${prefix}-best-text`).innerText = `Best Record: ${bestProd.toFixed(1)} (${bestPercent.toFixed(1)}%) - Trial ${bestKey}`;
             }
         }
