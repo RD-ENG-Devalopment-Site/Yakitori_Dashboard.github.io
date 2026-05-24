@@ -140,7 +140,7 @@
                 <div class="flex items-end gap-3 mt-1">
                     <h2 class="text-4xl font-bold text-white font-en" id="kpi-eff">--%</h2>
                 </div>
-                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">เทียบกับความสามารถเครื่อง</p>
+                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">เทียบกับเป้าหมายความสามารถไลน์</p>
             </div>
 
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#8b5cf6] shadow-lg">
@@ -222,7 +222,7 @@
                                             <span id="ct-pack" class="text-[#50cd89] font-bold self-end text-[15px]">--</span>
                                         </li>
                                         <li class="flex justify-between border-t border-[#323248] pt-3 mt-3">
-                                            <span class="flex-1 text-white font-bold">Total CT (วิ)</span>
+                                            <span class="flex-1 text-white font-bold">Total Mit CT (วิ)</span>
                                             <span id="ct-total" class="text-white font-bold self-end text-[15px]">--</span>
                                         </li>
                                         <li class="flex justify-between pt-1">
@@ -533,23 +533,30 @@
                     throw new Error("หลังบ้านแจ้งข้อผิดพลาด: " + db.error);
                 }
 
-                // ป้องกันกรณีแผ่นงานส่งค่า "เดิม" พ่วงมา ให้ดึงออกเพื่อความเสถียร
                 if (db["เดิม"]) delete db["เดิม"];
 
                 if (Object.keys(db).length === 0) {
                     throw new Error("ไม่มีข้อมูลส่งกลับมาจาก Google Sheets");
                 }
                 
+                // คำนวณค่า Efficiency Rate ใหม่จากสูตรทางวิศวกรรมที่ถูกต้อง (Productivity / 84) * 100
+                Object.keys(db).forEach(k => {
+                    if (db[k] && db[k].prod !== undefined) {
+                        db[k].eff = (db[k].prod / targetProductivity) * 100;
+                    }
+                });
+                
                 initializeDashboardFromSheets();
             } catch (error) {
                 console.warn("ไม่สามารถดึงข้อมูลจาก Google Sheets ได้สำเร็จ ระบบเปิดใช้งาน Fallback Mock Data สำรอง:", error);
                 
+                // ชุด Fallback Mock Data ที่ปรับปรุงสูตรการคำนวณ 'eff' ใหม่ให้ถูกต้องตามเป้าหมาย 84 ทั้งหมดแล้ว
                 db = {
                     "1": { "prod": 37.0, "eff": 44.05, "cycle_detail": { "prep": 25.60, "arrange": 30.45, "machine": 1.25, "inspec": 29.50, "pack": 10.50 }, "total": 479, "man": 13, "layout": { "prep": 3, "block": 6, "inspec": 2, "pack": 1, "op": 1 } },
                     "2": { "prod": 19.3, "eff": 22.98, "cycle_detail": { "prep": 31.50, "arrange": 123.0, "machine": 1.25, "inspec": 20.78, "pack": 10.00 }, "total": 290, "man": 13, "layout": { "prep": 3, "block": 6, "inspec": 2, "pack": 1, "op": 1 } },
-                    "3": { "prod": 42.4, "eff": 50.42, "cycle_detail": { "prep": 49.25, "arrange": 20.50, "machine": 1.25, "inspec": 8.50, "pack": 5.50 }, "total": 720, "man": 17, "layout": { "prep": 7, "block": 7, "inspec": 2, "pack": 1, "op": 0 } },
+                    "3": { "prod": 42.4, "eff": 50.48, "cycle_detail": { "prep": 49.25, "arrange": 20.50, "machine": 1.25, "inspec": 8.50, "pack": 5.50 }, "total": 720, "man": 17, "layout": { "prep": 7, "block": 7, "inspec": 2, "pack": 1, "op": 0 } },
                     "4": { "prod": 32.00, "eff": 38.10, "cycle_detail": { "prep": 46.90, "arrange": 19.30, "machine": 1.25, "inspec": 8.50, "pack": 36.55 }, "total": 608, "man": 19, "layout": { "prep": 8, "block": 8, "inspec": 2, "pack": 1, "op": 0 } },
-                    "5": { "prod": 45.00, "eff": 53.57, "cycle_detail": { "prep": 24.50, "arrange": 22.00, "machine": 1.25, "inspec": 18.00, "pack": 14.30 }, "total": 855, "man": 19, "layout": { "prep": 7, "block": 7, "inspec": 3, "pack": 2, "op": 0 } },
+                    "5": { "prod": 45.10, "eff": 53.69, "cycle_detail": { "prep": 24.50, "arrange": 22.00, "machine": 1.25, "inspec": 18.00, "pack": 14.30 }, "total": 855, "man": 19, "layout": { "prep": 7, "block": 7, "inspec": 3, "pack": 2, "op": 0 } },
                     "6": { "prod": 37.00, "eff": 44.05, "cycle_detail": { "prep": 26.40, "arrange": 18.70, "machine": 1.25, "inspec": 25.60, "pack": 25.35 }, "total": 694, "man": 19, "layout": { "prep": 7, "block": 7, "inspec": 3, "pack": 2, "op": 0 } },
                     "7": { "prod": 36.80, "eff": 43.81, "cycle_detail": { "prep": 26.40, "arrange": 19.25, "machine": 1.25, "inspec": 25.60, "pack": 25.35 }, "total": 699, "man": 19, "layout": { "prep": 7, "block": 7, "inspec": 3, "pack": 2, "op": 0 } }
                 };
@@ -559,7 +566,6 @@
 
         function initializeDashboardFromSheets() {
             const allSheetKeys = Object.keys(db);
-            
             allSheetKeys.sort((a, b) => parseInt(a) - parseInt(b));
             
             keys.length = 0; 
@@ -672,7 +678,7 @@
                     <div class="flex-shrink-0 w-6 h-6 rounded bg-[#2b2b40] text-[#009ef7] border border-[#009ef7]/30 flex items-center justify-center text-xs font-bold mt-0.5">1</div>
                     <div>
                         <h4 class="text-white font-bold text-sm mb-1">เตรียม (RM)</h4>
-                        <p class="text-[#a1a5b7] text-sm leading-relaxed">มีพนักงานปฏิบัติงาน <span class="text-[#50cd89]">${layout.prep} คน</span> ใช้เวลาในการเตรียมวัตถุดิบเฉลี่ย <span class="text-white">${cycle.prep} วินาที</span> เพื่อป้อนวัตถุดิบเข้าสู่กระบวนการต่อไป</p>
+                        <p class="text-[#a1a5b7] text-sm leading-relaxed">มีพนักงานปฏิบัติงาน <span class="text-[#50cd89]">${layout.prep} คน</span> ใช้เวลาในการเตรียมวัตถิบเฉลี่ย <span class="text-white">${cycle.prep} วินาที</span> เพื่อป้อนวัตถุดิบเข้าสู่กระบวนการต่อไป</p>
                     </div>
                 </div>
 
@@ -870,7 +876,6 @@
 
             document.getElementById('gap-header-t1').innerText = `Trial 1 (ไม้/คน/ชม.)`;
 
-            // อัปเดตข้อมูลเป้าหมายใหม่ G1=84, G2=53, G3=44, G4=44, Other=30 ตามไฟล์ภาพ image_561dab.png
             const rowsData = [
                 { name: 'G1 <span class="text-[11px] text-[#a1a5b7] block font-normal">(สูงสุด)</span>', target: 84, id: 'g1' },
                 { name: 'G2', target: 53, id: 'g2' },
@@ -958,6 +963,7 @@
                 kpiProdEl.style.color = '#f1416c'; 
             }
 
+            // แสดงผลลัพธ์ Efficiency ที่ถูกต้องผ่านชุดคำนวณแบบ Dynamic บนเว็บแอป
             document.getElementById('kpi-eff').innerText = (data.eff || 0).toFixed(2) + '%';
             document.getElementById('kpi-cycle').innerHTML = `${formatVal(total_ct)} <span class="text-lg font-normal text-[#a1a5b7]">Sec</span>`;
             document.getElementById('kpi-total').innerText = totalOutput.toLocaleString();
