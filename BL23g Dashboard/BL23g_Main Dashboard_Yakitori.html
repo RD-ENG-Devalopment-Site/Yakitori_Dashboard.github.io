@@ -594,9 +594,6 @@
                     "38": { "prod": 94.0, "eff": 88.68, "man": 19, "total": 1786, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 21.80, "machine": 1.25, "inspec": 7.30, "pack": 7.65 } }
                 };
                 initializeDashboardFromSheets();
-            } catch (error) {
-                console.warn("ไม่สามารถดึงข้อมูลจาก Google Sheets ได้สำเร็จ ระบบเปิดใช้งาน Fallback Mock Data สำรอง:", error);
-                initializeDashboardFromSheets();
             }
         }
 
@@ -757,6 +754,7 @@
 
         function updateGapAnalysis(key, currentData) {
             const tbody = document.getElementById('gapTableBody');
+            if(!tbody) return;
             document.getElementById('gap-header-selected').innerText = key === 'เดิม' ? 'ข้อมูลเดิม (วิ)' : `TRIAL ${key} (วิ)`;
 
             const cycle = currentData.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
@@ -910,6 +908,7 @@
 
         function renderExecutiveGapTable(baselineKey) {
             const tableBody = document.getElementById('executiveGapTableBody');
+            if(!tableBody) return;
             const baseline = db[baselineKey];
             if(!baseline) return;
 
@@ -1041,20 +1040,20 @@
                 let diff = targetVal - currentProd;
 
                 if (diff <= 0) {
-                    if(diffEl) {
-                        diffEl.innerText = diff.toFixed(1);
+                    if (diffEl) {
+                        diffEl.innerText = Math.abs(diff).toFixed(1);
                         diffEl.className = "p-3 text-center font-en font-bold text-[#50cd89]";
                     }
-                    if(pctEl) {
+                    if (pctEl) {
                         pctEl.innerText = "ทะลุเป้า";
                         pctEl.className = "p-3 text-center font-en font-bold text-[#50cd89]";
                     }
                 } else {
-                    if(diffEl) {
+                    if (diffEl) {
                         diffEl.innerText = "+" + diff.toFixed(1);
                         diffEl.className = "p-3 text-center font-en font-bold text-[#f1416c]";
                     }
-                    if(pctEl) {
+                    if (pctEl) {
                         let pct = (diff / targetVal) * 100;
                         pctEl.innerText = pct.toFixed(1) + "%";
                         pctEl.className = "p-3 text-center font-en font-bold text-[#f1416c]";
@@ -1074,7 +1073,7 @@
 
                 valEl.innerText = currentProd.toFixed(1);
                 let diff = currentProd - refVal;
-                if(diffEl) {
+                if (diffEl) {
                     if (diff >= 0) {
                         diffEl.innerHTML = `สูงกว่าสายงานนี้ <span class="font-bold">+${diff.toFixed(1)}</span>`;
                         diffEl.className = "p-3 text-center text-[11px] text-[#50cd89]";
