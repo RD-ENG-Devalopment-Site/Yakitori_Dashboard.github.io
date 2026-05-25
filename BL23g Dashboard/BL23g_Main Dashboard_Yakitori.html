@@ -290,7 +290,7 @@
                         <tr class="bg-[#151521] text-xs uppercase tracking-wider text-[#a1a5b7] border-b border-[#323248]">
                             <th class="p-4 font-bold sticky left-0 bg-[#151521] z-10 text-white" rowspan="2">รอบการปรับปรุง</th>
                             <th class="p-4 font-medium text-[#50cd89] text-center" rowspan="2">Productivity</th>
-                            <th class="p-4 font-medium text-center" rowspan="2">Efficiency</th>
+                            <th class="p-4 font-medium text-center " rowspan="2">Efficiency</th>
                             <th class="p-2 font-bold text-center border-l border-[#323248] text-[#8b5cf6]" colspan="7">ข้อมูลเวลา (CYCLE TIME)</th>
                             <th class="p-2 font-bold text-center border-l border-[#323248] text-[#009ef7]" colspan="6">ข้อมูลกำลังคน (Manpower)</th>
                         </tr>
@@ -594,8 +594,7 @@
                     "35": { "prod": 80.0, "eff": 75.47, "man": 19, "total": 1520, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.50, "machine": 1.25, "inspec": 9.70, "pack": 9.50 } },
                     "36": { "prod": 91.0, "eff": 85.85, "man": 19, "total": 1728, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.50, "machine": 1.25, "inspec": 7.70, "pack": 8.10 } },
                     "37": { "prod": 92.5, "eff": 87.26, "man": 19, "total": 1757, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.10, "machine": 1.25, "inspec": 7.50, "pack": 7.90 } },
-                    "38": { "prod": 94.0, "eff": 88.68, "man": 19, "total": 1786, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 21.80, "machine": 1.25, "inspec": 7.30, "pack": 7.65 } },
-                    "39": { "prod": 95.5, "eff": 90.09, "man": 19, "total": 1814, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 21.40, "machine": 1.25, "inspec": 7.10, "pack": 7.45 } }
+                    "38": { "prod": 94.0, "eff": 88.68, "man": 19, "total": 1786, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 21.80, "machine": 1.25, "inspec": 7.30, "pack": 7.65 } }
                 };
                 initializeDashboardFromSheets();
             }
@@ -660,7 +659,6 @@
             }
         });
 
-        // ฟังก์ชันช่วยจัดรูปแบบตัวเลขทศนิยม 2 ตำแหน่ง
         function formatVal(val) {
             return Number(val).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}); 
         }
@@ -695,7 +693,7 @@
             
             let man = data.man || 0;
             let total = data.total || 0;
-            let prodPerMan = man > 0 ? (total / man).toFixed(1) : 0;
+            let pProd = data.prod || (man > 0 ? (total / man) : 0);
             
             let layout = data.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 }; 
             let cycle = data.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 }; 
@@ -711,7 +709,7 @@
                 : `<span class="text-[#f1416c]">ใช้เวลาเพิ่มขึ้น ${Math.abs(inspecGap).toFixed(2)} วินาที</span>`;
 
             let headerHtml = `ผลผลิตตามสัดส่วนพนักงานทั้งกระบวนการอยู่ที่ <span class="font-bold text-[#009ef7] text-[15px]">${man} คน</span> ` +
-                             `ได้จำนวนไม้อยู่ที่ <span class="font-bold text-[#50cd89] text-[15px]">${data.prod ? data.prod.toFixed(1) : prodPerMan} ไม้ / Hr / Man</span> ` +
+                             `ได้จำนวนไม้อยู่ที่ <span class="font-bold text-[#50cd89] text-[15px]">${pProd.toFixed(1)} ไม้ / Hr / Man</span> ` +
                              `<span class="text-[#a1a5b7]">[ยอดการผลิตรวม ${total.toLocaleString()} ไม้/ชั่วโมง]</span> ` +
                              `พบสถานะการทำงานและจุดโฟกัสดังนี้:`;
             document.getElementById('insight-overall').innerHTML = headerHtml;
@@ -729,7 +727,7 @@
                     <div class="flex-shrink-0 w-6 h-6 rounded bg-[#2b2b40] text-[#8b5cf6] border border-[#8b5cf6]/30 flex items-center justify-center text-xs font-bold mt-0.5">2</div>
                     <div>
                         <h4 class="text-[#8b5cf6] font-bold text-sm mb-1 flex items-center">เรียงเนื้อลงบล็อค <span class="text-[10px] bg-[rgba(139,92,246,0.15)] border border-[#8b5cf6]/50 px-2 py-0.5 rounded text-[#8b5cf6] ml-2 font-bold uppercase tracking-wider">คอขวดหลัก</span></h4>
-                        <p class="text-[#a1a5b7] text-sm leading-relaxed">กระบวนการนี้ใช้เวลาเฉะลี่ย <span class="text-white">${cycle.arrange} วินาที</span> (${arrangeStatus}) โดยจัดพนักงานลงไลน์ <span class="text-[#f1416c]">${layout.block} คน</span> <br><span class="text-[#009ef7] mt-1 inline-block">[Analysis: เวลาที่ใช้ในจุดนี้เป็นตัวแปรสำคัญที่สุดที่กำหนด Capacity รวมที่ ${total.toLocaleString()} ไม้/ชั่วโมง การทำ Line Balancing ควรโฟกัสความเร็วของพนักงานจุดนี้เป็นหลัก]</span></p>
+                        <p class="text-[#a1a5b7] text-sm leading-relaxed">กระบวนการนี้ใช้เวลาเฉลี่ย <span class="text-white">${cycle.arrange} วินาที</span> (${arrangeStatus}) โดยจัดพนักงานลงไลน์ <span class="text-[#f1416c]">${layout.block} คน</span> <br><span class="text-[#009ef7] mt-1 inline-block">[Analysis: เวลาที่ใช้ในจุดนี้เป็นตัวแปรสำคัญที่สุดที่กำหนด Capacity รวมที่ ${total.toLocaleString()} ไม้/ชั่วโมง การทำ Line Balancing ควรโฟกัสความเร็วของพนักงานจุดนี้เป็นหลัก]</span></p>
                     </div>
                 </div>
 
@@ -959,9 +957,13 @@
                     `;
                 }
 
+                /* 🎯 บั๊กเลย์เอาต์เดิมที่แก้ไข: 
+                  เพิ่มเงื่อนไข ${row.isRef ? 'colspan="2"' : ''} เข้าไปที่เซลล์ผลลัพธ์ส่วนต่าง (diff) 
+                  เพื่อทดแทนพื้นที่คอลัมน์เปอร์เซ็นต์ (pct) ที่ถูกซ่อนซ้อนหลบไว้สำหรับกลุ่มสายงานอ้างอิง (isRef) 
+                */
                 html += `
                     <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-${row.id}-val">--</td>
-                    <td class="p-3 text-center font-en font-bold" id="gap-dyn-${row.id}-diff">--</td>
+                    <td class="p-3 text-center font-en font-bold" id="gap-dyn-${row.id}-diff" ${row.isRef ? 'colspan="2"' : ''}>--</td>
                     <td class="p-3 text-center font-en font-bold" id="gap-dyn-${row.id}-pct" ${row.isRef ? 'style="display:none;"' : ''}>--</td>
                 </tr>`;
             });
@@ -1044,7 +1046,7 @@
                 let diff = targetVal - currentProd;
 
                 if (diff <= 0) {
-                    diffEl.innerText = diff.toFixed(1);
+                    diffEl.innerText = Math.abs(diff).toFixed(1);
                     diffEl.className = "p-3 text-center font-en font-bold text-[#50cd89]";
                     if(pctEl) {
                         pctEl.innerText = "ทะลุเป้า";
