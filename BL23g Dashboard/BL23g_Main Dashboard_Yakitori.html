@@ -594,6 +594,9 @@
                     "38": { "prod": 94.0, "eff": 88.68, "man": 19, "total": 1786, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 21.80, "machine": 1.25, "inspec": 7.30, "pack": 7.65 } }
                 };
                 initializeDashboardFromSheets();
+            } catch (error) {
+                console.warn("ไม่สามารถดึงข้อมูลจาก Google Sheets ได้สำเร็จ ระบบเปิดใช้งาน Fallback Mock Data สำรอง:", error);
+                initializeDashboardFromSheets();
             }
         }
 
@@ -618,7 +621,6 @@
                 }
             });
 
-            // ค้นหา Baseline Key แบบอัตโนมัติป้องกันบั๊กข้อมูลว่างเปล่า
             let baselineKey = keys.find(k => k === "เดิม" || k === "Baseline") || (db["1"] ? "1" : keys[0]);
 
             chartLabels = keys.map(k => k === "เดิม" ? "เดิม" : `${k}`);
@@ -639,9 +641,6 @@
             selectIteration(defaultKey); 
         }
 
-        // ==========================================
-        // 3. ฟังก์ชันควบคุม UI และจัดรูปแบบ
-        // ==========================================
         function toggleDropdown() {
             isOpen = !isOpen;
             if (isOpen) {
@@ -673,9 +672,6 @@
             if (activeRow) activeRow.classList.add('row-active');
         }
 
-        // ==========================================
-        // 4. การสร้างตารางและตัวเลือก (Render Logic)
-        // ==========================================
         function renderList() {
             const listContainer = document.getElementById('dropdownList');
             let html = '';
@@ -1299,9 +1295,9 @@
             const baseLabel = baselineKey === "เดิม" ? "กระบวนการเดิม" : `Trial ${baselineKey}`;
             const summaryLabels = [`${baseLabel} (เริ่มต้น)`, `Trial ${bestTrialKey} (ดีที่สุด)`, 'Target (เป้าหมายสูงสุด)'];
 
-            const prodJourneyCtx = document.getElementById('prodJourneyChart').getContext('2d');
+            const prodJourneyChartCtx = document.getElementById('prodJourneyChart').getContext('2d');
             if (prodJourneyChart) prodJourneyChart.destroy();
-            prodJourneyChart = new Chart(prodJourneyCtx, {
+            prodJourneyChart = new Chart(prodJourneyChartCtx, {
                 type: 'bar',
                 data: {
                     labels: summaryLabels,
