@@ -1041,15 +1041,19 @@
                 let diff = targetVal - currentProd;
 
                 if (diff <= 0) {
-                    diffEl.innerText = diff.toFixed(1);
-                    diffEl.className = "p-3 text-center font-en font-bold text-[#50cd89]";
+                    if(diffEl) {
+                        diffEl.innerText = diff.toFixed(1);
+                        diffEl.className = "p-3 text-center font-en font-bold text-[#50cd89]";
+                    }
                     if(pctEl) {
                         pctEl.innerText = "ทะลุเป้า";
                         pctEl.className = "p-3 text-center font-en font-bold text-[#50cd89]";
                     }
                 } else {
-                    diffEl.innerText = "+" + diff.toFixed(1);
-                    diffEl.className = "p-3 text-center font-en font-bold text-[#f1416c]";
+                    if(diffEl) {
+                        diffEl.innerText = "+" + diff.toFixed(1);
+                        diffEl.className = "p-3 text-center font-en font-bold text-[#f1416c]";
+                    }
                     if(pctEl) {
                         let pct = (diff / targetVal) * 100;
                         pctEl.innerText = pct.toFixed(1) + "%";
@@ -1070,12 +1074,14 @@
 
                 valEl.innerText = currentProd.toFixed(1);
                 let diff = currentProd - refVal;
-                if (diff >= 0) {
-                    diffEl.innerHTML = `สูงกว่าสายงานนี้ <span class="font-bold">+${diff.toFixed(1)}</span>`;
-                    diffEl.className = "p-3 text-center text-[11px] text-[#50cd89]";
-                } else {
-                    diffEl.innerHTML = `ต่ำกว่าสายงานนี้ <span class="font-bold">${diff.toFixed(1)}</span>`;
-                    diffEl.className = "p-3 text-center text-[11px] text-[#f1416c]";
+                if(diffEl) {
+                    if (diff >= 0) {
+                        diffEl.innerHTML = `สูงกว่าสายงานนี้ <span class="font-bold">+${diff.toFixed(1)}</span>`;
+                        diffEl.className = "p-3 text-center text-[11px] text-[#50cd89]";
+                    } else {
+                        diffEl.innerHTML = `ต่ำกว่าสายงานนี้ <span class="font-bold">${diff.toFixed(1)}</span>`;
+                        diffEl.className = "p-3 text-center text-[11px] text-[#f1416c]";
+                    }
                 }
             }
 
