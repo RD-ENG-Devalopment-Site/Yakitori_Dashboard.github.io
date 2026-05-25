@@ -418,19 +418,21 @@
     <script>
         let db = {}; 
         let keys = [];
-        const targetProductivity = 69; // 🎯 ปรับปรุง Target หลักตามโจทย์ใหม่เป็น 69
-        
-        // 🎯 อัปเดตชุดข้อมูล Idle Production Time (Baseline) ประจำสถานีงานใหม่ทั้งหมดตามเงื่อนไข
+        const targetProductivity = 69; 
         const actualBaseline = { prep: 20.00, arrange: 20.00, machine: 1.25, inspec: 5.00, pack: 5.90 };
 
         const popup = document.getElementById('iterDropdown');
         const icon = document.getElementById('dropdownIcon');
         let isOpen = false;
-        let selectedDataIndex = -1;
+        let selectedDataIndex = 0; // 🎯 แก้ไขจาก -1 เป็น 0 เพื่อให้โปรแกรมเข้าถึง index อาร์เรย์ที่ถูกต้องและไม่แครชตอนเริ่มระบบ
 
         let trendChart, cycleChart, prodJourneyChart, bottleneckChart;
         let chartLabels = [], chartData = [];
         let bestTrialKey = ""; 
+
+        Chart.defaults.color = '#a1a5b7';
+        Chart.defaults.borderColor = '#323248';
+        Chart.defaults.font.family = "'Sarabun', sans-serif";
 
         const googleWebAppUrl = "https://script.google.com/macros/s/AKfycbzCP20irjQdA65MEQXeB4KW8kkvmYRMJYbL8Zm1IdklPpKvvmTIIFcx0Zs_pm3Nwyel/exec";
 
@@ -452,7 +454,6 @@
                 db = await response.json();
                 if (db.error) throw new Error(db.error);
 
-                // ลบหรือคัดแยกคีย์คำว่า "เดิม" เผื่อมีตกค้างในหน่วยความจำฝั่ง Client
                 if (db["เดิม"]) delete db["เดิม"];
 
                 if (Object.keys(db).length === 0) {
@@ -473,10 +474,7 @@
 
         function initializeDashboardFromSheets() {
             const allSheetKeys = Object.keys(db).filter(k => k !== "เดิม");
-            
-            // จัดเรียงรอบแบบตัวเลขบริสุทธิ์ (เริ่มจากรอบการทำงานที่ 1 ขึ้นไป)
             allSheetKeys.sort((a, b) => parseInt(a) - parseInt(b));
-            
             keys = [...allSheetKeys];
 
             let maxProd = -1;
@@ -498,11 +496,16 @@
 
             renderList();
             renderTable();
+            
+            let defaultKey = keys[keys.length - 1] || "";
+            if (defaultKey) {
+                selectedDataIndex = keys.indexOf(defaultKey); // 🎯 ผูกค่าความสัมพันธ์ index ปัจจุบันก่อนวาดกราฟ
+            }
+
             initCharts();
             calculateExecutiveSummary();
             initSummaryCharts(); 
 
-            let defaultKey = keys[keys.length - 1] || "";
             if (defaultKey) selectIteration(defaultKey); 
         }
 
@@ -638,7 +641,7 @@
         function calculateExecutiveSummary() {
             if(keys.length === 0) return;
             const firstKey = keys[0];
-            const baseline = db[firstKey]; // 🎯 ปรับใช้รอบการทำงานแรกสุดเป็นข้อมูลจุดเริ่มเปรียบเทียบแทนคำว่าเดิม
+            const baseline = db[firstKey]; 
             const best = db[bestTrialKey];
 
             if(!baseline || !best) return;
@@ -814,6 +817,30 @@
                 trendChart.data.datasets[0].pointBorderColor = pColors;
                 trendChart.update();
             }
+
+            if (cycleChart) {
+                // 🎯 ไฮไลท์แท่งข้อมูลกราฟ Cycle Time ล้อตามชุด Index ปัจจุบันที่ถูกเลือกเพื่อเพิ่มความสวยงาม
+                const bgColors1 = new Array(chartLabels.length).fill('rgba(0, 158, 247, 0.3)');
+                const bgColors2 = new Array(chartLabels.length).fill('rgba(139, 92, 246, 0.3)');
+                const bgColors3 = new Array(chartLabels.length).fill('rgba(255, 199, 0, 0.3)');
+                const bgColors4 = new Array(chartLabels.length).fill('rgba(241, 65, 108, 0.3)');
+                const bgColors5 = new Array(chartLabels.length).fill('rgba(80, 205, 137, 0.3)');
+
+                if (selectedDataIndex !== -1) {
+                    bgColors1[selectedDataIndex] = 'rgba(0, 158, 247, 0.9)';
+                    bgColors2[selectedDataIndex] = 'rgba(139, 92, 246, 0.9)';
+                    bgColors3[selectedDataIndex] = 'rgba(255, 199, 0, 0.9)';
+                    bgColors4[selectedDataIndex] = 'rgba(241, 65, 108, 0.9)';
+                    bgColors5[selectedDataIndex] = 'rgba(80, 205, 137, 0.9)';
+                }
+                cycleChart.data.datasets[0].backgroundColor = bgColors1;
+                cycleChart.data.datasets[1].backgroundColor = bgColors2;
+                cycleChart.data.datasets[2].backgroundColor = bgColors3;
+                cycleChart.data.datasets[3].backgroundColor = bgColors4;
+                cycleChart.data.datasets[4].backgroundColor = bgColors5;
+                cycleChart.update();
+            }
+
             highlightTableRow(key);
             if (isOpen) toggleDropdown();
         }
@@ -821,7 +848,7 @@
         const gapLabelPlugin = {
             id: 'gapLabelPlugin',
             afterDatasetsDraw(chart) {
-                if (selectedDataIndex === -1) return;
+                if (selectedDataIndex === -1 || keys.length === 0) return;
                 const ctx = chart.ctx, meta = chart.getDatasetMeta(0), point = meta.data[selectedDataIndex];
                 if (!point) return;
 
@@ -836,6 +863,7 @@
                 ctx.fillStyle = '#1e1e2d'; ctx.fillRect(x - 25, (y + targetY)/2 - 10, 50, 20);
                 ctx.strokeStyle = '#323248'; ctx.setLineDash([]); ctx.strokeRect(x - 25, (y + targetY)/2 - 10, 50, 20);
                 ctx.fillStyle = '#f1416c'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.font = 'bold 11px Sarabun';
                 ctx.fillText(`Gap ${diff}`, x, (y + targetY)/2);
                 ctx.restore();
             }
@@ -849,11 +877,16 @@
                 data: {
                     labels: chartLabels,
                     datasets: [
-                        { label: 'Productivity', data: chartData, borderColor: '#009ef7', backgroundColor: 'rgba(0,158,247,0.1)', borderWidth: 2, fill: true },
+                        { label: 'Productivity', data: chartData, borderColor: '#009ef7', backgroundColor: 'rgba(0,158,247,0.1)', borderWidth: 2, fill: true, tension: 0.2 },
                         { label: 'เป้าหมาย', data: Array(chartLabels.length).fill(targetProductivity), borderColor: '#f1416c', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 0 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true, max: 100, grid: { color: '#2b2b40' } }, x: { grid: { display: false } } } 
+                },
                 plugins: [gapLabelPlugin]
             });
 
@@ -864,14 +897,40 @@
                 data: {
                     labels: chartLabels,
                     datasets: [
+                        // 🎯 ปรับโครงสร้างกราฟแท่งหลักให้กลับมาเป็นแบบสะสม (Stacked) ตาม 5 สถานีงานให้สอดรับกับ UI ตารางเวลา
                         {
-                            label: 'เรียงเนื้อลงบล็อค',
+                            label: '1. เตรียม RM',
+                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.prep) || 0 : 0),
+                            backgroundColor: 'rgba(0, 158, 247, 0.3)', stack: 'stack1'
+                        },
+                        {
+                            label: '2. เรียงเนื้อ (คอขวด)',
                             data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.arrange) || 0 : 0),
-                            backgroundColor: 'rgba(139, 92, 246, 0.7)', borderRadius: 4
+                            backgroundColor: 'rgba(139, 92, 246, 0.3)', stack: 'stack1'
+                        },
+                        {
+                            label: '3. เข้าเครื่อง',
+                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.machine) || 0 : 0),
+                            backgroundColor: 'rgba(255, 199, 0, 0.3)', stack: 'stack1'
+                        },
+                        {
+                            label: '4. เช็คสเปค',
+                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.inspec) || 0 : 0),
+                            backgroundColor: 'rgba(241, 65, 108, 0.3)', stack: 'stack1'
+                        },
+                        {
+                            label: '5. PACKING',
+                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.pack) || 0 : 0),
+                            backgroundColor: 'rgba(80, 205, 137, 0.3)', stack: 'stack1'
                         }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, grid: { color: '#2b2b40' } } }
+                }
             });
         }
 
@@ -890,7 +949,12 @@
                         { label: 'Productivity', data: [baseline.prod, best.prod, targetProductivity], backgroundColor: ['#323248', '#009ef7', '#f1416c'], barPercentage: 0.5 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 100, grid: { color: '#2b2b40' } }, x: { grid: { display: false } } }
+                }
             });
 
             const bottleneckCtx = document.getElementById('bottleneckChart').getContext('2d');
@@ -903,7 +967,12 @@
                         { label: 'เวลาเรียงลงบล็อค (sec)', data: [baseline.cycle_detail?.arrange||0, best.cycle_detail?.arrange||0], backgroundColor: '#8b5cf6', barPercentage: 0.4 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true, grid: { color: '#2b2b40' } }, x: { grid: { display: false } } }
+                }
             });
         }
     </script>
