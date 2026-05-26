@@ -158,7 +158,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/></svg>
                     </div>
                     <h3 class="text-white font-bold text-lg mb-1">BL Experimental</h3>
-                    <p class="text-xs text-[#a1a5b7] mb-4">การปรับปรุงกระบวนการเสียบไม้สินค้า BL</p>
+                    <p class="text-xs text-[#a1a5b7] mb-4">การปรับปรุงกระปรุงกระบวนการเสียบไม้สินค้า BL</p>
                     <a href="BL23g Dashboard/BL23g_Main Dashboard_Yakitori.html" target="_blank" class="text-[#8b5cf6] text-sm font-bold hover:text-white transition flex items-center gap-1">
                         ไปที่ Dashboard <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
                     </a>
@@ -361,10 +361,12 @@
             let avgEffTotal = 0;
             let activeProjectsCount = 0;
 
+            // 📦 DATA REPOSITORY: อัปเดตข้อมูลชุดใหม่รอบ 38 (Best) และรอบ 39 (Latest) ของไลน์ BL 23G
             const blProductionDataset = {
                 "1": { prod: 80.0 },
                 "4": { prod: 90.0 },
-                "38": { prod: 96.6 }
+                "38": { prod: 96.6 },
+                "39": { prod: 94.0 } 
             };
 
             const gizProductionDataset = {
@@ -379,7 +381,7 @@
 
             const gz30gProductionDataset = {
                 "1": { prod: 41.5 },
-                "2": { prod: 50.315 } // ตั้งค่าไว้ที่ 50.315 เพื่อให้สัดส่วนหารเป้าหมาย 69 ออกมาเป็น 72.92% พอดี
+                "2": { prod: 50.315 } 
             };
 
             // 1. ประมวลผลข้อมูลไลน์ BL 23G
