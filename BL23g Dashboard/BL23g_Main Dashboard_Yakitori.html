@@ -132,7 +132,7 @@
                 <div class="flex items-end gap-3 mt-1">
                     <h2 class="text-4xl font-bold text-white font-en" id="kpi-prod">--</h2>
                 </div>
-                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">เป้าหมาย Target: 106</p>
+                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2" id="kpi-target-label">เป้าหมาย Target: 130</p>
             </div>
 
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#50cd89] shadow-lg">
@@ -428,7 +428,7 @@
                 <div class="bg-card rounded-xl p-6 border border-[#323248] shadow-lg flex flex-col">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-white font-bold text-sm">Productivity & Efficiency Journey (Focus: เดิม vs Best vs Target)</h3>
-                        <span class="text-xs text-[#f1416c] bg-[rgba(241,65,108,0.1)] px-2 py-1 rounded border border-[rgba(241,65,108,0.2)]">Target: 106</span>
+                        <span class="text-xs text-[#f1416c] bg-[rgba(241,65,108,0.1)] px-2 py-1 rounded border border-[rgba(241,65,108,0.2)]" id="chart-target-badge">Target: 130</span>
                     </div>
                     <div class="h-[250px] w-full relative flex-1">
                         <canvas id="prodJourneyChart"></canvas>
@@ -484,9 +484,9 @@
         // ==========================================
         let db = {}; 
         let keys = [];
-        const targetProductivity = 106; 
         
-        // 🌟 แก้ไขจุดที่ 2: ปรับเปลี่ยนสถิติ Idle Production Time (วิ) เป็นค่าชุดใหม่ตามข้อกำหนด
+        // 🌟 แก้ไขจุดที่ 1: ปรับเปลี่ยนตัวแปรเป้าหมายหลักวิศวกรรมกระบวนการจาก 106 เป็น 130
+        const targetProductivity = 130; 
         const actualBaseline = { prep: 0.00, arrange: 18.00, machine: 1.25, inspec: 3.40, pack: 5.00 };
 
         const popup = document.getElementById('iterDropdown');
@@ -555,45 +555,45 @@
                 console.warn("ไม่สามารถดึงข้อมูลจาก Google Sheets ได้สำเร็จ ระบบเปิดใช้งาน Fallback Mock Data สำรอง:", error);
                 
                 db = {
-                    "เดิม": { "prod": 29.0, "eff": 27.36, "man": 18, "total": 530, "layout": { "prep": 6, "block": 6, "inspec": 3, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 15.00, "arrange": 55.65, "machine": 3.5, "inspec": 45.00, "pack": 20 } },
-                    "1": { "prod": 40.0, "eff": 37.74, "man": 18, "total": 720, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 0, "arrange": 44.85, "machine": 3.5, "inspec": 25.00, "pack": 20 } },
-                    "2": { "prod": 102.0, "eff": 96.23, "man": 21, "total": 2142, "layout": { "prep": 4, "block": 10, "inspec": 4, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 0, "arrange": 20.10, "machine": 1.25, "inspec": 4.80, "pack": 5.10 } },
-                    "3": { "prod": 43.0, "eff": 40.57, "man": 17, "total": 731, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 35.22, "machine": 3.5, "inspec": 25.00, "pack": 20 } },
-                    "4": { "prod": 45.0, "eff": 42.45, "man": 17, "total": 765, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 35.46, "machine": 1.25, "inspec": 21.05, "pack": 20 } },
-                    "5": { "prod": 48.0, "eff": 45.28, "man": 17, "total": 818, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 38.00, "machine": 1.25, "inspec": 18.60, "pack": 15 } },
-                    "6": { "prod": 61.0, "eff": 57.55, "man": 17, "total": 818, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.50, "machine": 1.25, "inspec": 14.50, "pack": 11.20 } },
-                    "7": { "prod": 68.0, "eff": 64.15, "man": 17, "total": 1035, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.00, "machine": 1.25, "inspec":11.00 , "pack": 8.69 } },
-                    "8": { "prod": 76.0, "eff": 71.70, "man": 17, "total": 1156, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 30.84, "machine": 1.25, "inspec":8.52 , "pack": 6.75 } },
-                    "9": { "prod": 75.0, "eff": 70.75, "man": 18, "total": 1368, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.77, "machine": 1.25, "inspec":7.43 , "pack": 6.55 } },
-                    "10": { "prod": 75.0, "eff": 70.75, "man": 17, "total": 1350, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.87, "machine": 1.25, "inspec":9.63 , "pack": 5.40 } },
-                    "11": { "prod": 77.0, "eff": 72.64, "man": 18, "total": 1358, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.68, "machine": 1.25, "inspec": 7.43, "pack": 5.40 } },
-                    "12": { "prod": 72.0, "eff": 67.92, "man": 18, "total": 1379, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 33.85, "machine": 1.25, "inspec": 8.49, "pack": 6.34 } },
-                    "13": { "prod": 77.0, "eff": 72.64, "man": 19, "total": 1370, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.86, "machine": 1.25, "inspec": 7.43, "pack": 6.23 } },
-                    "14": { "prod": 76.0, "eff": 71.70, "man": 19, "total": 1446, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.29, "machine": 1.25, "inspec": 9.42, "pack": 5.35 } },
-                    "15": { "prod": 79.0, "eff": 74.53, "man": 19, "total": 1493, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 29.89, "machine": 1.25, "inspec": 7.23, "pack": 7.2 } },
-                    "16": { "prod": 77.0, "eff": 72.64, "man": 18, "total": 1386, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 35.46, "machine": 1.25, "inspec": 7.43, "pack": 5.40 } },
-                    "17": { "prod": 80.0, "eff": 75.47, "man": 18, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.95, "machine": 1.25, "inspec": 6.60, "pack": 5.20 } },
-                    "18": { "prod": 80.0, "eff": 75.47, "man": 18, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 33.05, "machine": 1.25, "inspec": 5.80, "pack": 4.90 } },
-                    "19": { "prod": 77.0, "eff": 72.64, "man": 18, "total": 1386, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.50, "machine": 1.25, "inspec": 8.30, "pack": 4.70 } },
-                    "20": { "prod": 86.0, "eff": 81.13, "man": 18, "total": 1548, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 28.31, "machine": 1.25, "inspec": 6.30, "pack": 6.20 } },
-                    "21": { "prod": 77.0, "eff": 72.64, "man": 18, "total": 1386, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 33.20, "machine": 1.25, "inspec": 7.30, "pack": 5.00 } },
-                    "22": { "prod": 80.0, "eff": 75.47, "man": 18, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.91, "machine": 1.25, "inspec": 6.50, "pack": 6.20 } },
-                    "23": { "prod": 78.0, "eff": 73.58, "man": 18, "total": 1404, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.37, "machine": 1.25, "inspec": 7.43, "pack": 6.10 } },
-                    "24": { "prod": 74.0, "eff": 69.81, "man": 18, "total": 1332, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 29.61, "machine": 1.25, "inspec": 10.29, "pack": 7.50 } },
-                    "25": { "prod": 78.1, "eff": 73.68, "man": 18, "total": 1406, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.83, "machine": 1.25, "inspec": 10.48, "pack": 8.59 } },
-                    "26": { "prod": 80.3, "eff": 75.75, "man": 19, "total": 1526, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.75, "machine": 1.25, "inspec": 10.01, "pack": 9.56 } },
-                    "27": { "prod": 88.0, "eff": 83.02, "man": 19, "total": 1665, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 23.89, "machine": 1.25, "inspec": 7.42, "pack": 8.35 } },
-                    "28": { "prod": 88.3, "eff": 83.30, "man": 19, "total": 1678, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 23.55, "machine": 1.25, "inspec": 7.35, "pack": 8.30 } },
-                    "29": { "prod": 76.0, "eff": 71.70, "man": 19, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 25.35, "machine": 1.25, "inspec": 11.15, "pack": 9.62 } },
-                    "30": { "prod": 74.0, "eff": 69.81, "man": 19, "total": 1413, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.65, "machine": 1.25, "inspec": 11.65, "pack": 11.1 } },
-                    "31": { "prod": 69.0, "eff": 65.09, "man": 21, "total": 1377, "layout": { "prep": 4, "block": 8, "inspec": 5, "pack": 4, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 27.52, "machine": 1.25, "inspec": 10.85, "pack": 12.55 } },
-                    "32": { "prod": 84.0, "eff": 79.25, "man": 19, "total": 1584, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.65, "machine": 1.25, "inspec": 7.55, "pack": 9.41 } },
-                    "33": { "prod": 85.0, "eff": 80.19, "man": 19, "total": 1616, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.45, "machine": 1.25, "inspec": 7.40, "pack": 9.25 } },
-                    "34": { "prod": 91.0, "eff": 85.85, "man": 19, "total": 1728, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.50, "machine": 1.25, "inspec": 7.70, "pack": 8.10 } },
-                    "35": { "prod": 80.0, "eff": 75.47, "man": 19, "total": 1520, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.50, "machine": 1.25, "inspec": 9.70, "pack": 9.50 } },
-                    "36": { "prod": 91.0, "eff": 85.85, "man": 19, "total": 1728, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.50, "machine": 1.25, "inspec": 7.70, "pack": 8.10 } },
-                    "37": { "prod": 92.5, "eff": 87.26, "man": 19, "total": 1757, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.10, "machine": 1.25, "inspec": 7.50, "pack": 7.90 } },
-                    "38": { "prod": 94.0, "eff": 88.68, "man": 19, "total": 1786, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 21.80, "machine": 1.25, "inspec": 7.30, "pack": 7.65 } }
+                    "เดิม": { "prod": 29.0, "eff": 22.31, "man": 18, "total": 530, "layout": { "prep": 6, "block": 6, "inspec": 3, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 15.00, "arrange": 55.65, "machine": 3.5, "inspec": 45.00, "pack": 20 } },
+                    "1": { "prod": 40.0, "eff": 30.77, "man": 18, "total": 720, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 0, "arrange": 44.85, "machine": 3.5, "inspec": 25.00, "pack": 20 } },
+                    "2": { "prod": 102.0, "eff": 78.46, "man": 21, "total": 2142, "layout": { "prep": 4, "block": 10, "inspec": 4, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 0, "arrange": 20.10, "machine": 1.25, "inspec": 4.80, "pack": 5.10 } },
+                    "3": { "prod": 43.0, "eff": 33.08, "man": 17, "total": 731, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 35.22, "machine": 3.5, "inspec": 25.00, "pack": 20 } },
+                    "4": { "prod": 45.0, "eff": 34.62, "man": 17, "total": 765, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 35.46, "machine": 1.25, "inspec": 21.05, "pack": 20 } },
+                    "5": { "prod": 48.0, "eff": 36.92, "man": 17, "total": 818, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 38.00, "machine": 1.25, "inspec": 18.60, "pack": 15 } },
+                    "6": { "prod": 61.0, "eff": 46.92, "man": 17, "total": 818, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.50, "machine": 1.25, "inspec": 14.50, "pack": 11.20 } },
+                    "7": { "prod": 68.0, "eff": 52.31, "man": 17, "total": 1035, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.00, "machine": 1.25, "inspec":11.00 , "pack": 8.69 } },
+                    "8": { "prod": 76.0, "eff": 58.46, "man": 17, "total": 1156, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 30.84, "machine": 1.25, "inspec":8.52 , "pack": 6.75 } },
+                    "9": { "prod": 75.0, "eff": 57.69, "man": 18, "total": 1368, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.77, "machine": 1.25, "inspec":7.43 , "pack": 6.55 } },
+                    "10": { "prod": 75.0, "eff": 57.69, "man": 17, "total": 1350, "layout": { "prep": 4, "block": 9, "inspec": 2, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.87, "machine": 1.25, "inspec":9.63 , "pack": 5.40 } },
+                    "11": { "prod": 77.0, "eff": 59.23, "man": 18, "total": 1358, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.68, "machine": 1.25, "inspec": 7.43, "pack": 5.40 } },
+                    "12": { "prod": 72.0, "eff": 55.38, "man": 18, "total": 1379, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 33.85, "machine": 1.25, "inspec": 8.49, "pack": 6.34 } },
+                    "13": { "prod": 77.0, "eff": 59.23, "man": 19, "total": 1370, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.86, "machine": 1.25, "inspec": 7.43, "pack": 6.23 } },
+                    "14": { "prod": 76.0, "eff": 58.46, "man": 19, "total": 1446, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.29, "machine": 1.25, "inspec": 9.42, "pack": 5.35 } },
+                    "15": { "prod": 79.0, "eff": 60.77, "man": 19, "total": 1493, "layout": { "prep": 4, "block": 9, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 29.89, "machine": 1.25, "inspec": 7.23, "pack": 7.2 } },
+                    "16": { "prod": 77.0, "eff": 59.23, "man": 18, "total": 1386, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 35.46, "machine": 1.25, "inspec": 7.43, "pack": 5.40 } },
+                    "17": { "prod": 80.0, "eff": 61.54, "man": 18, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.95, "machine": 1.25, "inspec": 6.60, "pack": 5.20 } },
+                    "18": { "prod": 80.0, "eff": 61.54, "man": 18, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 33.05, "machine": 1.25, "inspec": 5.80, "pack": 4.90 } },
+                    "19": { "prod": 77.0, "eff": 59.23, "man": 18, "total": 1386, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.50, "machine": 1.25, "inspec": 8.30, "pack": 4.70 } },
+                    "20": { "prod": 86.0, "eff": 66.15, "man": 18, "total": 1548, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 28.31, "machine": 1.25, "inspec": 6.30, "pack": 6.20 } },
+                    "21": { "prod": 77.0, "eff": 59.23, "man": 18, "total": 1386, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 33.20, "machine": 1.25, "inspec": 7.30, "pack": 5.00 } },
+                    "22": { "prod": 80.0, "eff": 61.54, "man": 18, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 32.91, "machine": 1.25, "inspec": 6.50, "pack": 6.20 } },
+                    "23": { "prod": 78.0, "eff": 60.00, "man": 18, "total": 1404, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 31.37, "machine": 1.25, "inspec": 7.43, "pack": 6.10 } },
+                    "24": { "prod": 74.0, "eff": 56.92, "man": 18, "total": 1332, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 29.61, "machine": 1.25, "inspec": 10.29, "pack": 7.50 } },
+                    "25": { "prod": 78.1, "eff": 60.08, "man": 18, "total": 1406, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.83, "machine": 1.25, "inspec": 10.48, "pack": 8.59 } },
+                    "26": { "prod": 80.3, "eff": 61.77, "man": 19, "total": 1526, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.75, "machine": 1.25, "inspec": 10.01, "pack": 9.56 } },
+                    "27": { "prod": 88.0, "eff": 67.69, "man": 19, "total": 1665, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 23.89, "machine": 1.25, "inspec": 7.42, "pack": 8.35 } },
+                    "28": { "prod": 88.3, "eff": 67.92, "man": 19, "total": 1678, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 23.55, "machine": 1.25, "inspec": 7.35, "pack": 8.30 } },
+                    "29": { "prod": 76.0, "eff": 58.46, "man": 19, "total": 1440, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 25.35, "machine": 1.25, "inspec": 11.15, "pack": 9.62 } },
+                    "30": { "prod": 74.0, "eff": 56.92, "man": 19, "total": 1413, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.65, "machine": 1.25, "inspec": 11.65, "pack": 11.1 } },
+                    "31": { "prod": 69.0, "eff": 53.08, "man": 21, "total": 1377, "layout": { "prep": 4, "block": 8, "inspec": 5, "pack": 4, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 27.52, "machine": 1.25, "inspec": 10.85, "pack": 12.55 } },
+                    "32": { "prod": 84.0, "eff": 64.62, "man": 19, "total": 1584, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.65, "machine": 1.25, "inspec": 7.55, "pack": 9.41 } },
+                    "33": { "prod": 85.0, "eff": 65.38, "man": 19, "total": 1616, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.45, "machine": 1.25, "inspec": 7.40, "pack": 9.25 } },
+                    "34": { "prod": 91.0, "eff": 70.00, "man": 19, "total": 1728, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.50, "machine": 1.25, "inspec": 7.70, "pack": 8.10 } },
+                    "35": { "prod": 80.0, "eff": 61.54, "man": 19, "total": 1520, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 24.50, "machine": 1.25, "inspec": 9.70, "pack": 9.50 } },
+                    "36": { "prod": 91.0, "eff": 70.00, "man": 19, "total": 1728, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.50, "machine": 1.25, "inspec": 7.70, "pack": 8.10 } },
+                    "37": { "prod": 92.5, "eff": 71.15, "man": 19, "total": 1757, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 22.10, "machine": 1.25, "inspec": 7.50, "pack": 7.90 } },
+                    "38": { "prod": 94.0, "eff": 72.31, "man": 19, "total": 1786, "layout": { "prep": 4, "block": 8, "inspec": 4, "pack": 3, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 21.80, "machine": 1.25, "inspec": 7.30, "pack": 7.65 } }
                 };
                 initializeDashboardFromSheets();
             }
@@ -723,7 +723,7 @@
                     <div class="flex-shrink-0 w-6 h-6 rounded bg-[#2b2b40] text-[#8b5cf6] border border-[#8b5cf6]/30 flex items-center justify-center text-xs font-bold mt-0.5">2</div>
                     <div>
                         <h4 class="text-[#8b5cf6] font-bold text-sm mb-1 flex items-center">เรียงเนื้อลงบล็อค <span class="text-[10px] bg-[rgba(139,92,246,0.15)] border border-[#8b5cf6]/50 px-2 py-0.5 rounded text-[#8b5cf6] ml-2 font-bold uppercase tracking-wider">คอขวดหลัก</span></h4>
-                        <p class="text-[#a1a5b7] text-sm leading-relaxed">กระบวนการนี้ใช้เวลาเฉลี่ย <span class="text-white">${cycle.arrange} วินาที</span> (${arrangeStatus}) โดยจัดพนักงานลงไลน์ <span class="text-[#f1416c]">${layout.block} คน</span> <br><span class="text-[#009ef7] mt-1 inline-block">[Analysis: เวลาที่ใช้ในจุดนี้เป็นตัวแปรสำคัญที่สุดที่กำหนด Capacity รวมที่ ${total.toLocaleString()} ไม้/ชั่วโมง การทำ Line Balancing ควรโฟกัสความเร็ว of พนักงานจุดนี้เป็นหลัก]</span></p>
+                        <p class="text-[#a1a5b7] text-sm leading-relaxed">กระบวนการนี้ใช้เวลาเฉลี่ย <span class="text-white">${cycle.arrange} วินาที</span> (${arrangeStatus}) โดยจัดพนักงานลงไลน์ <span class="text-[#f1416c]">${layout.block} คน</span> <br><span class="text-[#009ef7] mt-1 inline-block">[Analysis: เวลาที่ใช้ในจุดนี้เป็นตัวแปรสำคัญที่สุดที่กำหนด Capacity รวมที่ ${total.toLocaleString()} ไม้/ชั่วโมง การทำ Line Balancing ควรโฟกัสความเร็วของพนักงานจุดนี้เป็นหลัก]</span></p>
                     </div>
                 </div>
 
@@ -910,9 +910,6 @@
             renderExecutiveGapTable(baselineKey);
         }
 
-        // ==========================================
-        // 🌟 แก้ไขจุดที่ 3: เพิ่มแถว "เป้าหมายใหม่" (Target: 130) ด้านบนสุดของตาราง Gap Analysis
-        // ==========================================
         function renderExecutiveGapTable(baselineKey) {
             const tableBody = document.getElementById('executiveGapTableBody');
             if(!tableBody) return;
@@ -922,7 +919,6 @@
             let baselineHeaderText = baselineKey === "เดิม" ? "กระบวนการเดิม" : `TRIAL ${baselineKey}`;
             document.getElementById('gap-header-t1').innerText = `${baselineHeaderText} (ไม้/คน/ชม.)`;
 
-            // เพิ่มโครงสร้างอาเรย์ 'เป้าหมายใหม่' ด้านบนสุดเหนือ G1
             const rowsData = [
                 { name: '<span class="text-[#50cd89] font-bold">🎯 เป้าหมายใหม่</span>', target: 130, id: 'new_target' },
                 { name: 'G1 <span class="text-[11px] text-[#50cd89] block font-normal">(บรรลุเป้า)</span>', target: 106, id: 'g1' },
@@ -936,8 +932,6 @@
             let html = '';
             rowsData.forEach(row => {
                 let baselineProd = baseline.prod || 0;
-
-                // ตรวจสอบสไตล์แถวกรณีพิเศษของแถวเป้าหมายใหม่เพื่อให้ดูโดดเด่นสไตล์ Dashboard
                 let rowBgStyle = row.id === 'new_target' ? 'bg-[rgba(80,205,137,0.03)] hover:bg-[#2b2b40]' : 'hover:bg-[#2b2b40]';
 
                 html += `<tr class="${rowBgStyle} transition duration-150">
@@ -977,9 +971,6 @@
             tableBody.innerHTML = html;
         }
 
-        // ==========================================
-        // 6. ระบบอัปเดตข้อมูลบนหน้าจอเมื่อผู้ใช้เลือกข้อมูล
-        // ==========================================
         function selectIteration(key) {
             const data = db[key];
             if(!data) return;
@@ -1072,7 +1063,6 @@
                 }
             }
 
-            // คำนวณแถวขีดความสามารถร่วมกับเป้าหมายใหม่ 130 อัตโนมัติ
             updateDynamicGapRow('new_target', 130);
             updateDynamicGapRow('g1', 106);
             updateDynamicGapRow('g2', 94);
@@ -1213,6 +1203,7 @@
                             fill: true, tension: 0.2
                         },
                         {
+                            // 🌟 แก้ไขจุดที่ 2: ปรับเส้นประเป้าหมายสีแดง (Target Line) ของกราฟหลักจาก 106 เป็น 130
                             label: 'เป้าหมาย', data: Array(chartLabels.length).fill(targetProductivity),
                             borderColor: '#f1416c', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, fill: false
                         }
@@ -1238,7 +1229,8 @@
                             }
                         }
                     },
-                    scales: { y: { beginAtZero: true, max: 120, grid: { color: '#2b2b40' } }, x: { grid: { display: false } } }
+                    // 🌟 แก้ไขจุดที่ 3: ขยายสเกลค่าสูงสุดของแกน Y (Max Value) จากเดิม 120 ไปเป็น 150 เพื่อให้สอดคล้องกับเส้นเป้าหมาย 130
+                    scales: { y: { beginAtZero: true, max: 150, grid: { color: '#2b2b40' } }, x: { grid: { display: false } } }
                 },
                 plugins: [gapLabelPlugin]
             });
@@ -1319,7 +1311,8 @@
                     datasets: [
                         {
                             label: 'Productivity (ไม้/คน/ชม.)',
-                            data: [baseline.prod, best.prod, 106],
+                            // 🌟 แก้ไขจุดที่ 4: ปรับสัดส่วนแท่งโมเดล Target (เป้าหมายสูงสุด) ในกราฟ Journey สรุปภาพรวมจาก 106 เป็น 130
+                            data: [baseline.prod, best.prod, targetProductivity],
                             backgroundColor: ['#323248', '#009ef7', '#50cd89'],
                             borderRadius: 4, barPercentage: 0.5, yAxisID: 'y'
                         },
@@ -1337,7 +1330,8 @@
                     plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } },
                     scales: {
                         x: { grid: { display: false } },
-                        y: { beginAtZero: true, max: 120, title: { display: true, text: 'Productivity', color: '#a1a5b7', font: { size: 10 } }, grid: { color: '#2b2b40' } },
+                        // 🌟 แก้ไขจุดที่ 5: ขยายสเกลค่าสูงสุดของแกน Y ในกราฟสรุปภาพรวมจากเดิม 120 เป็น 150 ให้สัมพันธ์กัน
+                        y: { beginAtZero: true, max: 150, title: { display: true, text: 'Productivity', color: '#a1a5b7', font: { size: 10 } }, grid: { color: '#2b2b40' } },
                         y1: { beginAtZero: true, max: 100, position: 'right', grid: { display: false }, title: { display: true, text: 'Efficiency (%)', color: '#a1a5b7', font: { size: 10 } } }
                     }
                 },
@@ -1346,7 +1340,9 @@
                     afterDraw: chart => {
                         const ctx = chart.ctx;
                         const yG2 = chart.scales.y.getPixelForValue(94);
-                        const yG1 = chart.scales.y.getPixelForValue(106);
+                        
+                        // 🌟 แก้ไขจุดที่ 6: ขยับตำแหน่งระนาบเส้นทึบสีแดงอ้างอิงเป้าหมายของสถานีงาน จากระดับ 106 ขึ้นไปเป็นระดับ 130
+                        const yG1 = chart.scales.y.getPixelForValue(130);
                         const xAxis = chart.scales.x;
                         
                         ctx.save();
