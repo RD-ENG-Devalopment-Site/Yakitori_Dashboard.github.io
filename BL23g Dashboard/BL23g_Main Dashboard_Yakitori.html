@@ -107,7 +107,7 @@
             <div class="flex flex-wrap gap-3">
                 <div class="bg-[#151521] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm">
                     <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">1. ยอดผลิตเป้าหมาย (Actual)</p>
-                    <p class="text-xl font-bold text-white font-en">2,016 <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
+                    <p class="text-xl font-bold text-white font-en">2,470 <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
                 </div>
                 <div class="bg-[#151521] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm">
                     <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">2. ผลผลิตสูงสุด (Best Record)</p>
@@ -485,7 +485,9 @@
         let db = {}; 
         let keys = [];
         const targetProductivity = 106; 
-        const actualBaseline = { prep: 0.00, arrange: 22.30, machine: 1.25, inspec: 5.00, pack: 5.40 };
+        
+        // 🌟 แก้ไขจุดที่ 2: ปรับเปลี่ยนสถิติ Idle Production Time (วิ) เป็นค่าชุดใหม่ตามข้อกำหนด
+        const actualBaseline = { prep: 0.00, arrange: 18.00, machine: 1.25, inspec: 3.40, pack: 5.00 };
 
         const popup = document.getElementById('iterDropdown');
         const icon = document.getElementById('dropdownIcon');
@@ -721,7 +723,7 @@
                     <div class="flex-shrink-0 w-6 h-6 rounded bg-[#2b2b40] text-[#8b5cf6] border border-[#8b5cf6]/30 flex items-center justify-center text-xs font-bold mt-0.5">2</div>
                     <div>
                         <h4 class="text-[#8b5cf6] font-bold text-sm mb-1 flex items-center">เรียงเนื้อลงบล็อค <span class="text-[10px] bg-[rgba(139,92,246,0.15)] border border-[#8b5cf6]/50 px-2 py-0.5 rounded text-[#8b5cf6] ml-2 font-bold uppercase tracking-wider">คอขวดหลัก</span></h4>
-                        <p class="text-[#a1a5b7] text-sm leading-relaxed">กระบวนการนี้ใช้เวลาเฉลี่ย <span class="text-white">${cycle.arrange} วินาที</span> (${arrangeStatus}) โดยจัดพนักงานลงไลน์ <span class="text-[#f1416c]">${layout.block} คน</span> <br><span class="text-[#009ef7] mt-1 inline-block">[Analysis: เวลาที่ใช้ในจุดนี้เป็นตัวแปรสำคัญที่สุดที่กำหนด Capacity รวมที่ ${total.toLocaleString()} ไม้/ชั่วโมง การทำ Line Balancing ควรโฟกัสความเร็วของพนักงานจุดนี้เป็นหลัก]</span></p>
+                        <p class="text-[#a1a5b7] text-sm leading-relaxed">กระบวนการนี้ใช้เวลาเฉลี่ย <span class="text-white">${cycle.arrange} วินาที</span> (${arrangeStatus}) โดยจัดพนักงานลงไลน์ <span class="text-[#f1416c]">${layout.block} คน</span> <br><span class="text-[#009ef7] mt-1 inline-block">[Analysis: เวลาที่ใช้ในจุดนี้เป็นตัวแปรสำคัญที่สุดที่กำหนด Capacity รวมที่ ${total.toLocaleString()} ไม้/ชั่วโมง การทำ Line Balancing ควรโฟกัสความเร็ว of พนักงานจุดนี้เป็นหลัก]</span></p>
                     </div>
                 </div>
 
@@ -862,9 +864,6 @@
             tableBody.innerHTML = html;
         }
 
-        // ==========================================
-        // 5. 🌟 จุดแก้ไข: คำนวณค่าใน Executive Summary แบบรวมทุกสถานีโดยอัตโนมัติ
-        // ==========================================
         function calculateExecutiveSummary(baselineKey, bestTrialKey) {
             const baseline = db[baselineKey];
             const best = db[bestTrialKey];
@@ -889,7 +888,7 @@
             let eGrowth = baseline.eff > 0 ? (((best.eff - baseline.eff) / baseline.eff) * 100) : 0;
             document.getElementById('growth-eff').innerText = `+${eGrowth.toFixed(1)}%`;
 
-            // 3. คำนวณผลรวมเวลารวมสุทธิ (Total Cycle Time) ทั้งหมดอัตโนมัติ
+            // 3. คำนวณเวลารวมสุทธิ
             const baseCycle = baseline.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
             const bestCycle = best.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
 
@@ -911,6 +910,9 @@
             renderExecutiveGapTable(baselineKey);
         }
 
+        // ==========================================
+        // 🌟 แก้ไขจุดที่ 3: เพิ่มแถว "เป้าหมายใหม่" (Target: 130) ด้านบนสุดของตาราง Gap Analysis
+        // ==========================================
         function renderExecutiveGapTable(baselineKey) {
             const tableBody = document.getElementById('executiveGapTableBody');
             if(!tableBody) return;
@@ -920,7 +922,9 @@
             let baselineHeaderText = baselineKey === "เดิม" ? "กระบวนการเดิม" : `TRIAL ${baselineKey}`;
             document.getElementById('gap-header-t1').innerText = `${baselineHeaderText} (ไม้/คน/ชม.)`;
 
+            // เพิ่มโครงสร้างอาเรย์ 'เป้าหมายใหม่' ด้านบนสุดเหนือ G1
             const rowsData = [
+                { name: '<span class="text-[#50cd89] font-bold">🎯 เป้าหมายใหม่</span>', target: 130, id: 'new_target' },
                 { name: 'G1 <span class="text-[11px] text-[#50cd89] block font-normal">(บรรลุเป้า)</span>', target: 106, id: 'g1' },
                 { name: 'G2 <span class="text-[11px] text-[#50cd89] block font-normal">(บรรลุเป้า)</span>', target: 94, id: 'g2' },
                 { name: 'G3 <span class="text-[11px] text-[#50cd89] block font-normal">(บรรลุเป้า)</span>', target: 61, id: 'g3' },
@@ -933,7 +937,10 @@
             rowsData.forEach(row => {
                 let baselineProd = baseline.prod || 0;
 
-                html += `<tr class="hover:bg-[#2b2b40] transition duration-150">
+                // ตรวจสอบสไตล์แถวกรณีพิเศษของแถวเป้าหมายใหม่เพื่อให้ดูโดดเด่นสไตล์ Dashboard
+                let rowBgStyle = row.id === 'new_target' ? 'bg-[rgba(80,205,137,0.03)] hover:bg-[#2b2b40]' : 'hover:bg-[#2b2b40]';
+
+                html += `<tr class="${rowBgStyle} transition duration-150">
                     <td class="p-3 text-white font-medium pl-4">${row.name}</td>
                     <td class="p-3 text-center font-en text-white font-bold">${row.target}</td>`;
 
@@ -1065,6 +1072,8 @@
                 }
             }
 
+            // คำนวณแถวขีดความสามารถร่วมกับเป้าหมายใหม่ 130 อัตโนมัติ
+            updateDynamicGapRow('new_target', 130);
             updateDynamicGapRow('g1', 106);
             updateDynamicGapRow('g2', 94);
             updateDynamicGapRow('g3', 61);
@@ -1234,9 +1243,9 @@
                 plugins: [gapLabelPlugin]
             });
 
-            const cycleCtx = document.getElementById('cycleChart').getContext('2d');
+            const cycleChartCtx = document.getElementById('cycleChart').getContext('2d');
             if (cycleChart) cycleChart.destroy();
-            cycleChart = new Chart(cycleCtx, {
+            cycleChart = new Chart(cycleChartCtx, {
                 type: 'bar',
                 data: {
                     labels: chartLabels,
