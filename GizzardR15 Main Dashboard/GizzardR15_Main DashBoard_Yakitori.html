@@ -442,8 +442,6 @@
         };
 
         async function loadData() {
-            if (!window.YakitoriRuntime.requireAccessOrWarn()) return;
-
             try {
                 const fetchUrl = window.YakitoriRuntime.buildApiUrl('GZ30gR15_DataLog');
                 const response = await fetch(fetchUrl);

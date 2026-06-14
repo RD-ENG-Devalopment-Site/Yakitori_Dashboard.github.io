@@ -522,8 +522,6 @@
         // 🛠️ ดึงข้อมูลจาก Google Sheets หรือ Mock Data สำรอง
         // ==========================================
         async function loadData() {
-            if (!window.YakitoriRuntime.requireAccessOrWarn()) return;
-
             try {
                 const fetchUrl = window.YakitoriRuntime.buildApiUrl('BL23gR15_DataLog');
                 const response = await fetch(fetchUrl);
