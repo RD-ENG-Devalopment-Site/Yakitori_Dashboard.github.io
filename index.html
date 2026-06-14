@@ -259,7 +259,7 @@
                                 </div>
                                 <div class="text-right flex items-baseline justify-end gap-2">
                                     <span id="giz-prod-val" class="text-[#009ef7] font-bold font-en text-lg">--</span>
-                                    <span id="giz-target-display" class="text-[11px] text-[#6b7280] uppercase tracking-wide bg-[#2b2b40] px-2 py-0.5 rounded">Target: 84</span>
+                                    <span id="giz-target-display" class="text-[11px] text-[#6b7280] uppercase tracking-wide bg-[#2b2b40] px-2 py-0.5 rounded">Target: 106</span>
                                 </div>
                             </div>
 
@@ -274,7 +274,7 @@
 
                             <div class="flex justify-between items-center mt-1">
                                 <p id="giz-prog-text" class="text-[11px] text-[#a1a5b7]">Efficiency Rate (%): --%</p>
-                                <p id="giz-best-text" class="text-[11px] text-[#ffc700] font-medium">Best Record: -- (Target: 84)</p>
+                                <p id="giz-best-text" class="text-[11px] text-[#ffc700] font-medium">Best Record: -- (Target: 106)</p>
                             </div>
                         </div>
 
@@ -334,12 +334,12 @@
         </div>
     </main>
 
-    <script src="yakitori-runtime.js"></script>
+        <script src="yakitori-runtime.js"></script>
     <script>
         function toggleMenu(menuId, iconId) {
             const menu = document.getElementById(menuId);
             const icon = document.getElementById(iconId);
-            
+
             if (menu.classList.contains('open')) {
                 menu.classList.remove('open');
                 icon.classList.remove('rotate-180');
@@ -349,114 +349,108 @@
             }
         }
 
-        const targetGiz = 84;  
-        const targetBl = 106;  
-        const targetGz30g = 69;
+        const lineConfigs = [
+            { prefix: 'bl', sheet: 'BL23gR15_DataLog', target: 106 },
+            { prefix: 'giz', sheet: 'GZ40gS18_DataLog', target: 106 },
+            { prefix: 'gz30g', sheet: 'GZ30gR15_DataLog', target: 69 }
+        ];
 
         window.onload = function() {
             renderDashboardData();
             setInterval(renderDashboardData, 5000);
         };
 
-        function renderDashboardData() {
+        function normalizeSheetData(db) {
+            return Object.entries(db || {})
+                .map(([trial, item]) => ({
+                    trial: String(trial).trim(),
+                    prod: Number(item?.prod) || 0,
+                    eff: Number(item?.eff) || 0,
+                    man: Number(item?.man) || 0,
+                    total: Number(item?.total) || 0
+                }))
+                .filter(item => item.trial);
+        }
+
+        function sortTrials(items) {
+            return [...items].sort((a, b) => {
+                const aNum = Number(a.trial);
+                const bNum = Number(b.trial);
+                const aIsNum = Number.isFinite(aNum);
+                const bIsNum = Number.isFinite(bNum);
+
+                if (aIsNum && bIsNum) return aNum - bNum;
+                if (aIsNum) return -1;
+                if (bIsNum) return 1;
+                return a.trial.localeCompare(b.trial);
+            });
+        }
+
+        function updateProgressUI(prefix, records, target) {
+            const sortedRecords = sortTrials(records);
+            if (!sortedRecords.length) {
+                document.getElementById(`${prefix}-prod-val`).innerText = '--';
+                document.getElementById(`${prefix}-target-display`).innerText = `Target: ${target}`;
+                document.getElementById(`${prefix}-prog-text`).innerText = 'Efficiency Rate (%): --%';
+                document.getElementById(`${prefix}-round-text`).innerText = '(Syncing...)';
+                document.getElementById(`${prefix}-best-text`).innerText = `Best Record: -- (Target: ${target})`;
+                document.getElementById(`${prefix}-prog-bar`).style.width = '0%';
+                document.getElementById(`${prefix}-best-bar`).style.width = '0%';
+                return 0;
+            }
+
+            const latestRecord = sortedRecords[sortedRecords.length - 1];
+            const bestRecord = sortedRecords.reduce((best, item) => {
+                return !best || item.prod > best.prod ? item : best;
+            }, null);
+
+            const latestPercent = target > 0 ? (latestRecord.prod / target) * 100 : 0;
+            const bestPercent = target > 0 ? (bestRecord.prod / target) * 100 : 0;
+
+            document.getElementById(`${prefix}-prod-val`).innerText = latestRecord.prod.toFixed(1);
+            document.getElementById(`${prefix}-target-display`).innerText = `Target: ${target}`;
+            document.getElementById(`${prefix}-prog-text`).innerText = `Efficiency Rate (%): ${latestPercent.toFixed(2)}%`;
+            document.getElementById(`${prefix}-round-text`).innerText = `(Trial ${latestRecord.trial})`;
+            document.getElementById(`${prefix}-best-text`).innerText = `Best Record: ${bestRecord.prod.toFixed(1)} (${bestPercent.toFixed(2)}%) - Trial ${bestRecord.trial}`;
+
+            requestAnimationFrame(() => {
+                document.getElementById(`${prefix}-prog-bar`).style.width = `${Math.min(latestPercent, 100)}%`;
+                document.getElementById(`${prefix}-best-bar`).style.width = `${Math.min(bestPercent, 100)}%`;
+            });
+
+            return latestPercent;
+        }
+
+        async function renderDashboardData() {
+            const results = await Promise.all(lineConfigs.map(async (config) => {
+                try {
+                    const response = await fetch(window.YakitoriRuntime.buildApiUrl(config.sheet));
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return { ...config, records: normalizeSheetData(await response.json()) };
+                } catch (error) {
+                    console.error(`Failed to load ${config.sheet}`, error);
+                    return { ...config, records: [] };
+                }
+            }));
+
             let avgEffTotal = 0;
             let activeProjectsCount = 0;
 
-            // 📦 DATA REPOSITORY: อัปเดตข้อมูลชุดใหม่รอบ 38 (Best) และรอบ 39 (Latest) ของไลน์ BL 23G
-            const blProductionDataset = {
-                "1": { prod: 80.0 },
-                "4": { prod: 90.0 },
-                "42": { prod: 107.9 },
-                "42": { prod: 107.9 } 
-            };
+            results.forEach(({ prefix, records, target }) => {
+                const latestEff = updateProgressUI(prefix, records, target);
+                if (latestEff > 0) {
+                    avgEffTotal += latestEff;
+                    activeProjectsCount++;
+                }
+            });
 
-            const gizProductionDataset = {
-                "1": { prod: 37.0 },
-                "2": { prod: 19.3 },
-                "3": { prod: 42.4 },
-                "4": { prod: 32.0 },
-                "5": { prod: 45.0 },
-                "6": { prod: 37.0 },
-                "7": { prod: 36.8 }
-            };
-
-            const gz30gProductionDataset = {
-                "1": { prod: 41.5 },
-                "2": { prod: 50.315 } 
-            };
-
-            // 1. ประมวลผลข้อมูลไลน์ BL 23G
-            let blEff = updateProgressUI('bl', blProductionDataset, targetBl);
-            if(blEff > 0) {
-                avgEffTotal += blEff;
-                activeProjectsCount++;
-            }
-
-            // 2. ประมวลผลข้อมูลไลน์ Gizzard 40G S18
-            let gizEff = updateProgressUI('giz', gizProductionDataset, targetGiz);
-            if(gizEff > 0) {
-                avgEffTotal += gizEff;
-                activeProjectsCount++;
-            }
-
-            // 3. ประมวลผลข้อมูลไลน์ Gz 30G R15
-            let gz30gEff = updateProgressUI('gz30g', gz30gProductionDataset, targetGz30g);
-            if(gz30gEff > 0) {
-                avgEffTotal += gz30gEff;
-                activeProjectsCount++;
-            }
-
-            // 4. คำนวณหาเปอร์เซ็นต์ประสิทธิภาพเฉลี่ยภาพรวมบน Dashboard
-            if(activeProjectsCount > 0) {
+            if (activeProjectsCount > 0) {
                 const avg = avgEffTotal / activeProjectsCount;
                 document.getElementById('avg-eff-display').innerHTML = `${avg.toFixed(1)}<span class="text-lg text-[#a1a5b7]">%</span>`;
             }
-        }
-
-        function updateProgressUI(prefix, data, target) {
-            const keys = Object.keys(data).filter(k => !isNaN(k) && data[k] && data[k].prod !== undefined);
-            if(keys.length === 0) return 0;
-            
-            keys.sort((a, b) => parseInt(a) - parseInt(b));
-            
-            const latestKey = keys[keys.length - 1]; 
-            const latestData = data[latestKey];
-            
-            let bestKey = keys[0];
-            let bestProd = data[bestKey].prod;
-            keys.forEach(k => {
-                if (data[k].prod > bestProd) {
-                    bestProd = data[k].prod;
-                    bestKey = k;
-                }
-            });
-            
-            if(latestData && latestData.prod !== undefined) {
-                const prodVal = latestData.prod;
-                
-                let percent = (prodVal / target) * 100;
-                let displayPercent = percent > 100 ? 100 : percent;
-
-                let bestPercent = (bestProd / target) * 100;
-                let displayBestPercent = bestPercent > 100 ? 100 : bestPercent;
-
-                document.getElementById(`${prefix}-prod-val`).innerText = prodVal.toFixed(1);
-                document.getElementById(`${prefix}-target-display`).innerText = `Target: ${target}`;
-                
-                setTimeout(() => {
-                    document.getElementById(`${prefix}-prog-bar`).style.width = `${displayPercent}%`;
-                    document.getElementById(`${prefix}-best-bar`).style.width = `${displayBestPercent}%`;
-                }, 100);
-                
-                document.getElementById(`${prefix}-prog-text`).innerText = `Efficiency Rate (%): ${percent.toFixed(2)}%`;
-                document.getElementById(`${prefix}-round-text`).innerText = `(Trial ${latestKey})`;
-                document.getElementById(`${prefix}-best-text`).innerText = `Best Record: ${bestProd.toFixed(1)} (${bestPercent.toFixed(2)}%) - Trial ${bestKey}`;
-                
-                return percent;
-            }
-            return 0;
         }
     </script>
 
 </body>
 </html>
+
