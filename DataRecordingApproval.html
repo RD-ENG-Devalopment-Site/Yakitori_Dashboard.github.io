@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Recording & Approval - Yakitori</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: radial-gradient(circle at top left, rgba(0,158,247,.12), transparent 30%),
+                        radial-gradient(circle at top right, rgba(80,205,137,.12), transparent 25%),
+                        #151521;
+            color: #a1a5b7;
+        }
+        .font-en { font-family: 'Inter', sans-serif; }
+        .card { background: linear-gradient(145deg, #1e1e2d 0%, #151521 100%); }
+        .field {
+            background: #151521;
+            border: 1px solid #323248;
+            color: white;
+        }
+        .field:focus {
+            outline: none;
+            border-color: #009ef7;
+            box-shadow: 0 0 0 1px rgba(0,158,247,.25);
+        }
+        .pill {
+            background: rgba(0,158,247,.12);
+            border: 1px solid rgba(0,158,247,.25);
+        }
+        .pill-approve {
+            background: rgba(80,205,137,.12);
+            border: 1px solid rgba(80,205,137,.25);
+        }
+        .pill-reject {
+            background: rgba(241,65,108,.12);
+            border: 1px solid rgba(241,65,108,.25);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <script src="yakitori-runtime.js"></script>
+    <script>
+        if (!window.YakitoriRuntime.requireAccessOrWarn()) {
+            document.body.innerHTML = '';
+        }
+    </script>
+
+    <main id="app" class="max-w-[1440px] mx-auto space-y-6">
+        <header class="card rounded-2xl border border-[#323248] p-6 md:p-8 shadow-xl">
+            <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.28em] text-[#009ef7] font-bold">Internal Factory Tool</p>
+                    <h1 class="text-3xl md:text-4xl font-bold text-white mt-2">Data Recording & Approval</h1>
+                    <p class="mt-2 text-sm md:text-base text-[#a1a5b7] max-w-3xl">
+                        ฟอร์มนี้ใช้บันทึก trial / issue / approval ของ Yakitori Dashboard ให้เป็นวงจรเดียวกัน:
+                        กรอกข้อมูล -> ส่งเข้า Apps Script -> รออนุมัติ -> ปิดงาน
+                    </p>
+                </div>
+                <a href="index.html" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#009ef7] text-white font-semibold hover:opacity-90 transition">
+                    กลับ Portal
+                </a>
+            </div>
+        </header>
+
+        <section class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div class="xl:col-span-2 card rounded-2xl border border-[#323248] p-6 shadow-xl">
+                <div class="flex items-center justify-between mb-5">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">บันทึกข้อมูลการทดลอง</h2>
+                        <p class="text-sm text-[#a1a5b7]">ส่งข้อมูลใหม่เข้า Apps Script ด้วย action `record_trial`</p>
+                    </div>
+                    <span class="pill text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#009ef7] font-bold">Record</span>
+                </div>
+
+                <form id="recordForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Line / Area</span>
+                        <select name="line" class="field w-full rounded-xl px-4 py-3">
+                            <option value="BL23G">BL23G</option>
+                            <option value="GZ40G">Gizzard 40G S18</option>
+                            <option value="GZ30G">Gizzard 30G R15</option>
+                        </select>
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Sheet / Dataset</span>
+                        <select name="sheet" class="field w-full rounded-xl px-4 py-3">
+                            <option value="BL23gR15_DataLog">BL23gR15_DataLog</option>
+                            <option value="GZ40gS18_DataLog">GZ40gS18_DataLog</option>
+                            <option value="GZ30gR15_DataLog">GZ30gR15_DataLog</option>
+                        </select>
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Trial / Round</span>
+                        <input name="trial" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="เช่น 38 หรือ เดิม" required />
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Date</span>
+                        <input name="recordDate" type="date" class="field w-full rounded-xl px-4 py-3" required />
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Productivity</span>
+                        <input name="prod" type="number" step="0.1" class="field w-full rounded-xl px-4 py-3" placeholder="ไม้/คน/ชม." required />
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Efficiency (%)</span>
+                        <input name="eff" type="number" step="0.01" class="field w-full rounded-xl px-4 py-3" placeholder="%" required />
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Manpower</span>
+                        <input name="man" type="number" step="1" class="field w-full rounded-xl px-4 py-3" placeholder="จำนวนคน" required />
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Total Output</span>
+                        <input name="total" type="number" step="1" class="field w-full rounded-xl px-4 py-3" placeholder="จำนวนไม้/ชม." required />
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Issue / Finding</span>
+                        <input name="issue" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="คอขวด, loss, defect, idle..." />
+                    </label>
+                    <label class="space-y-2 md:col-span-2">
+                        <span class="text-sm text-white">Action / Recommendation</span>
+                        <textarea name="actionNote" rows="4" class="field w-full rounded-xl px-4 py-3" placeholder="ข้อเสนอแนะหรือ next action สำหรับทีมหน้างาน"></textarea>
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Submitted by</span>
+                        <input name="submitter" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="ชื่อผู้บันทึก" required />
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Comment</span>
+                        <input name="comment" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="หมายเหตุเพิ่มเติม" />
+                    </label>
+                    <div class="md:col-span-2 flex flex-wrap gap-3 pt-2">
+                        <button type="submit" class="px-5 py-3 rounded-xl bg-[#009ef7] text-white font-semibold hover:opacity-90 transition">
+                            ส่งเข้า Apps Script
+                        </button>
+                        <button type="button" id="saveDraftBtn" class="px-5 py-3 rounded-xl bg-[#2b2b40] text-white font-semibold hover:bg-[#323248] transition">
+                            บันทึกเป็น Draft
+                        </button>
+                    </div>
+                </form>
+
+                <div id="recordStatus" class="mt-5 text-sm text-[#a1a5b7]"></div>
+            </div>
+
+            <aside class="card rounded-2xl border border-[#323248] p-6 shadow-xl space-y-4">
+                <h2 class="text-xl font-bold text-white">Approval Queue</h2>
+                <p class="text-sm text-[#a1a5b7]">
+                    รายการที่ส่งแล้วจะถูกเก็บไว้ในคิวนี้ จนกว่าจะอนุมัติหรือปฏิเสธ
+                </p>
+
+                <div class="space-y-3">
+                    <label class="space-y-2 block">
+                        <span class="text-sm text-white">Approver</span>
+                        <input id="approverName" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="ชื่อผู้อนุมัติ" />
+                    </label>
+                    <label class="space-y-2 block">
+                        <span class="text-sm text-white">Decision</span>
+                        <select id="approvalDecision" class="field w-full rounded-xl px-4 py-3">
+                            <option value="approved">Approve</option>
+                            <option value="rejected">Reject</option>
+                        </select>
+                    </label>
+                    <label class="space-y-2 block">
+                        <span class="text-sm text-white">Approval note</span>
+                        <textarea id="approvalNote" rows="3" class="field w-full rounded-xl px-4 py-3" placeholder="เหตุผลหรือข้อสังเกต"></textarea>
+                    </label>
+                    <button id="approveSelectedBtn" class="w-full px-5 py-3 rounded-xl bg-[#50cd89] text-[#0f172a] font-bold hover:opacity-90 transition">
+                        ส่งผลอนุมัติ
+                    </button>
+                </div>
+            </aside>
+        </section>
+
+        <section class="card rounded-2xl border border-[#323248] p-6 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Pending Submissions</h2>
+                    <p class="text-sm text-[#a1a5b7]">เลือกแถวเพื่อเตรียมอนุมัติ</p>
+                </div>
+                <span class="pill-approve text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#50cd89] font-bold">Queue</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left whitespace-nowrap">
+                    <thead class="text-xs uppercase text-[#a1a5b7] border-b border-[#323248]">
+                        <tr>
+                            <th class="py-3 pr-4">Status</th>
+                            <th class="py-3 pr-4">Trial</th>
+                            <th class="py-3 pr-4">Line</th>
+                            <th class="py-3 pr-4">Prod</th>
+                            <th class="py-3 pr-4">Eff</th>
+                            <th class="py-3 pr-4">Submitted by</th>
+                    <th class="py-3 pr-4">Action</th>
+                </tr>
+            </thead>
+            <tbody id="queueBody" class="divide-y divide-[#2b2b40]"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const queueKey = 'yakitori-approval-queue';
+        let selectedQueueId = null;
+
+        function readQueue() {
+            try {
+                return JSON.parse(localStorage.getItem(queueKey) || '[]');
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function writeQueue(queue) {
+            localStorage.setItem(queueKey, JSON.stringify(queue));
+        }
+
+        function pushStatus(message, tone = 'info') {
+            const el = document.getElementById('recordStatus');
+            const colors = {
+                info: 'text-[#a1a5b7]',
+                success: 'text-[#50cd89]',
+                error: 'text-[#f1416c]',
+                warn: 'text-[#ffc700]'
+            };
+            el.className = `mt-5 text-sm ${colors[tone] || colors.info}`;
+            el.textContent = message;
+        }
+
+        function formToObject(form) {
+            const formData = new FormData(form);
+            return Object.fromEntries(formData.entries());
+        }
+
+        function normalizeRecord(record) {
+            return {
+                id: record.id || `R-${Date.now()}`,
+                status: record.status || 'pending',
+                submittedAt: record.submittedAt || new Date().toISOString(),
+                approvedAt: record.approvedAt || '',
+                approvalDecision: record.approvalDecision || '',
+                approverName: record.approverName || '',
+                approvalNote: record.approvalNote || '',
+                ...record
+            };
+        }
+
+        function renderQueue() {
+            const queue = readQueue().map(normalizeRecord);
+            writeQueue(queue);
+            const body = document.getElementById('queueBody');
+            if (!queue.length) {
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-[#6b7280]">ยังไม่มีรายการรออนุมัติ</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            body.innerHTML = queue.map(item => {
+                const selected = item.id === selectedQueueId ? 'bg-[rgba(0,158,247,.08)]' : '';
+                const pillClass = item.status === 'approved' ? 'pill-approve text-[#50cd89]' : item.status === 'rejected' ? 'pill-reject text-[#f1416c]' : 'pill text-[#009ef7]';
+                return `
+                    <tr class="${selected} hover:bg-[#2b2b40] cursor-pointer transition" data-id="${item.id}">
+                        <td class="py-3 pr-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold ${pillClass}">${item.status}</span>
+                        </td>
+                        <td class="py-3 pr-4 text-white">${item.trial || '-'}</td>
+                        <td class="py-3 pr-4 text-white">${item.line || '-'}</td>
+                        <td class="py-3 pr-4 text-white">${item.prod || '-'}</td>
+                        <td class="py-3 pr-4 text-white">${item.eff || '-'}</td>
+                        <td class="py-3 pr-4 text-white">${item.submitter || '-'}</td>
+                        <td class="py-3 pr-4 text-[#a1a5b7]">
+                            <button type="button" class="select-item px-3 py-1 rounded-lg bg-[#2b2b40] text-white text-xs font-semibold hover:bg-[#323248]" data-id="${item.id}">
+                                Select
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            body.querySelectorAll('button.select-item').forEach(btn => {
+                btn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    selectedQueueId = btn.dataset.id;
+                    renderQueue();
+                    pushStatus(`เลือกคิว ${selectedQueueId} แล้ว`, 'info');
+                });
+            });
+        }
+
+        async function submitRecord(record, saveOnly = false) {
+            const payload = normalizeRecord({
+                ...record,
+                type: saveOnly ? 'draft' : 'record'
+            });
+
+            if (saveOnly) {
+                const queue = readQueue();
+                queue.unshift(payload);
+                writeQueue(queue);
+                selectedQueueId = payload.id;
+                renderQueue();
+                pushStatus('บันทึก Draft ลงคิวเรียบร้อย', 'success');
+                return;
+            }
+
+            try {
+                const response = await window.YakitoriRuntime.postToAppsScript('record_trial', payload);
+                const queue = readQueue();
+                queue.unshift({
+                    ...payload,
+                    backendResponse: response,
+                    status: 'pending'
+                });
+                writeQueue(queue);
+                selectedQueueId = payload.id;
+                renderQueue();
+                pushStatus('ส่งข้อมูลเข้า Apps Script สำเร็จ', 'success');
+            } catch (error) {
+                const queue = readQueue();
+                queue.unshift({
+                    ...payload,
+                    status: 'pending',
+                    syncState: 'offline',
+                    syncError: String(error.message || error)
+                });
+                writeQueue(queue);
+                selectedQueueId = payload.id;
+                renderQueue();
+                pushStatus(`ส่ง backend ไม่สำเร็จ แต่บันทึกคิวไว้แล้ว: ${error.message}`, 'warn');
+            }
+        }
+
+        async function sendApproval() {
+            if (!selectedQueueId) {
+                pushStatus('กรุณาเลือกรายการในคิวก่อนอนุมัติ', 'warn');
+                return;
+            }
+
+            const queue = readQueue();
+            const index = queue.findIndex(item => item.id === selectedQueueId);
+            if (index < 0) {
+                pushStatus('ไม่พบรายการที่เลือกในคิว', 'error');
+                return;
+            }
+
+            const item = normalizeRecord(queue[index]);
+            const approvalPayload = normalizeRecord({
+                ...item,
+                status: document.getElementById('approvalDecision').value,
+                approverName: document.getElementById('approverName').value.trim(),
+                approvalNote: document.getElementById('approvalNote').value.trim(),
+                approvedAt: new Date().toISOString(),
+                type: 'approval'
+            });
+
+            queue[index] = approvalPayload;
+            writeQueue(queue);
+            selectedQueueId = approvalPayload.id;
+            renderQueue();
+            pushStatus(`กำลังส่งสถานะ ${approvalPayload.status} ไปยัง Apps Script`, 'info');
+
+            try {
+                const response = await window.YakitoriRuntime.postToAppsScript('approve_record', approvalPayload);
+                queue[index] = {
+                    ...approvalPayload,
+                    backendResponse: response
+                };
+                writeQueue(queue);
+                selectedQueueId = approvalPayload.id;
+                renderQueue();
+                pushStatus('ส่งผลอนุมัติไปยัง Apps Script แล้ว', 'success');
+            } catch (error) {
+                queue[index] = {
+                    ...approvalPayload,
+                    syncState: 'offline',
+                    syncError: String(error.message || error)
+                };
+                writeQueue(queue);
+                selectedQueueId = approvalPayload.id;
+                renderQueue();
+                pushStatus(`ส่ง approval ไม่สำเร็จ แต่เก็บสถานะไว้ในเครื่องแล้ว: ${error.message}`, 'warn');
+            }
+        }
+
+        document.getElementById('recordForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const data = formToObject(event.currentTarget);
+            await submitRecord(data, false);
+            event.currentTarget.reset();
+        });
+
+        document.getElementById('saveDraftBtn').addEventListener('click', async () => {
+            const form = document.getElementById('recordForm');
+            const data = formToObject(form);
+            await submitRecord(data, true);
+            form.reset();
+        });
+
+        document.getElementById('approveSelectedBtn').addEventListener('click', sendApproval);
+        renderQueue();
+        pushStatus('พร้อมใช้งาน: กรอกข้อมูลแล้วกดส่งเพื่อสร้างรายการในคิว', 'info');
+    </script>
+</body>
+</html>

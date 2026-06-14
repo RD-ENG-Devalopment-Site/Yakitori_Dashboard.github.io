@@ -478,6 +478,7 @@
 
     </main>
 
+    <script src="../yakitori-runtime.js"></script>
     <script>
         // ==========================================
         // 1. ตัวแปรสำหรับจัดการข้อมูล (Global Variables)
@@ -511,7 +512,7 @@
         // ==========================================
         // 🌟 Web App URL
         // ==========================================
-        const googleWebAppUrl = "https://script.google.com/macros/s/AKfycbzCP20irjQdA65MEQXeB4KW8kkvmYRMJYbL8Zm1IdklPpKvvmTIIFcx0Zs_pm3Nwyel/exec";
+        const googleWebAppUrl = window.YakitoriRuntime.CONFIG.appsScriptUrl;
 
         window.onload = function() {
             loadData(); 
@@ -521,17 +522,10 @@
         // 🛠️ ดึงข้อมูลจาก Google Sheets หรือ Mock Data สำรอง
         // ==========================================
         async function loadData() {
-            try {
-                let fetchUrl = googleWebAppUrl;
-                
-                if (!fetchUrl.includes('page=api')) {
-                    fetchUrl += fetchUrl.includes('?') ? '&page=api' : '?page=api';
-                }
-                
-                if (!fetchUrl.includes('sheet=')) {
-                    fetchUrl += '&sheet=BL23gR15_DataLog';
-                }
+            if (!window.YakitoriRuntime.requireAccessOrWarn()) return;
 
+            try {
+                const fetchUrl = window.YakitoriRuntime.buildApiUrl('BL23gR15_DataLog');
                 const response = await fetch(fetchUrl);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 

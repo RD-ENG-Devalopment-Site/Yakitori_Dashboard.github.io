@@ -415,6 +415,7 @@
         </div>
     </main>
 
+    <script src="../yakitori-runtime.js"></script>
     <script>
         let db = {}; 
         let keys = [];
@@ -434,20 +435,17 @@
         Chart.defaults.borderColor = '#323248';
         Chart.defaults.font.family = "'Sarabun', sans-serif";
 
-        const googleWebAppUrl = "https://script.google.com/macros/s/AKfycbzCP20irjQdA65MEQXeB4KW8kkvmYRMJYbL8Zm1IdklPpKvvmTIIFcx0Zs_pm3Nwyel/exec";
+        const googleWebAppUrl = window.YakitoriRuntime.CONFIG.appsScriptUrl;
 
         window.onload = function() {
             loadData(); 
         };
 
         async function loadData() {
-            try {
-                let fetchUrl = googleWebAppUrl;
-                if (!fetchUrl.includes('page=api')) {
-                    fetchUrl += fetchUrl.includes('?') ? '&page=api' : '?page=api';
-                }
-                fetchUrl += '&sheet=GZ30gR15_DataLog';
+            if (!window.YakitoriRuntime.requireAccessOrWarn()) return;
 
+            try {
+                const fetchUrl = window.YakitoriRuntime.buildApiUrl('GZ30gR15_DataLog');
                 const response = await fetch(fetchUrl);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
