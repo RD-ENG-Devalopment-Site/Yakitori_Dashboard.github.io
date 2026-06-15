@@ -369,7 +369,12 @@
                     man: Number(item?.man) || 0,
                     total: Number(item?.total) || 0
                 }))
-                .filter(item => item.trial);
+                .filter(item => isNumericTrial(item.trial));
+        }
+
+        function isNumericTrial(trial) {
+            const trimmed = String(trial || '').trim();
+            return trimmed !== '' && Number.isFinite(Number(trimmed));
         }
 
         function sortTrials(items) {
