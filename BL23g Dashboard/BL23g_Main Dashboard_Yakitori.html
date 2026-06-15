@@ -496,7 +496,7 @@
         
         // 🌟 แก้ไขจุดที่ 1: ปรับเปลี่ยนตัวแปรเป้าหมายหลักวิศวกรรมกระบวนการจาก 106 เป็น 130
         const targetProductivity = 130; 
-        const actualBaseline = { prep: 0.00, arrange: 18.00, machine: 1.25, inspec: 3.40, pack: 5.00 };
+        const actualBaseline = { prep: 0.00, arrange: 22.30, machine: 1.25, inspec: 5.00, pack: 5.40 };
 
         const popup = document.getElementById('iterDropdown');
         const icon = document.getElementById('dropdownIcon');
@@ -829,9 +829,11 @@
         function updateGapAnalysis(key, currentData) {
             const tbody = document.getElementById('gapTableBody');
             if(!tbody) return;
-            const selectedLabel = isBaselineRecord(key)
-                ? 'ข้อมูลเดิม'
-                : `TRIAL ${getTrialLabel(key)} / SHIFT ${getRecordShift(key)}`;
+            const selectedHeader = isBaselineRecord(key)
+                ? 'ข้อมูลเดิม (วิ)'
+                : `TRIAL ${getTrialLabel(key)} / SHIFT ${getRecordShift(key)} (วิ)`;
+            const headerEl = document.getElementById('gap-header-selected');
+            if (headerEl) headerEl.innerText = selectedHeader;
             const cycle = currentData.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
             const totalCurrent = Number(cycle.prep || 0) + Number(cycle.arrange || 0) + Number(cycle.machine || 0) + Number(cycle.inspec || 0) + Number(cycle.pack || 0);
             const totalActual = Number(actualBaseline.prep) + Number(actualBaseline.arrange) + Number(actualBaseline.machine) + Number(actualBaseline.inspec) + Number(actualBaseline.pack);
@@ -843,42 +845,59 @@
             const rowsData = [
                 {
                     name: '1. เตรียม RM',
-                    detail: `${formatVal(actualBaseline.prep)} → ${formatVal(Number(cycle.prep) || 0)} วิ`,
+                    actual: actualBaseline.prep,
+                    current: Number(cycle.prep) || 0,
                 },
                 {
                     name: '2. เรียงเนื้อ (คอขวด)',
-                    detail: `${formatVal(actualBaseline.arrange)} → ${formatVal(Number(cycle.arrange) || 0)} วิ`,
+                    actual: actualBaseline.arrange,
+                    current: Number(cycle.arrange) || 0,
                 },
                 {
                     name: '3. เข้าเครื่อง',
-                    detail: `${formatVal(actualBaseline.machine)} → ${formatVal(Number(cycle.machine) || 0)} วิ`,
+                    actual: actualBaseline.machine,
+                    current: Number(cycle.machine) || 0,
                 },
                 {
                     name: '4. เช็คสเปค',
-                    detail: `${formatVal(actualBaseline.inspec)} → ${formatVal(Number(cycle.inspec) || 0)} วิ`,
+                    actual: actualBaseline.inspec,
+                    current: Number(cycle.inspec) || 0,
                 },
                 {
                     name: '5. PACKING',
-                    detail: `${formatVal(actualBaseline.pack)} → ${formatVal(Number(cycle.pack) || 0)} วิ`,
+                    actual: actualBaseline.pack,
+                    current: Number(cycle.pack) || 0,
                 },
                 {
                     name: 'TOTAL CT',
-                    detail: `${formatVal(totalActual)} → ${formatVal(totalCurrent)} วิ`,
+                    actual: totalActual,
+                    current: totalCurrent,
                     total: true
                 }
             ];
 
             let html = '';
             rowsData.forEach((row) => {
-                const rowColor = row.total ? 'bg-[#1e1e2d] border-t-2 border-[#323248]' : 'hover:bg-[#2b2b40]';
-                const analysisText = row.total
-                    ? `${selectedLabel} รวม ${gapSign}${formatVal(totalGap)} วิ (${gapSign}${formatVal(totalPercent)}%)`
-                    : `${selectedLabel} ${row.detail}`;
+                const gap = Number(row.current) - Number(row.actual);
+                const percent = Number(row.actual) > 0 ? (gap / Number(row.actual)) * 100 : 0;
+                const rowGapColor = gap > 0 ? 'text-[#f1416c]' : (gap < 0 ? 'text-[#50cd89]' : 'text-[#a1a5b7]');
+                const rowGapSign = gap > 0 ? '+' : '';
+                const rowPctColor = percent > 0 ? 'text-[#f1416c]' : (percent < 0 ? 'text-[#50cd89]' : 'text-[#a1a5b7]');
+                const bottleneck = !row.total && percent > 10;
+                const nameClass = row.total ? 'font-bold text-white text-right' : `text-white text-left pl-6 ${bottleneck ? 'text-[#f1416c] font-bold' : ''}`;
+                const displayName = row.total
+                    ? 'ระยะเวลารวม (TOTAL CT)'
+                    : bottleneck
+                        ? `${row.name} <span class="text-xs text-[#f1416c] ml-1">(Bottleneck)</span>`
+                        : row.name;
 
                 html += `
-                    <tr class="${rowColor} transition duration-150 text-center">
-                        <td class="p-4 ${row.total ? 'font-bold text-white text-right' : 'text-white text-left pl-6'}">${row.name}</td>
-                        <td class="p-4 font-bold ${row.total ? gapColor : 'text-[#009ef7]'}">${analysisText}</td>
+                    <tr class="${row.total ? 'bg-[#1e1e2d] text-center border-t-2 border-[#323248]' : (bottleneck ? 'bg-[rgba(241,65,108,0.05)] border-l-4 border-[#f1416c] transition duration-150 text-center' : 'hover:bg-[#2b2b40] border-l-4 border-transparent transition duration-150 text-center')}">
+                        <td class="p-4 ${nameClass}">${displayName}</td>
+                        <td class="p-4 font-bold text-[#009ef7]">${formatVal(row.actual)}</td>
+                        <td class="p-4 font-bold text-white">${formatVal(row.current)}</td>
+                        <td class="p-4 font-bold ${rowGapColor}">${rowGapSign}${formatVal(gap)}</td>
+                        <td class="p-4 font-bold ${row.total ? (totalGap > 0 ? 'text-[#f1416c]' : (totalGap < 0 ? 'text-[#50cd89]' : 'text-[#a1a5b7]')) : rowPctColor}">${row.total ? `${gapSign}${formatVal(totalPercent)}%` : `${rowGapSign}${formatVal(percent)}%`}</td>
                     </tr>
                 `;
             });
