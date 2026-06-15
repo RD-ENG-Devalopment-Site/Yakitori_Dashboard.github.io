@@ -297,7 +297,7 @@
             const manTotal = manPrep + manBlock + manInspec + manPack + manOp;
             const productivity = ctTotal > 0 ? 3600 / ctTotal : 0;
             const efficiency = target > 0 ? (productivity / target) * 100 : 0;
-            const yieldHour = Math.round(productivity);
+            const yieldHour = Math.round(productivity * manTotal);
 
             document.getElementById('lbl_total_ct').innerText = ctTotal.toFixed(2);
             document.getElementById('lbl_yield_hour').innerText = yieldHour.toLocaleString();
