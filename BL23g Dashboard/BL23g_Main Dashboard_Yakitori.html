@@ -189,6 +189,14 @@
                                 <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
                             </svg>
                         </button>
+                        <div class="mt-3 space-y-2">
+                            <label for="shiftFilterSelect" class="block text-[11px] font-bold uppercase tracking-wider text-[#a1a5b7]">Shift Filter</label>
+                            <select id="shiftFilterSelect" class="w-full px-4 py-3 bg-[#151521] border border-[#323248] text-white rounded-lg hover:bg-[#2b2b40] transition" onchange="setShiftFilter(this.value)">
+                                <option value="all">All Shift</option>
+                                <option value="A">Shift A</option>
+                                <option value="B">Shift B</option>
+                            </select>
+                        </div>
                         <div id="iterDropdown" class="absolute top-full left-0 right-0 mt-2 bg-[#1e1e2d] border border-[#323248] rounded-lg shadow-2xl z-50">
                             <div id="dropdownList" class="p-2 grid grid-cols-2 gap-2"></div>
                         </div>
@@ -494,6 +502,8 @@
         const icon = document.getElementById('dropdownIcon');
         let isOpen = false;
         let selectedDataIndex = -1;
+        let selectedShiftFilter = 'all';
+        let baselineKey = null;
 
         let trendChart;
         let cycleChart;
@@ -532,6 +542,7 @@
                 if (db.error) {
                     throw new Error("หลังบ้านแจ้งข้อผิดพลาด: " + db.error);
                 }
+                if (db._records) delete db._records;
                 if (Object.keys(db).length === 0) {
                     throw new Error("ไม่มีข้อมูลส่งกลับมาจาก Google Sheets");
                 }
@@ -592,7 +603,7 @@
         }
 
         function initializeDashboardFromSheets() {
-            const allSheetKeys = Object.keys(db);
+            const allSheetKeys = Object.keys(db).filter(isSelectableTrialKey);
             if (allSheetKeys.length === 0) return;
             
             allSheetKeys.sort((a, b) => {
@@ -612,7 +623,7 @@
                 }
             });
 
-            let baselineKey = keys.find(k => k === "เดิม" || k === "Baseline") || (db["1"] ? "1" : keys[0]);
+            baselineKey = keys.find(k => k === "????" || k === "Baseline") || (db["1"] ? "1" : keys[0]);
 
             chartLabels = keys.map(k => k === "เดิม" ? "เดิม" : `${k}`);
             chartData = keys.map(k => db[k] ? db[k].prod : 0);
@@ -628,7 +639,10 @@
             calculateExecutiveSummary(baselineKey, bestTrialKey);
             initSummaryCharts(baselineKey, bestTrialKey); 
 
-            let defaultKey = keys[keys.length - 1] || "เดิม";
+            selectedShiftFilter = 'all';
+            syncShiftFilterSelect();
+            renderList();
+            let defaultKey = getVisibleKeys().slice(-1)[0] || baselineKey || keys[keys.length - 1] || "เดิม";
             selectIteration(defaultKey); 
         }
 
@@ -662,6 +676,37 @@
             const activeRow = document.getElementById(`row-${key}`);
             if (activeRow) activeRow.classList.add('row-active');
         }
+        function isSelectableTrialKey(key) {
+            const normalized = String(key || '').trim();
+            return normalized !== '' && !normalized.startsWith('_');
+        }
+
+        function getVisibleKeys() {
+            const shift = String(selectedShiftFilter || 'all').trim().toUpperCase();
+            return keys.filter(k => {
+                if (!isSelectableTrialKey(k)) return false;
+                if (k === baselineKey) return true;
+                if (shift === 'ALL') return true;
+                return String((db[k] && db[k].shift) || 'A').trim().toUpperCase() === shift;
+            });
+        }
+
+        function syncShiftFilterSelect() {
+            const select = document.getElementById('shiftFilterSelect');
+            if (select && select.value !== selectedShiftFilter) {
+                select.value = selectedShiftFilter;
+            }
+        }
+
+        function setShiftFilter(shift) {
+            selectedShiftFilter = String(shift || 'all').trim().toUpperCase();
+            syncShiftFilterSelect();
+            renderList();
+            const nextKey = getVisibleKeys().slice(-1)[0] || baselineKey || keys[keys.length - 1];
+            if (nextKey) {
+                selectIteration(nextKey);
+            }
+        }
 
         function renderList() {
             const listContainer = document.getElementById('dropdownList');
@@ -672,7 +717,7 @@
                 let colorClass = k === "เดิม" ? "text-white bg-[#323248]" : "text-[#a1a5b7] hover:bg-[#323248] hover:text-white";
                 html += `<button onclick="selectIteration('${k}')" class="w-full text-center px-2 py-2 rounded text-xs font-medium border border-[#323248] ${colorClass} transition">${text}</button>`;
             });
-            listContainer.innerHTML = html;
+            listContainer.innerHTML = html || '<div class="col-span-2 px-3 py-4 text-center text-[#6b7280] text-xs">No data for this shift</div>';
         }
 
         function renderInsight(key, data) {
