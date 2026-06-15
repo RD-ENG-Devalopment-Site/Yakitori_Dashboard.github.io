@@ -70,71 +70,142 @@
                     <span class="pill text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#009ef7] font-bold">Record</span>
                 </div>
 
-                <form id="recordForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <label class="space-y-2">
-                        <span class="text-sm text-white">Line / Area</span>
-                        <select name="line" class="field w-full rounded-xl px-4 py-3">
-                            <option value="BL23G">BL23G</option>
-                            <option value="GZ40G">Gizzard 40G S18</option>
-                            <option value="GZ30G">Gizzard 30G R15</option>
-                        </select>
-                    </label>
-                    <label class="space-y-2">
-                        <span class="text-sm text-white">Shift</span>
-                        <select name="shift" class="field w-full rounded-xl px-4 py-3">
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                        </select>
-                    </label>
-                    <label class="space-y-2">
-                        <span class="text-sm text-white">Sheet / Dataset</span>
-                        <select name="sheet" class="field w-full rounded-xl px-4 py-3">
-                            <option value="BL23gR15_DataLog">BL23gR15_DataLog</option>
-                            <option value="GZ40gS18_DataLog">GZ40gS18_DataLog</option>
-                            <option value="GZ30gR15_DataLog">GZ30gR15_DataLog</option>
-                        </select>
-                    </label>
-                    <label class="space-y-2">
-                        <span class="text-sm text-white">Trial / Round</span>
-                        <input name="trial" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="เช่น 38 หรือ เดิม" required />
-                    </label>
-                    <label class="space-y-2">
-                        <span class="text-sm text-white">Date</span>
-                        <input name="recordDate" type="date" class="field w-full rounded-xl px-4 py-3" required />
-                    </label>
-                    <label class="space-y-2">
-                        <span class="text-sm text-white">Productivity</span>
-                        <input name="prod" type="number" step="0.1" class="field w-full rounded-xl px-4 py-3" placeholder="ไม้/คน/ชม." required />
-                    </label>
-                    <label class="space-y-2">
-                        <span class="text-sm text-white">Efficiency (%)</span>
-                        <input name="eff" type="number" step="0.01" class="field w-full rounded-xl px-4 py-3" placeholder="%" required />
-                    </label>
-                    <label class="space-y-2">
-                        <span class="text-sm text-white">Manpower</span>
-                        <input name="man" type="number" step="1" class="field w-full rounded-xl px-4 py-3" placeholder="จำนวนคน" required />
-                    </label>
-                    <label class="space-y-2">
-                        <span class="text-sm text-white">Total Output</span>
-                        <input name="total" type="number" step="1" class="field w-full rounded-xl px-4 py-3" placeholder="จำนวนไม้/ชม." required />
-                    </label>
-                    <label class="space-y-2">
-                        <span class="text-sm text-white">Issue / Finding</span>
-                        <input name="issue" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="คอขวด, loss, defect, idle..." />
-                    </label>
-                    <label class="space-y-2 md:col-span-2">
-                        <span class="text-sm text-white">Action / Recommendation</span>
-                        <textarea name="actionNote" rows="4" class="field w-full rounded-xl px-4 py-3" placeholder="ข้อเสนอแนะหรือ next action สำหรับทีมหน้างาน"></textarea>
-                    </label>
-                    <label class="space-y-2">
-                        <span class="text-sm text-white">Submitted by</span>
-                        <input name="submitter" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="ชื่อผู้บันทึก" required />
-                    </label>
-                    <label class="space-y-2">
-                        <span class="text-sm text-white">Comment</span>
-                        <input name="comment" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="หมายเหตุเพิ่มเติม" />
-                    </label>
-                    <div class="md:col-span-2 flex flex-wrap gap-3 pt-2">
+                <form id="recordForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="space-y-2">
+                            <span class="text-sm text-white">Line / Area</span>
+                            <select name="line" class="field w-full rounded-xl px-4 py-3" onchange="calculateMetrics()">
+                                <option value="BL23G">BL23G</option>
+                                <option value="GZ40G">Gizzard 40G S18</option>
+                                <option value="GZ30G">Gizzard 30G R15</option>
+                            </select>
+                        </label>
+                        <label class="space-y-2">
+                            <span class="text-sm text-white">Shift</span>
+                            <select name="shift" class="field w-full rounded-xl px-4 py-3">
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                            </select>
+                        </label>
+                        <label class="space-y-2">
+                            <span class="text-sm text-white">Sheet / Dataset</span>
+                            <select name="sheet" class="field w-full rounded-xl px-4 py-3">
+                                <option value="BL23gR15_DataLog">BL23gR15_DataLog</option>
+                                <option value="GZ40gS18_DataLog">GZ40gS18_DataLog</option>
+                                <option value="GZ30gR15_DataLog">GZ30gR15_DataLog</option>
+                            </select>
+                        </label>
+                        <label class="space-y-2">
+                            <span class="text-sm text-white">Trial / Round</span>
+                            <input name="trial" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="เช่น 45" required />
+                        </label>
+                        <label class="space-y-2">
+                            <span class="text-sm text-white">Date</span>
+                            <input name="recordDate" type="date" class="field w-full rounded-xl px-4 py-3" required />
+                        </label>
+                        <label class="space-y-2">
+                            <span class="text-sm text-white">Submitted by</span>
+                            <input name="submitter" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="ชื่อผู้บันทึก" required />
+                        </label>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between gap-3">
+                            <h3 class="text-[#8b5cf6] text-sm font-bold uppercase tracking-wider">Cycle Time / วินาที</h3>
+                            <span class="text-[11px] uppercase tracking-[0.2em] text-[#6b7280] font-bold">เตรียม RM / เรียงเนื้อ / เข้าเครื่อง / เช็คสเปค / PACKING</span>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            <label class="space-y-2">
+                                <span class="block text-xs text-[#a1a5b7]">1. เตรียม RM</span>
+                                <input type="number" step="0.01" name="ct_prep" id="ct_prep" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
+                            </label>
+                            <label class="space-y-2">
+                                <span class="block text-xs text-[#a1a5b7]">2. เรียงเนื้อ (คอขวด)</span>
+                                <input type="number" step="0.01" name="ct_arrange" id="ct_arrange" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
+                            </label>
+                            <label class="space-y-2">
+                                <span class="block text-xs text-[#a1a5b7]">3. เข้าเครื่อง</span>
+                                <input type="number" step="0.01" name="ct_machine" id="ct_machine" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
+                            </label>
+                            <label class="space-y-2">
+                                <span class="block text-xs text-[#a1a5b7]">4. เช็คสเปค</span>
+                                <input type="number" step="0.01" name="ct_inspec" id="ct_inspec" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
+                            </label>
+                            <label class="space-y-2">
+                                <span class="block text-xs text-[#a1a5b7]">5. PACKING</span>
+                                <input type="number" step="0.01" name="ct_pack" id="ct_pack" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between gap-3">
+                            <h3 class="text-[#009ef7] text-sm font-bold uppercase tracking-wider">Manpower / คน</h3>
+                            <span class="text-[11px] uppercase tracking-[0.2em] text-[#6b7280] font-bold">เตรียม / เรียง / Inspec / แพ็ค / Operate</span>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            <label class="space-y-2">
+                                <span class="block text-xs text-[#a1a5b7]">เตรียม</span>
+                                <input type="number" name="man_prep" id="man_prep" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
+                            </label>
+                            <label class="space-y-2">
+                                <span class="block text-xs text-[#a1a5b7]">เรียง</span>
+                                <input type="number" name="man_block" id="man_block" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
+                            </label>
+                            <label class="space-y-2">
+                                <span class="block text-xs text-[#a1a5b7]">Inspec</span>
+                                <input type="number" name="man_inspec" id="man_inspec" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
+                            </label>
+                            <label class="space-y-2">
+                                <span class="block text-xs text-[#a1a5b7]">แพ็ค</span>
+                                <input type="number" name="man_pack" id="man_pack" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
+                            </label>
+                            <label class="space-y-2">
+                                <span class="block text-xs text-[#a1a5b7]">Operate</span>
+                                <input type="number" name="man_op" id="man_op" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="bg-[#151521] p-4 rounded-lg border border-[#323248] grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                        <div>
+                            <span class="block text-[11px] font-bold uppercase text-[#a1a5b7]">Total CT (วินาที)</span>
+                            <span id="lbl_total_ct" class="text-xl font-bold text-white">0.00</span>
+                            <input type="hidden" name="ct_total" id="ct_total" value="0.00">
+                        </div>
+                        <div>
+                            <span class="block text-[11px] font-bold uppercase text-[#009ef7]">ยอดผลิต (ไม้/ชม.)</span>
+                            <span id="lbl_yield_hour" class="text-xl font-bold text-[#009ef7]">0</span>
+                            <input type="hidden" name="yield_hour" id="yield_hour" value="0">
+                        </div>
+                        <div>
+                            <span class="block text-[11px] font-bold uppercase text-[#8b5cf6]">รวมกำลังคน</span>
+                            <span id="lbl_man_total" class="text-xl font-bold text-[#8b5cf6]">0</span>
+                            <input type="hidden" name="man_total" id="man_total" value="0">
+                        </div>
+                        <div>
+                            <span class="block text-[11px] font-bold uppercase text-[#50cd89]">Productivity</span>
+                            <span id="lbl_productivity" class="text-xl font-bold text-[#50cd89]">0.0</span>
+                            <input type="hidden" name="productivity" id="productivity" value="0.0">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="space-y-2 md:col-span-2">
+                            <span class="text-sm text-white">Issue / Finding</span>
+                            <input name="issue" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="คอขวด, loss, defect, idle..." />
+                        </label>
+                        <label class="space-y-2 md:col-span-2">
+                            <span class="text-sm text-white">Action / Recommendation</span>
+                            <textarea name="actionNote" rows="4" class="field w-full rounded-xl px-4 py-3" placeholder="ข้อเสนอแนะหรือ next action สำหรับทีมหน้างาน"></textarea>
+                        </label>
+                        <label class="space-y-2">
+                            <span class="text-sm text-white">Comment</span>
+                            <input name="comment" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="หมายเหตุเพิ่มเติม" />
+                        </label>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3 pt-2">
                         <button type="submit" class="px-5 py-3 rounded-xl bg-[#009ef7] text-white font-semibold hover:opacity-90 transition">
                             ส่งเข้า Apps Script
                         </button>
@@ -238,6 +309,70 @@
             return Object.fromEntries(formData.entries());
         }
 
+        const lineTargets = {
+            BL23G: 130,
+            GZ40G: 84,
+            GZ30G: 69
+        };
+
+        function toNumber(value) {
+            const num = Number(value);
+            return Number.isFinite(num) ? num : 0;
+        }
+
+        function getTargetByLine(line) {
+            return lineTargets[String(line || '').trim().toUpperCase()] || 0;
+        }
+
+        function calculateMetrics() {
+            const ctPrep = toNumber(document.getElementById('ct_prep')?.value);
+            const ctArrange = toNumber(document.getElementById('ct_arrange')?.value);
+            const ctMachine = toNumber(document.getElementById('ct_machine')?.value);
+            const ctInspec = toNumber(document.getElementById('ct_inspec')?.value);
+            const ctPack = toNumber(document.getElementById('ct_pack')?.value);
+            const manPrep = toNumber(document.getElementById('man_prep')?.value);
+            const manBlock = toNumber(document.getElementById('man_block')?.value);
+            const manInspec = toNumber(document.getElementById('man_inspec')?.value);
+            const manPack = toNumber(document.getElementById('man_pack')?.value);
+            const manOp = toNumber(document.getElementById('man_op')?.value);
+            const line = document.querySelector('select[name="line"]')?.value || '';
+            const target = getTargetByLine(line);
+
+            const ctTotal = ctPrep + ctArrange + ctMachine + ctInspec + ctPack;
+            const manTotal = manPrep + manBlock + manInspec + manPack + manOp;
+            const productivity = ctTotal > 0 ? (3600 / ctTotal) : 0;
+            const efficiency = target > 0 ? (productivity / target) * 100 : 0;
+
+            const totalCtEl = document.getElementById('lbl_total_ct');
+            const yieldEl = document.getElementById('lbl_yield_hour');
+            const manEl = document.getElementById('lbl_man_total');
+            const prodEl = document.getElementById('lbl_productivity');
+            const ctHidden = document.getElementById('ct_total');
+            const yieldHidden = document.getElementById('yield_hour');
+            const manHidden = document.getElementById('man_total');
+            const prodHidden = document.getElementById('productivity');
+
+            if (totalCtEl) totalCtEl.innerText = ctTotal.toFixed(2);
+            if (yieldEl) yieldEl.innerText = Math.round(productivity).toLocaleString();
+            if (manEl) manEl.innerText = String(manTotal);
+            if (prodEl) prodEl.innerText = productivity.toFixed(1);
+            if (ctHidden) ctHidden.value = ctTotal.toFixed(2);
+            if (yieldHidden) yieldHidden.value = Math.round(productivity).toString();
+            if (manHidden) manHidden.value = String(manTotal);
+            if (prodHidden) prodHidden.value = productivity.toFixed(1);
+
+            return {
+                ct_total: ctTotal.toFixed(2),
+                yield_hour: Math.round(productivity),
+                man_total: manTotal,
+                man: manTotal,
+                prod: Number(productivity.toFixed(1)),
+                eff: Number(efficiency.toFixed(2)),
+                total: Math.round(productivity),
+                target
+            };
+        }
+
         function normalizeRecord(record) {
             return {
                 id: record.id || `R-${Date.now()}`,
@@ -298,8 +433,10 @@
         }
 
         async function submitRecord(record, saveOnly = false) {
+            const metrics = calculateMetrics();
             const payload = normalizeRecord({
                 ...record,
+                ...metrics,
                 type: saveOnly ? 'draft' : 'record'
             });
 
@@ -407,6 +544,11 @@
         });
 
         document.getElementById('approveSelectedBtn').addEventListener('click', sendApproval);
+        const dateField = document.querySelector('input[name="recordDate"]');
+        if (dateField && !dateField.value) {
+            dateField.value = new Date().toISOString().slice(0, 10);
+        }
+        calculateMetrics();
         renderQueue();
         pushStatus('พร้อมใช้งาน: กรอกข้อมูลแล้วกดส่งเพื่อสร้างรายการในคิว', 'info');
     </script>
