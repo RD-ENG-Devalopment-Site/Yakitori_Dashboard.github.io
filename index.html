@@ -512,16 +512,12 @@
             return latestPercent;
         }
 
-        function getFormattedLatest(records, shift) {
-            const stats = getStats(filterByShift(records, shift));
-            if (!stats) return '--';
-            return `${stats.latest.prod.toFixed(1)} (T${stats.latest.trial})`;
-        }
-
-        function getFormattedBest(records, shift) {
-            const stats = getStats(filterByShift(records, shift));
-            if (!stats) return '--';
-            return `${stats.best.prod.toFixed(1)} (T${stats.best.trial})`;
+        function renderShiftBadge(shift) {
+            const isA = shift === 'A';
+            const classes = isA
+                ? 'bg-[rgba(139,92,246,0.16)] text-[#c4b5fd] border-[#8b5cf6]/35'
+                : 'bg-[rgba(0,158,247,0.16)] text-[#7dd3fc] border-[#009ef7]/35';
+            return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] border ${classes}">Shift ${shift}</span>`;
         }
 
         function renderComparePanel(results) {
@@ -536,14 +532,35 @@
                 const gap = (aLatest !== null && bLatest !== null) ? (bLatest - aLatest) : null;
                 const gapClass = gap === null ? 'text-[#a1a5b7]' : (gap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]');
 
+                const renderMetric = (stats, shift, accentClass) => {
+                    if (!stats) {
+                        return `
+                            <div class="flex flex-col gap-1">
+                                ${renderShiftBadge(shift)}
+                                <span class="text-[#a1a5b7]">--</span>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="flex flex-col gap-1">
+                            ${renderShiftBadge(shift)}
+                            <div class="flex items-center gap-2">
+                                <span class="${accentClass} font-semibold">${stats.latest.prod.toFixed(1)}</span>
+                                <span class="text-[11px] text-[#6b7280]">T${stats.latest.trial}</span>
+                            </div>
+                        </div>
+                    `;
+                };
+
                 return `
                     <tr>
-                        <td class="py-3 pr-4 text-white font-semibold">${label}</td>
-                        <td class="py-3 pr-4 text-[#8b5cf6]">${getFormattedLatest(records, 'A')}</td>
-                        <td class="py-3 pr-4 text-[#009ef7]">${getFormattedLatest(records, 'B')}</td>
+                        <td class="py-3 pr-4 text-white font-semibold align-top">${label}</td>
+                        <td class="py-3 pr-4 align-top">${renderMetric(aStats, 'A', 'text-[#c4b5fd]')}</td>
+                        <td class="py-3 pr-4 align-top">${renderMetric(bStats, 'B', 'text-[#7dd3fc]')}</td>
                         <td class="py-3 pr-4 font-semibold ${gapClass}">${gap === null ? '--' : gap.toFixed(1)}</td>
-                        <td class="py-3 pr-4 text-[#8b5cf6]">${getFormattedBest(records, 'A')}</td>
-                        <td class="py-3 pr-4 text-[#009ef7]">${getFormattedBest(records, 'B')}</td>
+                        <td class="py-3 pr-4 text-[#c4b5fd]">${aStats ? `${aStats.best.prod.toFixed(1)} (T${aStats.best.trial})` : '--'}</td>
+                        <td class="py-3 pr-4 text-[#7dd3fc]">${bStats ? `${bStats.best.prod.toFixed(1)} (T${bStats.best.trial})` : '--'}</td>
                     </tr>
                 `;
             }).join('');
