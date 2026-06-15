@@ -334,7 +334,7 @@
         </div>
     </main>
 
-        <script src="yakitori-runtime.js"></script>
+    <script src="yakitori-runtime.js"></script>
     <script>
         function toggleMenu(menuId, iconId) {
             const menu = document.getElementById(menuId);
@@ -350,24 +350,109 @@
         }
 
         const lineConfigs = [
-            { prefix: 'bl', sheet: 'BL23gR15_DataLog', target: 130 },
-            { prefix: 'giz', sheet: 'GZ40gS18_DataLog', target: 84 },
-            { prefix: 'gz30g', sheet: 'GZ30gR15_DataLog', target: 69 }
+            { prefix: 'bl', label: 'BL 23G', sheet: 'BL23gR15_DataLog', target: 130 },
+            { prefix: 'giz', label: 'Gizzard 40G S18', sheet: 'GZ40gS18_DataLog', target: 84 },
+            { prefix: 'gz30g', label: 'Gz 30G R15', sheet: 'GZ30gR15_DataLog', target: 69 }
         ];
 
+        let currentShiftFilter = 'all';
+        let dashboardReady = false;
+
         window.onload = function() {
+            ensureDashboardChrome();
+            setActiveShiftFilter('all');
             renderDashboardData();
             setInterval(renderDashboardData, 5000);
         };
 
+        function ensureDashboardChrome() {
+            if (dashboardReady) return;
+            dashboardReady = true;
+
+            const title = Array.from(document.querySelectorAll('h3')).find(node =>
+                node.textContent.includes('Productivity Progress vs Target')
+            );
+
+            if (title && !document.getElementById('shiftFilterBar')) {
+                title.insertAdjacentHTML('afterend', `
+                    <div id="shiftFilterBar" class="flex flex-wrap items-center gap-2 mt-4 mb-4">
+                        <span class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold">Shift Filter</span>
+                        <button type="button" data-shift-filter="all" class="shift-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-[#2b2b40] text-white border border-[#323248]">All</button>
+                        <button type="button" data-shift-filter="A" class="shift-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-[#151521] text-[#a1a5b7] border border-[#323248]">Shift A</button>
+                        <button type="button" data-shift-filter="B" class="shift-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-[#151521] text-[#a1a5b7] border border-[#323248]">Shift B</button>
+                    </div>
+                `);
+            }
+
+            document.querySelectorAll('[data-shift-filter]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setActiveShiftFilter(btn.dataset.shiftFilter);
+                    renderDashboardData();
+                });
+            });
+
+            const summaryCard = title ? title.closest('div.bg-card.rounded-xl.border') : null;
+            if (summaryCard && !document.getElementById('comparePanel')) {
+                const summaryBody = summaryCard.querySelector('.space-y-6');
+                if (summaryBody) {
+                    summaryBody.insertAdjacentHTML('beforeend', `
+                        <div id="comparePanel" class="bg-[#151521] border border-[#323248] rounded-xl p-4 md:p-5">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">Compare A vs B</h4>
+                                    <p class="text-xs text-[#a1a5b7]">Latest / Best / Gap by shift for the same line</p>
+                                </div>
+                                <span class="text-[11px] uppercase tracking-[0.2em] text-[#a1a5b7]">Real sheet records</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left whitespace-nowrap text-sm">
+                                    <thead class="text-[11px] uppercase text-[#6b7280] border-b border-[#2b2b40]">
+                                        <tr>
+                                            <th class="py-2 pr-4">Line</th>
+                                            <th class="py-2 pr-4">A Latest</th>
+                                            <th class="py-2 pr-4">B Latest</th>
+                                            <th class="py-2 pr-4">Gap B-A</th>
+                                            <th class="py-2 pr-4">A Best</th>
+                                            <th class="py-2 pr-4">B Best</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="compareBody" class="divide-y divide-[#2b2b40]"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `);
+                }
+            }
+        }
+
+        function setActiveShiftFilter(filter) {
+            currentShiftFilter = filter;
+            document.querySelectorAll('[data-shift-filter]').forEach(btn => {
+                const active = btn.dataset.shiftFilter === filter;
+                btn.classList.toggle('bg-[#009ef7]', active);
+                btn.classList.toggle('text-white', active);
+                btn.classList.toggle('border-[#009ef7]', active);
+                btn.classList.toggle('bg-[#151521]', !active);
+                btn.classList.toggle('text-[#a1a5b7]', !active);
+            });
+        }
+
         function normalizeSheetData(db) {
-            return Object.entries(db || {})
-                .map(([trial, item]) => ({
-                    trial: String(trial).trim(),
+            const records = Array.isArray(db?._records) && db._records.length
+                ? db._records
+                : Object.entries(db || {}).map(([trial, item]) => ({ trial, ...item }));
+
+            return records
+                .map(item => ({
+                    trial: String(item?.trial ?? '').trim(),
+                    shift: String(item?.shift ?? 'A').trim().toUpperCase() || 'A',
+                    line: String(item?.line ?? '').trim(),
                     prod: Number(item?.prod) || 0,
                     eff: Number(item?.eff) || 0,
                     man: Number(item?.man) || 0,
-                    total: Number(item?.total) || 0
+                    total: Number(item?.total) || 0,
+                    recordDate: String(item?.recordDate ?? '').trim(),
+                    status: String(item?.status ?? '').trim()
                 }))
                 .filter(item => isNumericTrial(item.trial));
         }
@@ -378,45 +463,46 @@
         }
 
         function sortTrials(items) {
-            return [...items].sort((a, b) => {
-                const aNum = Number(a.trial);
-                const bNum = Number(b.trial);
-                const aIsNum = Number.isFinite(aNum);
-                const bIsNum = Number.isFinite(bNum);
+            return [...items].sort((a, b) => Number(a.trial) - Number(b.trial));
+        }
 
-                if (aIsNum && bIsNum) return aNum - bNum;
-                if (aIsNum) return -1;
-                if (bIsNum) return 1;
-                return a.trial.localeCompare(b.trial);
-            });
+        function filterByShift(records, shift) {
+            if (shift === 'all') return records;
+            return records.filter(item => (item.shift || 'A').toUpperCase() === shift);
+        }
+
+        function getStats(records) {
+            const sorted = sortTrials(records);
+            if (!sorted.length) return null;
+            const latest = sorted[sorted.length - 1];
+            const best = sorted.reduce((acc, item) => (!acc || item.prod > acc.prod ? item : acc), null);
+            return { latest, best };
         }
 
         function updateProgressUI(prefix, records, target) {
-            const sortedRecords = sortTrials(records);
-            if (!sortedRecords.length) {
+            const scopedRecords = filterByShift(records, currentShiftFilter);
+            const stats = getStats(scopedRecords);
+            const targetLabel = `Target: ${target}`;
+
+            if (!stats) {
                 document.getElementById(`${prefix}-prod-val`).innerText = '--';
-                document.getElementById(`${prefix}-target-display`).innerText = `Target: ${target}`;
+                document.getElementById(`${prefix}-target-display`).innerText = targetLabel;
                 document.getElementById(`${prefix}-prog-text`).innerText = 'Efficiency Rate (%): --%';
-                document.getElementById(`${prefix}-round-text`).innerText = '(Syncing...)';
-                document.getElementById(`${prefix}-best-text`).innerText = `Best Record: -- (Target: ${target})`;
+                document.getElementById(`${prefix}-round-text`).innerText = currentShiftFilter === 'all' ? '(Syncing...)' : `(Shift ${currentShiftFilter})`;
+                document.getElementById(`${prefix}-best-text`).innerText = `Best Record: -- (${targetLabel})`;
                 document.getElementById(`${prefix}-prog-bar`).style.width = '0%';
                 document.getElementById(`${prefix}-best-bar`).style.width = '0%';
                 return 0;
             }
 
-            const latestRecord = sortedRecords[sortedRecords.length - 1];
-            const bestRecord = sortedRecords.reduce((best, item) => {
-                return !best || item.prod > best.prod ? item : best;
-            }, null);
+            const latestPercent = target > 0 ? (stats.latest.prod / target) * 100 : 0;
+            const bestPercent = target > 0 ? (stats.best.prod / target) * 100 : 0;
 
-            const latestPercent = target > 0 ? (latestRecord.prod / target) * 100 : 0;
-            const bestPercent = target > 0 ? (bestRecord.prod / target) * 100 : 0;
-
-            document.getElementById(`${prefix}-prod-val`).innerText = latestRecord.prod.toFixed(1);
-            document.getElementById(`${prefix}-target-display`).innerText = `Target: ${target}`;
+            document.getElementById(`${prefix}-prod-val`).innerText = stats.latest.prod.toFixed(1);
+            document.getElementById(`${prefix}-target-display`).innerText = targetLabel;
             document.getElementById(`${prefix}-prog-text`).innerText = `Efficiency Rate (%): ${latestPercent.toFixed(2)}%`;
-            document.getElementById(`${prefix}-round-text`).innerText = `(Trial ${latestRecord.trial})`;
-            document.getElementById(`${prefix}-best-text`).innerText = `Best Record: ${bestRecord.prod.toFixed(1)} (${bestPercent.toFixed(2)}%) - Trial ${bestRecord.trial}`;
+            document.getElementById(`${prefix}-round-text`).innerText = `(Trial ${stats.latest.trial} / Shift ${stats.latest.shift || 'A'})`;
+            document.getElementById(`${prefix}-best-text`).innerText = `Best Record: ${stats.best.prod.toFixed(1)} (${bestPercent.toFixed(2)}%) - Trial ${stats.best.trial}`;
 
             requestAnimationFrame(() => {
                 document.getElementById(`${prefix}-prog-bar`).style.width = `${Math.min(latestPercent, 100)}%`;
@@ -424,6 +510,43 @@
             });
 
             return latestPercent;
+        }
+
+        function getFormattedLatest(records, shift) {
+            const stats = getStats(filterByShift(records, shift));
+            if (!stats) return '--';
+            return `${stats.latest.prod.toFixed(1)} (T${stats.latest.trial})`;
+        }
+
+        function getFormattedBest(records, shift) {
+            const stats = getStats(filterByShift(records, shift));
+            if (!stats) return '--';
+            return `${stats.best.prod.toFixed(1)} (T${stats.best.trial})`;
+        }
+
+        function renderComparePanel(results) {
+            const tbody = document.getElementById('compareBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = results.map(({ label, records }) => {
+                const aStats = getStats(filterByShift(records, 'A'));
+                const bStats = getStats(filterByShift(records, 'B'));
+                const aLatest = aStats ? aStats.latest.prod : null;
+                const bLatest = bStats ? bStats.latest.prod : null;
+                const gap = (aLatest !== null && bLatest !== null) ? (bLatest - aLatest) : null;
+                const gapClass = gap === null ? 'text-[#a1a5b7]' : (gap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]');
+
+                return `
+                    <tr>
+                        <td class="py-3 pr-4 text-white font-semibold">${label}</td>
+                        <td class="py-3 pr-4 text-[#8b5cf6]">${getFormattedLatest(records, 'A')}</td>
+                        <td class="py-3 pr-4 text-[#009ef7]">${getFormattedLatest(records, 'B')}</td>
+                        <td class="py-3 pr-4 font-semibold ${gapClass}">${gap === null ? '--' : gap.toFixed(1)}</td>
+                        <td class="py-3 pr-4 text-[#8b5cf6]">${getFormattedBest(records, 'A')}</td>
+                        <td class="py-3 pr-4 text-[#009ef7]">${getFormattedBest(records, 'B')}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         async function renderDashboardData() {
@@ -449,13 +572,14 @@
                 }
             });
 
+            renderComparePanel(results);
+
             if (activeProjectsCount > 0) {
                 const avg = avgEffTotal / activeProjectsCount;
-                document.getElementById('avg-eff-display').innerHTML = `${avg.toFixed(1)}<span class="text-lg text-[#a1a5b7]">%</span>`;
+                document.getElementById('avg-eff-display').innerHTML = `${avg.toFixed(1)}<span class=\"text-lg text-[#a1a5b7]\">%</span>`;
             }
         }
     </script>
-
 </body>
 </html>
 
