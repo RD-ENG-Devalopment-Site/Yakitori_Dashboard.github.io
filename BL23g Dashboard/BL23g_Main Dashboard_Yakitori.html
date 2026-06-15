@@ -366,7 +366,7 @@
                             <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-prod">กระบวนการเดิม ➔ ดีที่สุด</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-prod">0.0</span>
-                                <span class="text-xs text-[#a1a5b7]">➔</span>
+                                <span class="text-xs text-[#a1a5b7]">→</span>
                                 <span class="text-3xl font-bold text-[#50cd89] font-en glow-text-green" id="val-best-prod">0.0</span>
                             </div>
                         </div>
@@ -384,7 +384,7 @@
                             <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-eff">กระบวนการเดิม ➔ ดีที่สุด</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-eff">0.00</span>
-                                <span class="text-xs text-[#a1a5b7]">➔</span>
+                                <span class="text-xs text-[#a1a5b7]">→</span>
                                 <span class="text-3xl font-bold text-[#50cd89] font-en glow-text-green" id="val-best-eff">0.00</span>
                             </div>
                         </div>
@@ -402,7 +402,7 @@
                             <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-arrange">กระบวนการเดิม ➔ ดีที่สุด</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-total-ct">0.00</span>
-                                <span class="text-xs text-[#a1a5b7]">➔</span>
+                                <span class="text-xs text-[#a1a5b7]">→</span>
                                 <span class="text-3xl font-bold text-[#50cd89] font-en glow-text-green" id="val-best-total-ct">0.00</span>
                             </div>
                         </div>
@@ -420,7 +420,7 @@
                             <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-total">กระบวนการเดิม ➔ ดีที่สุด</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-total">0</span>
-                                <span class="text-xs text-[#a1a5b7]">➔</span>
+                                <span class="text-xs text-[#a1a5b7]">→</span>
                                 <span class="text-3xl font-bold text-[#50cd89] font-en glow-text-green" id="val-best-total">0</span>
                             </div>
                         </div>
@@ -467,13 +467,7 @@
                             <thead>
                                 <tr class="bg-[#151521] text-xs uppercase tracking-wider text-[#a1a5b7] border-b border-[#323248]">
                                     <th class="p-3 font-bold text-white">สายงาน</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248]">เป้าหมาย</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7] bg-[rgba(0,158,247,0.05)]" id="gap-header-t1">กระบวนการเดิม (ไม้/คน/ชม.)</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">ส่วนต่าง (เดิม)</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">GAP % (เดิม)</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-header-dyn">ล่าสุด</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6]">ส่วนต่าง</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6]">GAP %</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7]">วิเคราะห์ระยะห่าง (Gap Analysis)</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#2b2b40]" id="executiveGapTableBody">
@@ -512,6 +506,7 @@
         
         let chartLabels = [];
         let chartData = [];
+        let viewKeys = [];
 
         Chart.defaults.color = '#a1a5b7';
         Chart.defaults.borderColor = '#323248';
@@ -606,11 +601,7 @@
             const allSheetKeys = Object.keys(db).filter(isSelectableTrialKey);
             if (allSheetKeys.length === 0) return;
             
-            allSheetKeys.sort((a, b) => {
-                if (a === "เดิม" || a === "Baseline") return -1;
-                if (b === "เดิม" || b === "Baseline") return 1;
-                return parseInt(a) - parseInt(b);
-            });
+            allSheetKeys.sort(compareRecordKeys);
             
             keys.length = 0; 
             allSheetKeys.forEach(k => keys.push(k));
@@ -623,25 +614,19 @@
                 }
             });
 
-            baselineKey = keys.find(k => k === "????" || k === "Baseline") || (db["1"] ? "1" : keys[0]);
-
-            chartLabels = keys.map(k => k === "เดิม" ? "เดิม" : `${k}`);
-            chartData = keys.map(k => db[k] ? db[k].prod : 0);
+            baselineKey = keys.find(isBaselineRecord) || keys[0];
 
             let maxYield = Math.max(...keys.map(k => db[k] ? Number(db[k].total) : 0));
             if (maxYield === -Infinity) maxYield = 0;
             document.getElementById('header-max-yield').innerHTML = `${maxYield.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
 
-            renderList();
-            renderTable();
-            initCharts();
-            
-            calculateExecutiveSummary(baselineKey, bestTrialKey);
-            initSummaryCharts(baselineKey, bestTrialKey); 
-
             selectedShiftFilter = 'all';
             syncShiftFilterSelect();
-            renderList();
+            refreshShiftView();
+
+            calculateExecutiveSummary(baselineKey, bestTrialKey);
+            initSummaryCharts(baselineKey, bestTrialKey);
+
             let defaultKey = getVisibleKeys().slice(-1)[0] || baselineKey || keys[keys.length - 1] || "เดิม";
             selectIteration(defaultKey); 
         }
@@ -681,14 +666,57 @@
             return normalized !== '' && !normalized.startsWith('_');
         }
 
+        function getTrialLabel(key) {
+            const record = db[key] || {};
+            return String(record.trial || String(key || '').split('__')[0]).trim();
+        }
+
+        function getRecordShift(key) {
+            return String((db[key] && db[key].shift) || String(key || '').split('__')[1] || 'A').trim().toUpperCase();
+        }
+
+        function isBaselineRecord(key) {
+            const trial = getTrialLabel(key);
+            return trial === 'เดิม' || trial === 'Baseline';
+        }
+
+        function compareRecordKeys(a, b) {
+            if (isBaselineRecord(a)) return -1;
+            if (isBaselineRecord(b)) return 1;
+
+            const trialA = getTrialLabel(a);
+            const trialB = getTrialLabel(b);
+            const numberA = Number(trialA);
+            const numberB = Number(trialB);
+            const trialCompare = Number.isFinite(numberA) && Number.isFinite(numberB)
+                ? numberA - numberB
+                : trialA.localeCompare(trialB, 'th', { numeric: true });
+
+            return trialCompare || getRecordShift(a).localeCompare(getRecordShift(b));
+        }
+
         function getVisibleKeys() {
             const shift = String(selectedShiftFilter || 'all').trim().toUpperCase();
             return keys.filter(k => {
                 if (!isSelectableTrialKey(k)) return false;
-                if (k === baselineKey) return true;
+                if (isBaselineRecord(k)) return true;
                 if (shift === 'ALL') return true;
-                return String((db[k] && db[k].shift) || 'A').trim().toUpperCase() === shift;
+                return getRecordShift(k) === shift;
             });
+        }
+
+        function refreshShiftView() {
+            viewKeys = getVisibleKeys();
+            chartLabels = viewKeys.map(k => {
+                const trial = getTrialLabel(k);
+                return selectedShiftFilter === 'ALL' && !isBaselineRecord(k)
+                    ? `${trial} (${getRecordShift(k)})`
+                    : trial;
+            });
+            chartData = viewKeys.map(k => db[k] ? Number(db[k].prod) || 0 : 0);
+            renderList();
+            renderTable();
+            initCharts();
         }
 
         function syncShiftFilterSelect() {
@@ -701,7 +729,7 @@
         function setShiftFilter(shift) {
             selectedShiftFilter = String(shift || 'all').trim().toUpperCase();
             syncShiftFilterSelect();
-            renderList();
+            refreshShiftView();
             const nextKey = getVisibleKeys().slice(-1)[0] || baselineKey || keys[keys.length - 1];
             if (nextKey) {
                 selectIteration(nextKey);
@@ -711,17 +739,18 @@
         function renderList() {
             const listContainer = document.getElementById('dropdownList');
             let html = '';
-            keys.forEach(k => {
-                let text = k === "เดิม" ? "เดิม" : `ครั้งที่ ${k}`;
+            getVisibleKeys().forEach(k => {
+                const trial = getTrialLabel(k);
+                let text = isBaselineRecord(k) ? trial : `ครั้งที่ ${trial} / Shift ${getRecordShift(k)}`;
                 if (k === bestTrialKey) text += " 🏆 (Best)";
-                let colorClass = k === "เดิม" ? "text-white bg-[#323248]" : "text-[#a1a5b7] hover:bg-[#323248] hover:text-white";
+                let colorClass = isBaselineRecord(k) ? "text-white bg-[#323248]" : "text-[#a1a5b7] hover:bg-[#323248] hover:text-white";
                 html += `<button onclick="selectIteration('${k}')" class="w-full text-center px-2 py-2 rounded text-xs font-medium border border-[#323248] ${colorClass} transition">${text}</button>`;
             });
             listContainer.innerHTML = html || '<div class="col-span-2 px-3 py-4 text-center text-[#6b7280] text-xs">No data for this shift</div>';
         }
 
         function renderInsight(key, data) {
-            let roundText = key === 'เดิม' ? 'กระบวนการเดิม' : `Trial ${key}`;
+            let roundText = isBaselineRecord(key) ? 'กระบวนการเดิม' : `Trial ${getTrialLabel(key)} / Shift ${getRecordShift(key)}`;
             document.getElementById('insight-round').innerText = `[${roundText}]`;
             
             let man = data.man || 0;
@@ -794,62 +823,59 @@
         function updateGapAnalysis(key, currentData) {
             const tbody = document.getElementById('gapTableBody');
             if(!tbody) return;
-            document.getElementById('gap-header-selected').innerText = key === 'เดิม' ? 'ข้อมูลเดิม (วิ)' : `TRIAL ${key} (วิ)`;
-
+            const selectedLabel = isBaselineRecord(key)
+                ? 'ข้อมูลเดิม'
+                : `TRIAL ${getTrialLabel(key)} / SHIFT ${getRecordShift(key)}`;
             const cycle = currentData.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
-            const steps = [
-                { id: 'prep', name: '1. เตรียม (RM)', actual: actualBaseline.prep, current: cycle.prep },
-                { id: 'arrange', name: '2. เรียงเนื้อลงบล็อค', actual: actualBaseline.arrange, current: cycle.arrange },
-                { id: 'machine', name: '3. การเข้าเครื่องเสียบ', actual: actualBaseline.machine, current: cycle.machine },
-                { id: 'inspec', name: '4. การเช็คสเปค', actual: actualBaseline.inspec, current: cycle.inspec },
-                { id: 'pack', name: '5. การ Packing', actual: actualBaseline.pack, current: cycle.pack }
+            const totalCurrent = Number(cycle.prep || 0) + Number(cycle.arrange || 0) + Number(cycle.machine || 0) + Number(cycle.inspec || 0) + Number(cycle.pack || 0);
+            const totalActual = Number(actualBaseline.prep) + Number(actualBaseline.arrange) + Number(actualBaseline.machine) + Number(actualBaseline.inspec) + Number(actualBaseline.pack);
+            const totalGap = totalCurrent - totalActual;
+            const totalPercent = totalActual > 0 ? (totalGap / totalActual) * 100 : 0;
+            const gapColor = totalGap > 0 ? 'text-[#f1416c]' : (totalGap < 0 ? 'text-[#50cd89]' : 'text-[#a1a5b7]');
+            const gapSign = totalGap > 0 ? '+' : '';
+
+            const rowsData = [
+                {
+                    name: '1. เตรียม RM',
+                    detail: `${formatVal(actualBaseline.prep)} → ${formatVal(Number(cycle.prep) || 0)} วิ`,
+                },
+                {
+                    name: '2. เรียงเนื้อ (คอขวด)',
+                    detail: `${formatVal(actualBaseline.arrange)} → ${formatVal(Number(cycle.arrange) || 0)} วิ`,
+                },
+                {
+                    name: '3. เข้าเครื่อง',
+                    detail: `${formatVal(actualBaseline.machine)} → ${formatVal(Number(cycle.machine) || 0)} วิ`,
+                },
+                {
+                    name: '4. เช็คสเปค',
+                    detail: `${formatVal(actualBaseline.inspec)} → ${formatVal(Number(cycle.inspec) || 0)} วิ`,
+                },
+                {
+                    name: '5. PACKING',
+                    detail: `${formatVal(actualBaseline.pack)} → ${formatVal(Number(cycle.pack) || 0)} วิ`,
+                },
+                {
+                    name: 'TOTAL CT',
+                    detail: `${formatVal(totalActual)} → ${formatVal(totalCurrent)} วิ`,
+                    total: true
+                }
             ];
 
             let html = '';
-            let totalActual = 0;
-            let totalCurrent = 0;
-
-            steps.forEach(step => {
-                let currentVal = Number(step.current) || 0;
-                totalActual += step.actual;
-                totalCurrent += currentVal;
-
-                let gap = currentVal - step.actual;
-                let percent = step.actual > 0 ? (gap / step.actual) * 100 : (gap > 0 ? 100 : 0);
-                let isBottleneck = percent > 10; 
-
-                let gapColor = gap > 0 ? 'text-[#f1416c]' : (gap < 0 ? 'text-[#50cd89]' : 'text-[#a1a5b7]');
-                let gapSign = gap > 0 ? '+' : '';
-
-                let rowBg = isBottleneck ? 'bg-[rgba(241,65,108,0.05)] border-l-4 border-[#f1416c]' : 'hover:bg-[#2b2b40] border-l-4 border-transparent';
-                let nameClass = isBottleneck ? 'text-[#f1416c] font-bold' : 'text-white';
-                let displayName = isBottleneck ? `${step.name} <span class="text-xs text-[#f1416c] ml-1">(Bottleneck)</span>` : step.name;
+            rowsData.forEach((row) => {
+                const rowColor = row.total ? 'bg-[#1e1e2d] border-t-2 border-[#323248]' : 'hover:bg-[#2b2b40]';
+                const analysisText = row.total
+                    ? `${selectedLabel} รวม ${gapSign}${formatVal(totalGap)} วิ (${gapSign}${formatVal(totalPercent)}%)`
+                    : `${selectedLabel} ${row.detail}`;
 
                 html += `
-                    <tr class="${rowBg} transition duration-150 text-center">
-                        <td class="p-4 ${nameClass} text-left pl-6">${displayName}</td>
-                        <td class="p-4 text-[#009ef7]">${formatVal(step.actual)}</td>
-                        <td class="p-4 text-white">${formatVal(currentVal)}</td>
-                        <td class="p-4 font-bold ${gapColor}">${gapSign}${formatVal(gap)}</td>
-                        <td class="p-4 font-bold ${gapColor}">${gapSign}${formatVal(percent)}%</td>
+                    <tr class="${rowColor} transition duration-150 text-center">
+                        <td class="p-4 ${row.total ? 'font-bold text-white text-right' : 'text-white text-left pl-6'}">${row.name}</td>
+                        <td class="p-4 font-bold ${row.total ? gapColor : 'text-[#009ef7]'}">${analysisText}</td>
                     </tr>
                 `;
             });
-
-            let totalGap = totalCurrent - totalActual;
-            let totalPercent = totalActual > 0 ? (totalGap / totalActual) * 100 : (totalGap > 0 ? 100 : 0);
-            let totalGapColor = totalGap > 0 ? 'text-[#f1416c]' : (totalGap < 0 ? 'text-[#50cd89]' : 'text-[#a1a5b7]');
-            let totalGapSign = totalGap > 0 ? '+' : '';
-
-            html += `
-                <tr class="bg-[#1e1e2d] text-center border-t-2 border-[#323248]">
-                    <td class="p-4 font-bold text-white text-right">ระยะเวลารวม (TOTAL CT)</td>
-                    <td class="p-4 font-bold text-[#009ef7]">${formatVal(totalActual)}</td>
-                    <td class="p-4 font-bold text-white">${formatVal(totalCurrent)}</td>
-                    <td class="p-4 font-bold ${totalGapColor}">${totalGapSign}${formatVal(totalGap)}</td>
-                    <td class="p-4 font-bold ${totalPercent > 0 ? totalGapColor : 'text-[#50cd89]'}">${totalGapSign}${formatVal(totalPercent)}%</td>
-                </tr>
-            `;
 
             tbody.innerHTML = html;
         }
@@ -857,11 +883,13 @@
         function renderTable() {
             const tableBody = document.getElementById('tableBody');
             let html = '';
-            keys.forEach(k => {
+            getVisibleKeys().forEach(k => {
                 const d = db[k];
                 if(!d) return; 
                 
-                let titleText = k === "เดิม" ? "กระบวนการเดิม" : `ครั้งที่ ${k}`;
+                let titleText = isBaselineRecord(k)
+                    ? 'กระบวนการเดิม'
+                    : `ครั้งที่ ${getTrialLabel(k)} / Shift ${getRecordShift(k)}`;
                 if (k === bestTrialKey) titleText += " ⭐ (Best)";
                 let cycle = d.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
                 let layout = d.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 };
@@ -953,68 +981,53 @@
             const baseline = db[baselineKey];
             if(!baseline) return;
 
-            let baselineHeaderText = baselineKey === "เดิม" ? "กระบวนการเดิม" : `TRIAL ${baselineKey}`;
-            document.getElementById('gap-header-t1').innerText = `${baselineHeaderText} (ไม้/คน/ชม.)`;
-
             const rowsData = [
-                { name: '<span class="text-[#50cd89] font-bold">🎯 เป้าหมายใหม่</span>', target: 130, id: 'new_target' },
-                { name: 'G1 <span class="text-[11px] text-[#50cd89] block font-normal">(บรรลุเป้า)</span>', target: 106, id: 'g1' },
-                { name: 'G2 <span class="text-[11px] text-[#50cd89] block font-normal">(บรรลุเป้า)</span>', target: 94, id: 'g2' },
-                { name: 'G3 <span class="text-[11px] text-[#50cd89] block font-normal">(บรรลุเป้า)</span>', target: 61, id: 'g3' },
-                { name: 'BB Conv. 2', target: 39, id: 'bb_ref', isRef: true },
-                { name: 'SWP', target: 31, id: 'swp_ref', isRef: true },
-                { name: 'Cut-Up 1', target: 30, id: 'cut_ref', isRef: true }
+                { name: 'Target ใหม่', target: 130, note: 'เป้าหมายใหม่ของสายงาน' },
+                { name: 'G1', target: 106, note: 'เกณฑ์อ้างอิงระดับเริ่มต้น' },
+                { name: 'G2', target: 94, note: 'เกณฑ์อ้างอิงระดับกลาง' },
+                { name: 'G3', target: 61, note: 'เกณฑ์อ้างอิงระดับสูง' },
+                { name: 'BB Conv. 2', target: 39, note: 'Benchmark reference' },
+                { name: 'SWP', target: 31, note: 'Benchmark reference' },
+                { name: 'Cut-Up 1', target: 30, note: 'Benchmark reference' }
             ];
 
+            const baselineProd = Number(baseline.prod) || 0;
             let html = '';
+
             rowsData.forEach(row => {
-                let baselineProd = baseline.prod || 0;
-                let rowBgStyle = row.id === 'new_target' ? 'bg-[rgba(80,205,137,0.03)] hover:bg-[#2b2b40]' : 'hover:bg-[#2b2b40]';
+                const gap = baselineProd - row.target;
+                const gapPct = row.target > 0 ? (gap / row.target) * 100 : 0;
+                const gapColor = gap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
+                const rowBgStyle = row.name === 'Target ใหม่' ? 'bg-[rgba(80,205,137,0.03)]' : 'hover:bg-[#2b2b40]';
+                const gapText = gap >= 0
+                    ? `สูงกว่าเป้าหมาย +${gap.toFixed(1)} (${Math.abs(gapPct).toFixed(1)}%)`
+                    : `ต่ำกว่าเป้าหมาย ${gap.toFixed(1)} (${Math.abs(gapPct).toFixed(1)}%)`;
 
                 html += `<tr class="${rowBgStyle} transition duration-150">
                     <td class="p-3 text-white font-medium pl-4">${row.name}</td>
-                    <td class="p-3 text-center font-en text-white font-bold">${row.target}</td>`;
-
-                if (!row.isRef) {
-                    let t1Diff = row.target - baselineProd;
-                    let t1Pct = (t1Diff / row.target) * 100;
-                    let t1DiffText = t1Diff <= 0 ? t1Diff.toFixed(1) : `+${t1Diff.toFixed(1)}`;
-                    let t1PctText = t1Diff <= 0 ? "ทะลุเป้า" : `${t1Pct.toFixed(1)}%`;
-                    let t1Color = t1Diff <= 0 ? "text-[#50cd89]" : "text-[#f1416c]";
-
-                    html += `
-                        <td class="p-3 text-center font-en font-bold text-[#009ef7] bg-[rgba(0,158,247,0.05)]">${baselineProd.toFixed(1)}</td>
-                        <td class="p-3 text-center font-en font-bold ${t1Color}">${t1DiffText}</td>
-                        <td class="p-3 text-center font-en font-bold ${t1Color}">${t1PctText}</td>
-                    `;
-                } else {
-                    let t1Diff = baselineProd - row.target;
-                    let t1DiffText = t1Diff >= 0 ? `สูงกว่าสายงานนี้ +${t1Diff.toFixed(1)}` : `ต่ำกว่าสายงานนี้ ${t1Diff.toFixed(1)}`;
-                    let t1Color = t1Diff >= 0 ? "text-[#50cd89]" : "text-[#f1416c]";
-
-                    html += `
-                        <td class="p-3 text-center font-en bg-[rgba(0,158,247,0.05)]">${baselineProd.toFixed(1)}</td>
-                        <td colspan="2" class="p-3 text-center text-[11px] ${t1Color}">${t1DiffText}</td>
-                    `;
-                }
-
-                html += `
-                    <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-${row.id}-val">--</td>
-                    <td class="p-3 text-center font-en font-bold" id="gap-dyn-${row.id}-diff" ${row.isRef ? 'colspan="2"' : ''}>--</td>
-                    <td class="p-3 text-center font-en font-bold" id="gap-dyn-${row.id}-pct" ${row.isRef ? 'style="display:none;"' : ''}>--</td>
+                    <td class="p-3 text-center">
+                        <div class="flex flex-col items-center gap-1">
+                            <span class="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-[#323248] text-[#a1a5b7]">${row.note}</span>
+                            <span class="font-en font-bold text-[#009ef7]">Current ${baselineProd.toFixed(1)} | Target ${row.target}</span>
+                            <span class="font-bold ${gapColor}">${gapText}</span>
+                        </div>
+                    </td>
                 </tr>`;
             });
 
             tableBody.innerHTML = html;
         }
-
         function selectIteration(key) {
             const data = db[key];
             if(!data) return;
-            selectedDataIndex = keys.indexOf(key);
+            selectedDataIndex = viewKeys.indexOf(key);
 
-            let titleText = key === "เดิม" ? "กระบวนการเดิม" : `ปรับปรุงกระบวนการครั้งที่ ${key}`;
-            let roundLabel = key === "เดิม" ? "(เดิม)" : `(ครั้งที่ ${key})`;
+            let titleText = isBaselineRecord(key)
+                ? 'กระบวนการเดิม'
+                : `ปรับปรุงกระบวนการครั้งที่ ${getTrialLabel(key)} / Shift ${getRecordShift(key)}`;
+            let roundLabel = isBaselineRecord(key)
+                ? '(เดิม)'
+                : `(ครั้งที่ ${getTrialLabel(key)} / Shift ${getRecordShift(key)})`;
 
             document.getElementById('selectedIterText').innerText = titleText;
             
@@ -1064,70 +1077,6 @@
 
             updateGapAnalysis(key, data);
             renderInsight(key, data);
-
-            let currentProd = data.prod || 0;
-            let headerTitle = key === 'เดิม' ? 'เดิม' : `TRIAL ${key}`;
-            document.getElementById('gap-header-dyn').innerText = headerTitle;
-
-            function updateDynamicGapRow(idPrefix, targetVal) {
-                const valEl = document.getElementById(`gap-dyn-${idPrefix}-val`);
-                const diffEl = document.getElementById(`gap-dyn-${idPrefix}-diff`);
-                const pctEl = document.getElementById(`gap-dyn-${idPrefix}-pct`);
-                
-                if(!valEl) return;
-
-                valEl.innerText = currentProd.toFixed(1);
-                let diff = targetVal - currentProd;
-
-                if (diff <= 0) {
-                    if (diffEl) {
-                        diffEl.innerText = Math.abs(diff).toFixed(1);
-                        diffEl.className = "p-3 text-center font-en font-bold text-[#50cd89]";
-                    }
-                    if (pctEl) {
-                        pctEl.innerText = "ทะลุเป้า";
-                        pctEl.className = "p-3 text-center font-en font-bold text-[#50cd89]";
-                    }
-                } else {
-                    if (diffEl) {
-                        diffEl.innerText = "+" + diff.toFixed(1);
-                        diffEl.className = "p-3 text-center font-en font-bold text-[#f1416c]";
-                    }
-                    if (pctEl) {
-                        pctEl.innerText = (diff / targetVal * 100).toFixed(1) + "%";
-                        pctEl.className = "p-3 text-center font-en font-bold text-[#f1416c]";
-                    }
-                }
-            }
-
-            updateDynamicGapRow('new_target', 130);
-            updateDynamicGapRow('g1', 106);
-            updateDynamicGapRow('g2', 94);
-            updateDynamicGapRow('g3', 61);
-
-            function updateDynamicRefRow(idPrefix, refVal) {
-                const valEl = document.getElementById(`gap-dyn-${idPrefix}-val`);
-                const diffEl = document.getElementById(`gap-dyn-${idPrefix}-diff`);
-                
-                if(!valEl) return;
-
-                valEl.innerText = currentProd.toFixed(1);
-                let diff = currentProd - refVal;
-                if (diffEl) {
-                    if (diff >= 0) {
-                        diffEl.innerHTML = `สูงกว่าสายงานนี้ <span class="font-bold">+${diff.toFixed(1)}</span>`;
-                        diffEl.className = "p-3 text-center text-[11px] text-[#50cd89]";
-                    } else {
-                        diffEl.innerHTML = `ต่ำกว่าสายงานนี้ <span class="font-bold">${diff.toFixed(1)}</span>`;
-                        diffEl.className = "p-3 text-center text-[11px] text-[#f1416c]";
-                    }
-                }
-            }
-
-            updateDynamicRefRow('bb_ref', 39);
-            updateDynamicRefRow('swp_ref', 31);
-            updateDynamicRefRow('cut_ref', 30);
-
             if (trendChart) {
                 const pRadii = new Array(chartLabels.length).fill(3);
                 const pColors = new Array(chartLabels.length).fill('#1e1e2d');
@@ -1212,7 +1161,7 @@
                 ctx.fillStyle = '#f1416c'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(text, textX, textY);
 
-                const currentKey = keys[selectedDataIndex];
+                const currentKey = viewKeys[selectedDataIndex];
                 const effValue = db[currentKey] ? db[currentKey].eff : 0;
                 const effText = `Eff: ${effValue.toFixed(2)}%`;
                 ctx.font = 'bold 11px Inter, Sarabun';
@@ -1257,7 +1206,7 @@
                                     if (label) label += ': ';
                                     if (context.parsed.y !== null) label += context.parsed.y;
                                     if (context.datasetIndex === 0) {
-                                        const dataKey = keys[context.dataIndex];
+                                        const dataKey = viewKeys[context.dataIndex];
                                         const eff = db[dataKey] ? db[dataKey].eff : 0;
                                         return [label, `Efficiency: ${eff.toFixed(2)}%`];
                                     }
@@ -1281,7 +1230,7 @@
                     datasets: [
                         {
                             label: 'เวลารวมทั้งหมด',
-                            data: keys.map(k => {
+                            data: viewKeys.map(k => {
                                 const cycle = db[k] ? db[k].cycle_detail : null;
                                 return cycle ? (Number(cycle.arrange)||0)+(Number(cycle.machine)||0)+(Number(cycle.inspec)||0)+(Number(cycle.pack)||0) : 0;
                             }),
@@ -1292,25 +1241,25 @@
                         },
                         {
                             label: '2. เรียงเนื้อ',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.arrange) || 0 : 0),
+                            data: viewKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.arrange) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(139, 92, 246, 0.3)'),
                             stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         },
                         {
                             label: '3. เข้าเครื่อง',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.machine) || 0 : 0),
+                            data: viewKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.machine) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(255, 199, 0, 0.3)'),
                             stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         },
                         {
                             label: '4. เช็คสเปค',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.inspec) || 0 : 0),
+                            data: viewKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.inspec) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(241, 65, 108, 0.3)'),
                             stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         },
                         {
                             label: '5. PACKING',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.pack) || 0 : 0),
+                            data: viewKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.pack) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(80, 205, 137, 0.3)'),
                             stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         }
