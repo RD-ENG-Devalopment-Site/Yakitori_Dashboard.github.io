@@ -187,18 +187,6 @@
                 </div>
             </div>
 
-            <div class="mb-6 flex items-center justify-between">
-                <div>
-                    <h2 class="text-xl font-bold text-white font-en">Executive Project Summary</h2>
-                    <p class="text-sm text-[#a1a5b7]">สรุปภาพรวมสถานะและความคืบหน้าของโครงการทั้งหมด (อัปเดตอัตโนมัติ)</p>
-                </div>
-                <span class="bg-[rgba(80,205,137,0.1)] text-[#50cd89] border border-[#50cd89]/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-[#50cd89] animate-pulse"></span> Live Status
-                </span>
-            </div>
-
-            <div id="overviewCards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8"></div>
-
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div class="lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
                     <div class="bg-card rounded-xl p-5 border border-[#323248] shadow-sm flex items-center gap-4">
@@ -222,7 +210,8 @@
                     </div>
                 </div>
 
-                <div class="lg:col-span-2 bg-card rounded-xl border border-[#323248] shadow-sm p-6">
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-card rounded-xl border border-[#323248] shadow-sm p-6">
                     <h3 class="text-sm font-bold text-white mb-5 border-b border-[#323248] pb-3">Productivity Progress vs Target (ไม้/คน/ชม.)</h3>
                     
                     <div class="space-y-6">
@@ -329,6 +318,21 @@
                                 <p class="text-[11px] text-[#a1a5b7]">รอเริ่มเก็บข้อมูล</p>
                             </div>
                         </div>
+                    </div>
+                    </div>
+
+                    <div class="bg-card rounded-xl border border-[#323248] shadow-sm p-6">
+                        <div class="mb-6 flex items-center justify-between">
+                            <div>
+                                <h2 class="text-xl font-bold text-white font-en">Executive Project Summary</h2>
+                                <p class="text-sm text-[#a1a5b7]">สรุปภาพรวมสถานะและความคืบหน้าของโครงการทั้งหมด (อัปเดตอัตโนมัติ)</p>
+                            </div>
+                            <span class="bg-[rgba(80,205,137,0.1)] text-[#50cd89] border border-[#50cd89]/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#50cd89] animate-pulse"></span> Live Status
+                            </span>
+                        </div>
+
+                        <div id="overviewCards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"></div>
                     </div>
                 </div>
             </div>
