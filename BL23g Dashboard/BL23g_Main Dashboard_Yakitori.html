@@ -467,7 +467,13 @@
                             <thead>
                                 <tr class="bg-[#151521] text-xs uppercase tracking-wider text-[#a1a5b7] border-b border-[#323248]">
                                     <th class="p-3 font-bold text-white">สายงาน</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7]">วิเคราะห์ระยะห่าง (Gap Analysis)</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248]">เป้าหมาย</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7] bg-[rgba(0,158,247,0.05)]" id="gap-header-t1">การทดลองรอบแรก</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">ส่วนต่าง (รอบแรก)</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">GAP % (รอบแรก)</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-header">ล่าสุด</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6]">ส่วนต่าง</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6]">GAP %</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#2b2b40]" id="executiveGapTableBody">
@@ -975,11 +981,17 @@
             renderExecutiveGapTable(baselineKey);
         }
 
-        function renderExecutiveGapTable(baselineKey) {
+        function renderExecutiveGapTable(selectedKey) {
             const tableBody = document.getElementById('executiveGapTableBody');
             if(!tableBody) return;
+
+            const visibleKeys = getVisibleKeys();
+            if(!visibleKeys.length) return;
+
+            const baselineKey = visibleKeys[0];
             const baseline = db[baselineKey];
-            if(!baseline) return;
+            const selected = db[selectedKey] || baseline;
+            if(!baseline || !selected) return;
 
             const rowsData = [
                 { name: 'Target ใหม่', target: 130, note: 'เป้าหมายใหม่ของสายงาน' },
@@ -992,26 +1004,36 @@
             ];
 
             const baselineProd = Number(baseline.prod) || 0;
-            let html = '';
+            const selectedProd = Number(selected.prod) || 0;
+            const baselineLabel = isBaselineRecord(baselineKey)
+                ? 'การทดลองรอบแรก'
+                : `TRIAL ${getTrialLabel(baselineKey)} / SHIFT ${getRecordShift(baselineKey)}`;
+            const selectedLabel = isBaselineRecord(selectedKey)
+                ? 'ล่าสุด'
+                : `TRIAL ${getTrialLabel(selectedKey)} / SHIFT ${getRecordShift(selectedKey)}`;
 
+            document.getElementById('gap-header-t1').innerText = baselineLabel;
+            document.getElementById('gap-dyn-header').innerText = selectedLabel;
+
+            let html = '';
             rowsData.forEach(row => {
-                const gap = baselineProd - row.target;
-                const gapPct = row.target > 0 ? (gap / row.target) * 100 : 0;
-                const gapColor = gap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
+                const baselineGap = row.target - baselineProd;
+                const baselineGapPct = row.target > 0 ? (baselineGap / row.target) * 100 : 0;
+                const selectedGap = selectedProd - row.target;
+                const selectedGapPct = row.target > 0 ? (selectedGap / row.target) * 100 : 0;
+                const baselineGapColor = baselineGap <= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
+                const selectedGapColor = selectedGap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
                 const rowBgStyle = row.name === 'Target ใหม่' ? 'bg-[rgba(80,205,137,0.03)]' : 'hover:bg-[#2b2b40]';
-                const gapText = gap >= 0
-                    ? `สูงกว่าเป้าหมาย +${gap.toFixed(1)} (${Math.abs(gapPct).toFixed(1)}%)`
-                    : `ต่ำกว่าเป้าหมาย ${gap.toFixed(1)} (${Math.abs(gapPct).toFixed(1)}%)`;
 
                 html += `<tr class="${rowBgStyle} transition duration-150">
                     <td class="p-3 text-white font-medium pl-4">${row.name}</td>
-                    <td class="p-3 text-center">
-                        <div class="flex flex-col items-center gap-1">
-                            <span class="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-[#323248] text-[#a1a5b7]">${row.note}</span>
-                            <span class="font-en font-bold text-[#009ef7]">Current ${baselineProd.toFixed(1)} | Target ${row.target}</span>
-                            <span class="font-bold ${gapColor}">${gapText}</span>
-                        </div>
-                    </td>
+                    <td class="p-3 text-center font-en text-white font-bold">${row.target}</td>
+                    <td class="p-3 text-center font-en font-bold text-[#009ef7] bg-[rgba(0,158,247,0.05)]">${baselineProd.toFixed(1)}</td>
+                    <td class="p-3 text-center font-en font-bold ${baselineGapColor}">${baselineGap >= 0 ? '+' : ''}${baselineGap.toFixed(1)}</td>
+                    <td class="p-3 text-center font-en font-bold ${baselineGapColor}">${baselineGapPct.toFixed(1)}%</td>
+                    <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]">${selectedProd.toFixed(1)}</td>
+                    <td class="p-3 text-center font-en font-bold ${selectedGapColor}">${selectedGap >= 0 ? '+' : ''}${selectedGap.toFixed(1)}</td>
+                    <td class="p-3 text-center font-en font-bold ${selectedGapColor}">${selectedGapPct.toFixed(1)}%</td>
                 </tr>`;
             });
 
