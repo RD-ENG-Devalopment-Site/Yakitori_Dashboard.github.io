@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Recording & Approval - Yakitori</title>
+    <title>Data Recording - Yakitori</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
         body {
             font-family: 'Sarabun', sans-serif;
-            background: radial-gradient(circle at top left, rgba(0,158,247,.12), transparent 30%),
-                        radial-gradient(circle at top right, rgba(80,205,137,.12), transparent 25%),
-                        #151521;
+            background:
+                radial-gradient(circle at top left, rgba(0, 158, 247, .12), transparent 30%),
+                radial-gradient(circle at top right, rgba(80, 205, 137, .12), transparent 25%),
+                #151521;
             color: #a1a5b7;
         }
         .font-en { font-family: 'Inter', sans-serif; }
@@ -24,272 +25,239 @@
         .field:focus {
             outline: none;
             border-color: #009ef7;
-            box-shadow: 0 0 0 1px rgba(0,158,247,.25);
+            box-shadow: 0 0 0 1px rgba(0, 158, 247, .25);
         }
         .pill {
-            background: rgba(0,158,247,.12);
-            border: 1px solid rgba(0,158,247,.25);
+            background: rgba(0, 158, 247, .12);
+            border: 1px solid rgba(0, 158, 247, .25);
         }
-        .pill-approve {
-            background: rgba(80,205,137,.12);
-            border: 1px solid rgba(80,205,137,.25);
-        }
-        .pill-reject {
-            background: rgba(241,65,108,.12);
-            border: 1px solid rgba(241,65,108,.25);
+        .login-backdrop {
+            background: linear-gradient(180deg, rgba(21, 21, 33, .96), rgba(21, 21, 33, .88));
+            backdrop-filter: blur(10px);
         }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
     <script src="yakitori-runtime.js"></script>
 
-    <main id="app" class="max-w-[1440px] mx-auto space-y-6">
+    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center login-backdrop p-4">
+        <div class="w-full max-w-md card rounded-2xl border border-[#323248] shadow-2xl p-6 md:p-8">
+            <div class="mb-6">
+                <p class="text-xs uppercase tracking-[0.28em] text-[#009ef7] font-bold">Access Gate</p>
+                <h1 class="text-2xl md:text-3xl font-bold text-white mt-2">Data Recording</h1>
+                <p class="mt-2 text-sm text-[#a1a5b7]">
+                    ก่อนเข้าหน้าบันทึกข้อมูล ต้องใส่รหัสผ่านเพื่อปลดล็อกหน้าฟอร์ม
+                    และรหัสนี้จะถูกส่งไปกับข้อมูลที่บันทึกด้วย
+                </p>
+            </div>
+
+            <form id="loginForm" class="space-y-4">
+                <label class="block space-y-2">
+                    <span class="text-sm text-white">Password</span>
+                    <input id="recordPass" type="password" class="field w-full rounded-xl px-4 py-3" placeholder="กรอกรหัสผ่าน" required>
+                </label>
+                <div id="loginError" class="hidden rounded-xl border border-[#f1416c]/25 bg-[#f1416c]/10 px-4 py-3 text-sm text-[#f1416c]">
+                    รหัสผ่านไม่ถูกต้อง
+                </div>
+                <button type="submit" class="w-full rounded-xl bg-[#009ef7] px-5 py-3 font-bold text-white hover:opacity-90 transition">
+                    ปลดล็อกหน้า Data Recording
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <main id="app" class="hidden max-w-[1280px] mx-auto space-y-6">
         <header class="card rounded-2xl border border-[#323248] p-6 md:p-8 shadow-xl">
             <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
                     <p class="text-xs uppercase tracking-[0.28em] text-[#009ef7] font-bold">Internal Factory Tool</p>
-                    <h1 class="text-3xl md:text-4xl font-bold text-white mt-2">Data Recording & Approval</h1>
+                    <h1 class="text-3xl md:text-4xl font-bold text-white mt-2">Data Recording</h1>
                     <p class="mt-2 text-sm md:text-base text-[#a1a5b7] max-w-3xl">
-                        ฟอร์มนี้ใช้บันทึก trial / issue / approval ของ Yakitori Dashboard ให้เป็นวงจรเดียวกัน:
-                        กรอกข้อมูล -> ส่งเข้า Apps Script -> รออนุมัติ -> ปิดงาน
+                        หน้านี้ใช้บันทึก trial / issue / productivity สำหรับงานหน้างาน และส่งเข้า Apps Script โดยตรง
                     </p>
                 </div>
-                <a href="index.html" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#009ef7] text-white font-semibold hover:opacity-90 transition">
-                    กลับ Portal
-                </a>
+                <div class="flex flex-wrap gap-2">
+                    <span class="pill text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#009ef7] font-bold">Record Only</span>
+                    <span class="pill text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#8b5cf6] font-bold">Shift A / B</span>
+                </div>
             </div>
         </header>
 
-        <section class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div class="xl:col-span-2 card rounded-2xl border border-[#323248] p-6 shadow-xl">
-                <div class="flex items-center justify-between mb-5">
-                    <div>
-                        <h2 class="text-xl font-bold text-white">บันทึกข้อมูลการทดลอง</h2>
-                        <p class="text-sm text-[#a1a5b7]">ส่งข้อมูลใหม่เข้า Apps Script ด้วย action `record_trial`</p>
-                    </div>
-                    <span class="pill text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#009ef7] font-bold">Record</span>
+        <section class="card rounded-2xl border border-[#323248] p-6 shadow-xl">
+            <div class="flex items-center justify-between mb-5">
+                <div>
+                    <h2 class="text-xl font-bold text-white">บันทึกข้อมูลการทดลอง</h2>
+                    <p class="text-sm text-[#a1a5b7]">กรอกข้อมูลให้ครบ แล้วระบบจะคำนวณ Productivity และยอดผลิตให้อัตโนมัติ</p>
                 </div>
-
-                <form id="recordForm" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label class="space-y-2">
-                            <span class="text-sm text-white">Line / Area</span>
-                            <select name="line" class="field w-full rounded-xl px-4 py-3" onchange="calculateMetrics()">
-                                <option value="BL23G">BL23G</option>
-                                <option value="GZ40G">Gizzard 40G S18</option>
-                                <option value="GZ30G">Gizzard 30G R15</option>
-                            </select>
-                        </label>
-                        <label class="space-y-2">
-                            <span class="text-sm text-white">Shift</span>
-                            <select name="shift" class="field w-full rounded-xl px-4 py-3">
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                            </select>
-                        </label>
-                        <label class="space-y-2">
-                            <span class="text-sm text-white">Sheet / Dataset</span>
-                            <select name="sheet" class="field w-full rounded-xl px-4 py-3">
-                                <option value="BL23gR15_DataLog">BL23gR15_DataLog</option>
-                                <option value="GZ40gS18_DataLog">GZ40gS18_DataLog</option>
-                                <option value="GZ30gR15_DataLog">GZ30gR15_DataLog</option>
-                            </select>
-                        </label>
-                        <label class="space-y-2">
-                            <span class="text-sm text-white">Trial / Round</span>
-                            <input name="trial" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="เช่น 45" required />
-                        </label>
-                        <label class="space-y-2">
-                            <span class="text-sm text-white">Date</span>
-                            <input name="recordDate" type="date" class="field w-full rounded-xl px-4 py-3" required />
-                        </label>
-                        <label class="space-y-2">
-                            <span class="text-sm text-white">Submitted by</span>
-                            <input name="submitter" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="ชื่อผู้บันทึก" required />
-                        </label>
-                    </div>
-
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between gap-3">
-                            <h3 class="text-[#8b5cf6] text-sm font-bold uppercase tracking-wider">Cycle Time / วินาที</h3>
-                            <span class="text-[11px] uppercase tracking-[0.2em] text-[#6b7280] font-bold">เตรียม RM / เรียงเนื้อ / เข้าเครื่อง / เช็คสเปค / PACKING</span>
-                        </div>
-                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                            <label class="space-y-2">
-                                <span class="block text-xs text-[#a1a5b7]">1. เตรียม RM</span>
-                                <input type="number" step="0.01" name="ct_prep" id="ct_prep" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
-                            </label>
-                            <label class="space-y-2">
-                                <span class="block text-xs text-[#a1a5b7]">2. เรียงเนื้อ (คอขวด)</span>
-                                <input type="number" step="0.01" name="ct_arrange" id="ct_arrange" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
-                            </label>
-                            <label class="space-y-2">
-                                <span class="block text-xs text-[#a1a5b7]">3. เข้าเครื่อง</span>
-                                <input type="number" step="0.01" name="ct_machine" id="ct_machine" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
-                            </label>
-                            <label class="space-y-2">
-                                <span class="block text-xs text-[#a1a5b7]">4. เช็คสเปค</span>
-                                <input type="number" step="0.01" name="ct_inspec" id="ct_inspec" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
-                            </label>
-                            <label class="space-y-2">
-                                <span class="block text-xs text-[#a1a5b7]">5. PACKING</span>
-                                <input type="number" step="0.01" name="ct_pack" id="ct_pack" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between gap-3">
-                            <h3 class="text-[#009ef7] text-sm font-bold uppercase tracking-wider">Manpower / คน</h3>
-                            <span class="text-[11px] uppercase tracking-[0.2em] text-[#6b7280] font-bold">เตรียม / เรียง / Inspec / แพ็ค / Operate</span>
-                        </div>
-                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                            <label class="space-y-2">
-                                <span class="block text-xs text-[#a1a5b7]">เตรียม</span>
-                                <input type="number" name="man_prep" id="man_prep" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
-                            </label>
-                            <label class="space-y-2">
-                                <span class="block text-xs text-[#a1a5b7]">เรียง</span>
-                                <input type="number" name="man_block" id="man_block" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
-                            </label>
-                            <label class="space-y-2">
-                                <span class="block text-xs text-[#a1a5b7]">Inspec</span>
-                                <input type="number" name="man_inspec" id="man_inspec" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
-                            </label>
-                            <label class="space-y-2">
-                                <span class="block text-xs text-[#a1a5b7]">แพ็ค</span>
-                                <input type="number" name="man_pack" id="man_pack" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
-                            </label>
-                            <label class="space-y-2">
-                                <span class="block text-xs text-[#a1a5b7]">Operate</span>
-                                <input type="number" name="man_op" id="man_op" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3" />
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="bg-[#151521] p-4 rounded-lg border border-[#323248] grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-                        <div>
-                            <span class="block text-[11px] font-bold uppercase text-[#a1a5b7]">Total CT (วินาที)</span>
-                            <span id="lbl_total_ct" class="text-xl font-bold text-white">0.00</span>
-                            <input type="hidden" name="ct_total" id="ct_total" value="0.00">
-                        </div>
-                        <div>
-                            <span class="block text-[11px] font-bold uppercase text-[#009ef7]">ยอดผลิต (ไม้/ชม.)</span>
-                            <span id="lbl_yield_hour" class="text-xl font-bold text-[#009ef7]">0</span>
-                            <input type="hidden" name="yield_hour" id="yield_hour" value="0">
-                        </div>
-                        <div>
-                            <span class="block text-[11px] font-bold uppercase text-[#8b5cf6]">รวมกำลังคน</span>
-                            <span id="lbl_man_total" class="text-xl font-bold text-[#8b5cf6]">0</span>
-                            <input type="hidden" name="man_total" id="man_total" value="0">
-                        </div>
-                        <div>
-                            <span class="block text-[11px] font-bold uppercase text-[#50cd89]">Productivity</span>
-                            <span id="lbl_productivity" class="text-xl font-bold text-[#50cd89]">0.0</span>
-                            <input type="hidden" name="productivity" id="productivity" value="0.0">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label class="space-y-2 md:col-span-2">
-                            <span class="text-sm text-white">Issue / Finding</span>
-                            <input name="issue" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="คอขวด, loss, defect, idle..." />
-                        </label>
-                        <label class="space-y-2 md:col-span-2">
-                            <span class="text-sm text-white">Action / Recommendation</span>
-                            <textarea name="actionNote" rows="4" class="field w-full rounded-xl px-4 py-3" placeholder="ข้อเสนอแนะหรือ next action สำหรับทีมหน้างาน"></textarea>
-                        </label>
-                        <label class="space-y-2">
-                            <span class="text-sm text-white">Comment</span>
-                            <input name="comment" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="หมายเหตุเพิ่มเติม" />
-                        </label>
-                    </div>
-
-                    <div class="flex flex-wrap gap-3 pt-2">
-                        <button type="submit" class="px-5 py-3 rounded-xl bg-[#009ef7] text-white font-semibold hover:opacity-90 transition">
-                            ส่งเข้า Apps Script
-                        </button>
-                        <button type="button" id="saveDraftBtn" class="px-5 py-3 rounded-xl bg-[#2b2b40] text-white font-semibold hover:bg-[#323248] transition">
-                            บันทึกเป็น Draft
-                        </button>
-                    </div>
-                </form>
-
-                <div id="recordStatus" class="mt-5 text-sm text-[#a1a5b7]"></div>
+                <span class="pill text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#009ef7] font-bold">Record</span>
             </div>
 
-            <aside class="card rounded-2xl border border-[#323248] p-6 shadow-xl space-y-4">
-                <h2 class="text-xl font-bold text-white">Approval Queue</h2>
-                <p class="text-sm text-[#a1a5b7]">
-                    รายการที่ส่งแล้วจะถูกเก็บไว้ในคิวนี้ จนกว่าจะอนุมัติหรือปฏิเสธ
-                </p>
-
-                <div class="space-y-3">
-                    <label class="space-y-2 block">
-                        <span class="text-sm text-white">Approver</span>
-                        <input id="approverName" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="ชื่อผู้อนุมัติ" />
-                    </label>
-                    <label class="space-y-2 block">
-                        <span class="text-sm text-white">Decision</span>
-                        <select id="approvalDecision" class="field w-full rounded-xl px-4 py-3">
-                            <option value="approved">Approve</option>
-                            <option value="rejected">Reject</option>
+            <form id="recordForm" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Line / Area</span>
+                        <select name="line" class="field w-full rounded-xl px-4 py-3" onchange="calculateMetrics()">
+                            <option value="BL23G">BL23G</option>
+                            <option value="GZ40G">Gizzard 40G S18</option>
+                            <option value="GZ30G">Gizzard 30G R15</option>
                         </select>
                     </label>
-                    <label class="space-y-2 block">
-                        <span class="text-sm text-white">Approval note</span>
-                        <textarea id="approvalNote" rows="3" class="field w-full rounded-xl px-4 py-3" placeholder="เหตุผลหรือข้อสังเกต"></textarea>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Shift</span>
+                        <select name="shift" class="field w-full rounded-xl px-4 py-3">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                        </select>
                     </label>
-                    <button id="approveSelectedBtn" class="w-full px-5 py-3 rounded-xl bg-[#50cd89] text-[#0f172a] font-bold hover:opacity-90 transition">
-                        ส่งผลอนุมัติ
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Sheet / Dataset</span>
+                        <select name="sheet" class="field w-full rounded-xl px-4 py-3">
+                            <option value="BL23gR15_DataLog">BL23gR15_DataLog</option>
+                            <option value="GZ40gS18_DataLog">GZ40gS18_DataLog</option>
+                            <option value="GZ30gR15_DataLog">GZ30gR15_DataLog</option>
+                        </select>
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Trial / Round</span>
+                        <input name="trial" id="trial" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="เช่น 45" required>
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Date</span>
+                        <input name="recordDate" type="date" class="field w-full rounded-xl px-4 py-3" required>
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Submitted by</span>
+                        <input name="submitter" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="ชื่อผู้บันทึก" required>
+                    </label>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between gap-3">
+                        <h3 class="text-[#8b5cf6] text-sm font-bold uppercase tracking-wider">Cycle Time / วินาที</h3>
+                        <span class="text-[11px] uppercase tracking-[0.2em] text-[#6b7280] font-bold">เตรียม RM / เรียงเนื้อ / เข้าเครื่อง / เช็คสเปค / PACKING</span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <label class="space-y-2">
+                            <span class="block text-xs text-[#a1a5b7]">1. เตรียม RM</span>
+                            <input type="number" step="0.01" name="ct_prep" id="ct_prep" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3">
+                        </label>
+                        <label class="space-y-2">
+                            <span class="block text-xs text-[#a1a5b7]">2. เรียงเนื้อ (คอขวด)</span>
+                            <input type="number" step="0.01" name="ct_arrange" id="ct_arrange" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3">
+                        </label>
+                        <label class="space-y-2">
+                            <span class="block text-xs text-[#a1a5b7]">3. เข้าเครื่อง</span>
+                            <input type="number" step="0.01" name="ct_machine" id="ct_machine" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3">
+                        </label>
+                        <label class="space-y-2">
+                            <span class="block text-xs text-[#a1a5b7]">4. เช็คสเปค</span>
+                            <input type="number" step="0.01" name="ct_inspec" id="ct_inspec" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3">
+                        </label>
+                        <label class="space-y-2">
+                            <span class="block text-xs text-[#a1a5b7]">5. PACKING</span>
+                            <input type="number" step="0.01" name="ct_pack" id="ct_pack" value="0.00" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between gap-3">
+                        <h3 class="text-[#009ef7] text-sm font-bold uppercase tracking-wider">Manpower / คน</h3>
+                        <span class="text-[11px] uppercase tracking-[0.2em] text-[#6b7280] font-bold">เตรียม / เรียง / Inspec / แพ็ค / Operate</span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <label class="space-y-2">
+                            <span class="block text-xs text-[#a1a5b7]">เตรียม</span>
+                            <input type="number" name="man_prep" id="man_prep" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3">
+                        </label>
+                        <label class="space-y-2">
+                            <span class="block text-xs text-[#a1a5b7]">เรียง</span>
+                            <input type="number" name="man_block" id="man_block" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3">
+                        </label>
+                        <label class="space-y-2">
+                            <span class="block text-xs text-[#a1a5b7]">Inspec</span>
+                            <input type="number" name="man_inspec" id="man_inspec" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3">
+                        </label>
+                        <label class="space-y-2">
+                            <span class="block text-xs text-[#a1a5b7]">แพ็ค</span>
+                            <input type="number" name="man_pack" id="man_pack" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3">
+                        </label>
+                        <label class="space-y-2">
+                            <span class="block text-xs text-[#a1a5b7]">Operate</span>
+                            <input type="number" name="man_op" id="man_op" value="0" oninput="calculateMetrics()" class="field w-full rounded-xl px-4 py-3">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-[#151521] p-4 rounded-lg border border-[#323248] grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                    <div>
+                        <span class="block text-[11px] font-bold uppercase text-[#a1a5b7]">Total CT (วินาที)</span>
+                        <span id="lbl_total_ct" class="text-xl font-bold text-white">0.00</span>
+                        <input type="hidden" name="ct_total" id="ct_total" value="0.00">
+                    </div>
+                    <div>
+                        <span class="block text-[11px] font-bold uppercase text-[#009ef7]">ยอดผลิต (ไม้/ชม.)</span>
+                        <span id="lbl_yield_hour" class="text-xl font-bold text-[#009ef7]">0</span>
+                        <input type="hidden" name="yield_hour" id="yield_hour" value="0">
+                    </div>
+                    <div>
+                        <span class="block text-[11px] font-bold uppercase text-[#8b5cf6]">รวมกำลังคน</span>
+                        <span id="lbl_man_total" class="text-xl font-bold text-[#8b5cf6]">0</span>
+                        <input type="hidden" name="man_total" id="man_total" value="0">
+                    </div>
+                    <div>
+                        <span class="block text-[11px] font-bold uppercase text-[#50cd89]">Productivity</span>
+                        <span id="lbl_productivity" class="text-xl font-bold text-[#50cd89]">0.0</span>
+                        <input type="hidden" name="productivity" id="productivity" value="0.0">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="space-y-2 md:col-span-2">
+                        <span class="text-sm text-white">Issue / Finding</span>
+                        <input name="issue" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="คอขวด, loss, defect, idle...">
+                    </label>
+                    <label class="space-y-2 md:col-span-2">
+                        <span class="text-sm text-white">Action / Recommendation</span>
+                        <textarea name="actionNote" rows="4" class="field w-full rounded-xl px-4 py-3" placeholder="ข้อเสนอแนะหรือ next action สำหรับทีมหน้างาน"></textarea>
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Comment</span>
+                        <input name="comment" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="หมายเหตุเพิ่มเติม">
+                    </label>
+                </div>
+
+                <div class="flex flex-wrap gap-3 pt-2">
+                    <button type="submit" id="submitBtn" class="px-5 py-3 rounded-xl bg-[#009ef7] text-white font-semibold hover:opacity-90 transition">
+                        ส่งเข้า Apps Script
+                    </button>
+                    <button type="button" id="resetBtn" class="px-5 py-3 rounded-xl bg-[#2b2b40] text-white font-semibold hover:bg-[#323248] transition">
+                        ล้างฟอร์ม
                     </button>
                 </div>
-            </aside>
-        </section>
+            </form>
 
-        <section class="card rounded-2xl border border-[#323248] p-6 shadow-xl">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="text-xl font-bold text-white">Pending Submissions</h2>
-                    <p class="text-sm text-[#a1a5b7]">เลือกแถวเพื่อเตรียมอนุมัติ</p>
-                </div>
-                <span class="pill-approve text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#50cd89] font-bold">Queue</span>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left whitespace-nowrap">
-                    <thead class="text-xs uppercase text-[#a1a5b7] border-b border-[#323248]">
-                        <tr>
-                            <th class="py-3 pr-4">Status</th>
-                            <th class="py-3 pr-4">Trial</th>
-                            <th class="py-3 pr-4">Shift</th>
-                            <th class="py-3 pr-4">Line</th>
-                            <th class="py-3 pr-4">Prod</th>
-                            <th class="py-3 pr-4">Eff</th>
-                            <th class="py-3 pr-4">Submitted by</th>
-                            <th class="py-3 pr-4">Action</th>
-                    </tr>
-                    </thead>
-                    <tbody id="queueBody" class="divide-y divide-[#2b2b40]"></tbody>
-                </table>
-            </div>
+            <div id="recordStatus" class="mt-5 text-sm text-[#a1a5b7]"></div>
         </section>
     </main>
 
     <script>
-        const queueKey = 'yakitori-approval-queue';
-        let selectedQueueId = null;
+        const ACCESS_PASSWORD = 'Apex2026';
+        const lineTargets = {
+            BL23G: 130,
+            GZ40G: 84,
+            GZ30G: 69
+        };
 
-        function readQueue() {
-            try {
-                return JSON.parse(localStorage.getItem(queueKey) || '[]');
-            } catch (error) {
-                return [];
-            }
+        let unlockedPassword = '';
+
+        function toNumber(value) {
+            const num = Number(value);
+            return Number.isFinite(num) ? num : 0;
         }
 
-        function writeQueue(queue) {
-            localStorage.setItem(queueKey, JSON.stringify(queue));
+        function getTargetByLine(line) {
+            return lineTargets[String(line || '').trim().toUpperCase()] || 0;
         }
 
         function pushStatus(message, tone = 'info') {
@@ -304,24 +272,11 @@
             el.textContent = message;
         }
 
-        function formToObject(form) {
-            const formData = new FormData(form);
-            return Object.fromEntries(formData.entries());
-        }
-
-        const lineTargets = {
-            BL23G: 130,
-            GZ40G: 84,
-            GZ30G: 69
-        };
-
-        function toNumber(value) {
-            const num = Number(value);
-            return Number.isFinite(num) ? num : 0;
-        }
-
-        function getTargetByLine(line) {
-            return lineTargets[String(line || '').trim().toUpperCase()] || 0;
+        function setDefaultDate() {
+            const dateField = document.querySelector('input[name="recordDate"]');
+            if (dateField && !dateField.value) {
+                dateField.value = new Date().toISOString().slice(0, 10);
+            }
         }
 
         function calculateMetrics() {
@@ -340,219 +295,109 @@
 
             const ctTotal = ctPrep + ctArrange + ctMachine + ctInspec + ctPack;
             const manTotal = manPrep + manBlock + manInspec + manPack + manOp;
-            const productivity = ctTotal > 0 ? (3600 / ctTotal) : 0;
+            const productivity = ctTotal > 0 ? 3600 / ctTotal : 0;
             const efficiency = target > 0 ? (productivity / target) * 100 : 0;
+            const yieldHour = Math.round(productivity);
 
-            const totalCtEl = document.getElementById('lbl_total_ct');
-            const yieldEl = document.getElementById('lbl_yield_hour');
-            const manEl = document.getElementById('lbl_man_total');
-            const prodEl = document.getElementById('lbl_productivity');
-            const ctHidden = document.getElementById('ct_total');
-            const yieldHidden = document.getElementById('yield_hour');
-            const manHidden = document.getElementById('man_total');
-            const prodHidden = document.getElementById('productivity');
-
-            if (totalCtEl) totalCtEl.innerText = ctTotal.toFixed(2);
-            if (yieldEl) yieldEl.innerText = Math.round(productivity).toLocaleString();
-            if (manEl) manEl.innerText = String(manTotal);
-            if (prodEl) prodEl.innerText = productivity.toFixed(1);
-            if (ctHidden) ctHidden.value = ctTotal.toFixed(2);
-            if (yieldHidden) yieldHidden.value = Math.round(productivity).toString();
-            if (manHidden) manHidden.value = String(manTotal);
-            if (prodHidden) prodHidden.value = productivity.toFixed(1);
+            document.getElementById('lbl_total_ct').innerText = ctTotal.toFixed(2);
+            document.getElementById('lbl_yield_hour').innerText = yieldHour.toLocaleString();
+            document.getElementById('lbl_man_total').innerText = String(manTotal);
+            document.getElementById('lbl_productivity').innerText = productivity.toFixed(1);
+            document.getElementById('ct_total').value = ctTotal.toFixed(2);
+            document.getElementById('yield_hour').value = String(yieldHour);
+            document.getElementById('man_total').value = String(manTotal);
+            document.getElementById('productivity').value = productivity.toFixed(1);
 
             return {
                 ct_total: ctTotal.toFixed(2),
-                yield_hour: Math.round(productivity),
+                yield_hour: yieldHour,
                 man_total: manTotal,
                 man: manTotal,
                 prod: Number(productivity.toFixed(1)),
                 eff: Number(efficiency.toFixed(2)),
-                total: Math.round(productivity),
+                total: yieldHour,
                 target
             };
         }
 
-        function normalizeRecord(record) {
-            return {
-                id: record.id || `R-${Date.now()}`,
-                status: record.status || 'pending',
-                submittedAt: record.submittedAt || new Date().toISOString(),
-                approvedAt: record.approvedAt || '',
-                approvalDecision: record.approvalDecision || '',
-                approverName: record.approverName || '',
-                approvalNote: record.approvalNote || '',
-                ...record
-            };
-        }
-
-        function renderQueue() {
-            const queue = readQueue().map(normalizeRecord);
-            writeQueue(queue);
-            const body = document.getElementById('queueBody');
-            if (!queue.length) {
-                body.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="py-8 text-center text-[#6b7280]">ยังไม่มีรายการรออนุมัติ</td>
-                    </tr>
-                `;
-                return;
-            }
-
-            body.innerHTML = queue.map(item => {
-                const selected = item.id === selectedQueueId ? 'bg-[rgba(0,158,247,.08)]' : '';
-                const pillClass = item.status === 'approved' ? 'pill-approve text-[#50cd89]' : item.status === 'rejected' ? 'pill-reject text-[#f1416c]' : 'pill text-[#009ef7]';
-                return `
-                    <tr class="${selected} hover:bg-[#2b2b40] cursor-pointer transition" data-id="${item.id}">
-                        <td class="py-3 pr-4">
-                            <span class="px-3 py-1 rounded-full text-xs font-bold ${pillClass}">${item.status}</span>
-                        </td>
-                        <td class="py-3 pr-4 text-white">${item.trial || '-'}</td>
-                        <td class="py-3 pr-4 text-white">${item.shift || 'A'}</td>
-                        <td class="py-3 pr-4 text-white">${item.line || '-'}</td>
-                        <td class="py-3 pr-4 text-white">${item.prod || '-'}</td>
-                        <td class="py-3 pr-4 text-white">${item.eff || '-'}</td>
-                        <td class="py-3 pr-4 text-white">${item.submitter || '-'}</td>
-                        <td class="py-3 pr-4 text-[#a1a5b7]">
-                            <button type="button" class="select-item px-3 py-1 rounded-lg bg-[#2b2b40] text-white text-xs font-semibold hover:bg-[#323248]" data-id="${item.id}">
-                                Select
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-
-            body.querySelectorAll('button.select-item').forEach(btn => {
-                btn.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    selectedQueueId = btn.dataset.id;
-                    renderQueue();
-                    pushStatus(`เลือกคิว ${selectedQueueId} แล้ว`, 'info');
-                });
-            });
-        }
-
-        async function submitRecord(record, saveOnly = false) {
-            const metrics = calculateMetrics();
-            const payload = normalizeRecord({
-                ...record,
-                ...metrics,
-                type: saveOnly ? 'draft' : 'record'
-            });
-
-            if (saveOnly) {
-                const queue = readQueue();
-                queue.unshift(payload);
-                writeQueue(queue);
-                selectedQueueId = payload.id;
-                renderQueue();
-                pushStatus('บันทึก Draft ลงคิวเรียบร้อย', 'success');
-                return;
-            }
-
-            try {
-                const response = await window.YakitoriRuntime.postToAppsScript('record_trial', payload);
-                const queue = readQueue();
-                queue.unshift({
-                    ...payload,
-                    backendResponse: response,
-                    status: 'pending'
-                });
-                writeQueue(queue);
-                selectedQueueId = payload.id;
-                renderQueue();
-                pushStatus('ส่งข้อมูลเข้า Apps Script สำเร็จ', 'success');
-            } catch (error) {
-                const queue = readQueue();
-                queue.unshift({
-                    ...payload,
-                    status: 'pending',
-                    syncState: 'offline',
-                    syncError: String(error.message || error)
-                });
-                writeQueue(queue);
-                selectedQueueId = payload.id;
-                renderQueue();
-                pushStatus(`ส่ง backend ไม่สำเร็จ แต่บันทึกคิวไว้แล้ว: ${error.message}`, 'warn');
-            }
-        }
-
-        async function sendApproval() {
-            if (!selectedQueueId) {
-                pushStatus('กรุณาเลือกรายการในคิวก่อนอนุมัติ', 'warn');
-                return;
-            }
-
-            const queue = readQueue();
-            const index = queue.findIndex(item => item.id === selectedQueueId);
-            if (index < 0) {
-                pushStatus('ไม่พบรายการที่เลือกในคิว', 'error');
-                return;
-            }
-
-            const item = normalizeRecord(queue[index]);
-            const approvalPayload = normalizeRecord({
-                ...item,
-                status: document.getElementById('approvalDecision').value,
-                approverName: document.getElementById('approverName').value.trim(),
-                approvalNote: document.getElementById('approvalNote').value.trim(),
-                approvedAt: new Date().toISOString(),
-                type: 'approval'
-            });
-
-            queue[index] = approvalPayload;
-            writeQueue(queue);
-            selectedQueueId = approvalPayload.id;
-            renderQueue();
-            pushStatus(`กำลังส่งสถานะ ${approvalPayload.status} ไปยัง Apps Script`, 'info');
-
-            try {
-                const response = await window.YakitoriRuntime.postToAppsScript('approve_record', approvalPayload);
-                queue[index] = {
-                    ...approvalPayload,
-                    backendResponse: response
-                };
-                writeQueue(queue);
-                selectedQueueId = approvalPayload.id;
-                renderQueue();
-                pushStatus('ส่งผลอนุมัติไปยัง Apps Script แล้ว', 'success');
-            } catch (error) {
-                queue[index] = {
-                    ...approvalPayload,
-                    syncState: 'offline',
-                    syncError: String(error.message || error)
-                };
-                writeQueue(queue);
-                selectedQueueId = approvalPayload.id;
-                renderQueue();
-                pushStatus(`ส่ง approval ไม่สำเร็จ แต่เก็บสถานะไว้ในเครื่องแล้ว: ${error.message}`, 'warn');
-            }
-        }
-
-        document.getElementById('recordForm').addEventListener('submit', async (event) => {
+        function unlockAccess(event) {
             event.preventDefault();
-            const data = formToObject(event.currentTarget);
-            await submitRecord(data, false);
-            event.currentTarget.reset();
-        });
+            const passInput = document.getElementById('recordPass');
+            const loginError = document.getElementById('loginError');
+            const loginScreen = document.getElementById('loginScreen');
+            const app = document.getElementById('app');
 
-        document.getElementById('saveDraftBtn').addEventListener('click', async () => {
-            const form = document.getElementById('recordForm');
-            const data = formToObject(form);
-            await submitRecord(data, true);
-            form.reset();
-        });
+            if (passInput.value.trim() !== ACCESS_PASSWORD) {
+                loginError.classList.remove('hidden');
+                passInput.focus();
+                return;
+            }
 
-        document.getElementById('approveSelectedBtn').addEventListener('click', sendApproval);
-        const dateField = document.querySelector('input[name="recordDate"]');
-        if (dateField && !dateField.value) {
-            dateField.value = new Date().toISOString().slice(0, 10);
+            unlockedPassword = passInput.value.trim();
+            sessionStorage.setItem('yakitori-data-record-auth', 'true');
+            loginError.classList.add('hidden');
+            loginScreen.classList.add('hidden');
+            app.classList.remove('hidden');
+            setDefaultDate();
+            calculateMetrics();
+            document.getElementById('trial').focus();
         }
+
+        async function submitRecord(event) {
+            event.preventDefault();
+
+            const form = event.currentTarget;
+            const data = Object.fromEntries(new FormData(form).entries());
+            const metrics = calculateMetrics();
+            const payload = {
+                ...data,
+                ...metrics,
+                accessPassword: unlockedPassword || '',
+                type: 'record'
+            };
+
+            const btn = document.getElementById('submitBtn');
+            const originalLabel = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'กำลังส่งข้อมูล...';
+
+            try {
+                await window.YakitoriRuntime.postToAppsScript('record_trial', payload);
+                pushStatus('ส่งข้อมูลเข้า Apps Script สำเร็จ', 'success');
+                form.reset();
+                setDefaultDate();
+                calculateMetrics();
+            } catch (error) {
+                pushStatus(`ส่งข้อมูลไม่สำเร็จ: ${error.message || error}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalLabel;
+            }
+        }
+
+        function resetForm() {
+            const form = document.getElementById('recordForm');
+            form.reset();
+            setDefaultDate();
+            calculateMetrics();
+            pushStatus('ล้างข้อมูลฟอร์มแล้ว', 'info');
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', unlockAccess);
+        document.getElementById('recordForm').addEventListener('submit', submitRecord);
+        document.getElementById('resetBtn').addEventListener('click', resetForm);
+
+        setDefaultDate();
         calculateMetrics();
-        renderQueue();
-        pushStatus('พร้อมใช้งาน: กรอกข้อมูลแล้วกดส่งเพื่อสร้างรายการในคิว', 'info');
+
+        if (sessionStorage.getItem('yakitori-data-record-auth') === 'true') {
+            unlockedPassword = ACCESS_PASSWORD;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('recordPass').value = ACCESS_PASSWORD;
+            setDefaultDate();
+            calculateMetrics();
+        }
     </script>
 </body>
 </html>
-
-
