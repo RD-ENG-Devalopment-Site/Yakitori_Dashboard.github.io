@@ -629,6 +629,7 @@
             selectedShiftFilter = 'all';
             syncShiftFilterSelect();
             refreshShiftView();
+            syncGapComparisonSelect();
 
             calculateExecutiveSummary(baselineKey, bestTrialKey);
             initSummaryCharts(baselineKey, bestTrialKey);
@@ -749,6 +750,7 @@
             renderList();
             renderTable();
             initCharts();
+            syncGapComparisonSelect();
         }
 
         function syncShiftFilterSelect() {
@@ -1055,17 +1057,22 @@
             let totalDiff = best.total - baseline.total;
             document.getElementById('growth-total').innerText = (totalDiff >= 0 ? "+" : "") + totalDiff.toLocaleString();
 
-            renderExecutiveGapTable(baselineKey);
+            renderExecutiveGapTable(baselineKey, gapComparisonKey || bestTrialKey);
         }
 
-        function renderExecutiveGapTable(selectedKey) {
+        function renderExecutiveGapTable(baselineKeyParam, selectedKeyParam) {
             const tableBody = document.getElementById('executiveGapTableBody');
             if(!tableBody) return;
 
             const visibleKeys = getVisibleKeys();
             if(!visibleKeys.length) return;
 
-            const baselineKey = visibleKeys[0];
+            const baselineKey = (baselineKeyParam && db[baselineKeyParam]) ? baselineKeyParam : visibleKeys[0];
+            const selectedKey = (selectedKeyParam && db[selectedKeyParam])
+                ? selectedKeyParam
+                : (gapComparisonKey && db[gapComparisonKey]
+                    ? gapComparisonKey
+                    : (bestTrialKey && db[bestTrialKey] ? bestTrialKey : visibleKeys[visibleKeys.length - 1]));
             const baseline = db[baselineKey];
             const selected = db[selectedKey] || baseline;
             if(!baseline || !selected) return;
