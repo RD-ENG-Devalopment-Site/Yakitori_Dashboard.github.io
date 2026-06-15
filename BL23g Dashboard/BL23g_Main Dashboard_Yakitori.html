@@ -101,25 +101,25 @@
         <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
             <div>
                 <h1 class="text-3xl font-bold text-white mb-2 tracking-wide font-en">Experimental data</h1>
-                <p class="text-sm text-[#009ef7]">[Project APEX Flow - เธเธฒเธฃเธเธฃเธฑเธเธเธฃเธธเธเธเธฃเธฐเธเธงเธเธเธฒเธฃเน€เธชเธตเธขเธเนเธกเน]</p>
+                <p class="text-sm text-[#009ef7]">[Project APEX Flow - การปรับปรุงกระบวนการเสียบไม้]</p>
             </div>
             
             <div class="flex flex-wrap gap-3">
                 <div class="bg-[#151521] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm">
-                    <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">เธขเธญเธ”เธเธฅเธดเธ•เน€เธเนเธฒเธซเธกเธฒเธข (Actual)</p>
-                    <p class="text-xl font-bold text-white font-en">2,470 <span class="text-xs font-normal text-[#6b7280]">เนเธกเน/เธเธก.</span></p>
+                    <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">ยอดผลิตเป้าหมาย (Actual)</p>
+                    <p class="text-xl font-bold text-white font-en">2,470 <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
                 </div>
                 <div class="bg-[#151521] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm">
-                    <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">เธเธฅเธเธฅเธดเธ•เธชเธนเธเธชเธธเธ” (Best Record)</p>
-                    <p class="text-xl font-bold text-[#50cd89] font-en" id="header-max-yield">-- <span class="text-xs font-normal text-[#6b7280]">เนเธกเน/เธเธก.</span></p>
+                    <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">ผลผลิตสูงสุด (Best Record)</p>
+                    <p class="text-xl font-bold text-[#50cd89] font-en" id="header-max-yield">-- <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
                 </div>
                 <div class="bg-[#1e1e2d] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm border-b-2 border-b-[#009ef7]">
-                    <p class="text-[11px] text-[#009ef7] uppercase tracking-wider mb-1 font-bold">เธเธฅเธเธฅเธดเธ• <span id="header-selected-round">เธฃเธญเธเธฅเนเธฒเธชเธธเธ”</span></p>
-                    <p class="text-xl font-bold text-[#009ef7] font-en" id="header-current-yield">-- <span class="text-xs font-normal text-[#6b7280]">เนเธกเน/เธเธก.</span></p>
+                    <p class="text-[11px] text-[#009ef7] uppercase tracking-wider mb-1 font-bold">ผลผลิต <span id="header-selected-round">รอบล่าสุด</span></p>
+                    <p class="text-xl font-bold text-[#009ef7] font-en" id="header-current-yield">-- <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
                 </div>
                 <div class="bg-[#1e1e2d] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm border-b-2 border-b-[#8b5cf6]">
-                    <p class="text-[11px] text-[#8b5cf6] uppercase tracking-wider mb-1 font-bold">เธเธณเธเธงเธเธเธเธฑเธเธเธฒเธ <span id="header-man-round">เธฃเธญเธเธฅเนเธฒเธชเธธเธ”</span></p>
-                    <p class="text-xl font-bold text-[#8b5cf6] font-en" id="header-current-man">-- <span class="text-xs font-normal text-[#6b7280]">เธเธ</span></p>
+                    <p class="text-[11px] text-[#8b5cf6] uppercase tracking-wider mb-1 font-bold">จำนวนพนักงาน <span id="header-man-round">รอบล่าสุด</span></p>
+                    <p class="text-xl font-bold text-[#8b5cf6] font-en" id="header-current-man">-- <span class="text-xs font-normal text-[#6b7280]">คน</span></p>
                 </div>
             </div>
         </div>
@@ -128,11 +128,11 @@
     <main class="flex-1 w-full pb-8">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#009ef7] shadow-lg">
-                <p class="text-sm font-semibold mb-2">Productivity (เนเธกเน/เธเธ/เธเธก.)</p>
+                <p class="text-sm font-semibold mb-2">Productivity (ไม้/คน/ชม.)</p>
                 <div class="flex items-end gap-3 mt-1">
                     <h2 class="text-4xl font-bold text-white font-en" id="kpi-prod">--</h2>
                 </div>
-                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2" id="kpi-target-label">เน€เธเนเธฒเธซเธกเธฒเธข Target: 130</p>
+                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2" id="kpi-target-label">เป้าหมาย Target: 130</p>
             </div>
 
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#50cd89] shadow-lg">
@@ -140,30 +140,30 @@
                 <div class="flex items-end gap-3 mt-1">
                     <h2 class="text-4xl font-bold text-white font-en" id="kpi-eff">--%</h2>
                 </div>
-                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">เน€เธ—เธตเธขเธเธเธฑเธเน€เธเนเธฒเธซเธกเธฒเธขเธเธงเธฒเธกเธชเธฒเธกเธฒเธฃเธ–เนเธฅเธเน</p>
+                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">เทียบกับเป้าหมายความสามารถไลน์</p>
             </div>
 
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#8b5cf6] shadow-lg">
-                <p class="text-sm font-semibold mb-2">Cycle Time (เธงเธดเธเธฒเธ—เธต/เนเธกเน)</p>
+                <p class="text-sm font-semibold mb-2">Cycle Time (วินาที/ไม้)</p>
                 <div class="flex items-end gap-3 mt-1">
                     <h2 class="text-4xl font-bold text-[#8b5cf6] font-en" id="kpi-cycle">-- <span class="text-lg font-normal text-[#a1a5b7]">Sec</span></h2>
                 </div>
-                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">เน€เธงเธฅเธฒเธฃเธงเธกเธ—เธธเธเธเธฃเธฐเธเธงเธเธเธฒเธฃ (Total CT)</p>
+                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">เวลารวมทุกกระบวนการ (Total CT)</p>
             </div>
 
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#f1416c] shadow-lg">
-                <p class="text-sm font-semibold mb-2">เธเธฅเธเธฅเธดเธ•เธฃเธงเธกเธ—เธฑเนเธเธซเธกเธ”</p>
+                <p class="text-sm font-semibold mb-2">ผลผลิตรวมทั้งหมด</p>
                 <div class="flex items-end gap-3 mt-1">
                     <h2 class="text-4xl font-bold text-white font-en" id="kpi-total">--</h2>
                 </div>
-                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">เธเธณเธเธงเธเนเธกเนเธ•เนเธญเธเธฑเนเธงเนเธกเธ (เธฃเธงเธกเนเธฅเธเน)</p>
+                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">จำนวนไม้ต่อชั่วโมง (รวมไลน์)</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             <div class="lg:col-span-2 space-y-6">
                 <div class="bg-card rounded-xl p-6 shadow-lg">
-                    <h3 class="text-sm font-bold text-white mb-4">เนเธเธงเนเธเนเธกเธเธฃเธฐเธชเธดเธ—เธเธดเธ เธฒเธ Productivity (เธ•เธฑเนเธเนเธ•เนเธงเธฑเธเน€เธฃเธดเนเธกเธ•เนเธ - เธเธฑเธเธเธธเธเธฑเธ)</h3>
+                    <h3 class="text-sm font-bold text-white mb-4">แนวโน้มประสิทธิภาพ Productivity (ตั้งแต่วันเริ่มต้น - ปัจจุบัน)</h3>
                     <div class="h-[350px] relative">
                         <canvas id="trendChart"></canvas>
                     </div>
@@ -171,7 +171,7 @@
 
                 <div class="bg-card rounded-xl p-6 shadow-lg">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-sm font-bold text-white">เนเธเธงเนเธเนเธกเธเนเธญเธกเธนเธฅเน€เธงเธฅเธฒ (Cycle Time)</h3>
+                        <h3 class="text-sm font-bold text-white">แนวโน้มข้อมูลเวลา (Cycle Time)</h3>
                     </div>
                     <div class="h-[350px] relative">
                         <canvas id="cycleChart"></canvas>
@@ -182,9 +182,9 @@
             <div class="lg:col-span-1">
                 <div class="bg-card rounded-xl p-6 shadow-lg flex flex-col sticky top-4">
                     <div class="mb-4 pb-4 border-b border-[#323248] relative">
-                        <p class="text-white text-xs font-bold mb-3 uppercase tracking-wider text-[#a1a5b7]">เน€เธฅเธทเธญเธเธเนเธญเธกเธนเธฅเธเธฒเธฃเธเธฃเธฑเธเธเธฃเธธเธ</p>
+                        <p class="text-white text-xs font-bold mb-3 uppercase tracking-wider text-[#a1a5b7]">เลือกข้อมูลการปรับปรุง</p>
                         <button id="iterPickerBtn" onclick="toggleDropdown()" class="w-full flex justify-between items-center px-4 py-3 bg-[#151521] border border-[#323248] text-white rounded-lg hover:bg-[#2b2b40] transition">
-                            <span id="selectedIterText" class="font-medium text-[15px]">เน€เธฅเธทเธญเธเธเธฃเธฐเธเธงเธเธเธฒเธฃ</span>
+                            <span id="selectedIterText" class="font-medium text-[15px]">เลือกกระบวนการ</span>
                             <svg id="dropdownIcon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="transition-transform duration-300" viewBox="0 0 16 16">
                                 <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
                             </svg>
@@ -203,26 +203,26 @@
                     </div>
 
                     <div class="overflow-y-auto flex-1 pr-2">
-                        <h4 class="text-[#8b5cf6] text-xs font-bold mb-3 uppercase tracking-wider">เธเนเธญเธกเธนเธฅเน€เธงเธฅเธฒ (CYCLE TIME)</h4>
+                        <h4 class="text-[#8b5cf6] text-xs font-bold mb-3 uppercase tracking-wider">ข้อมูลเวลา (CYCLE TIME)</h4>
                         <div class="space-y-4 mb-6">
                             <div class="flex items-start">
                                 <div class="w-2 h-2 rounded-full bg-[#8b5cf6] mt-1.5 mr-3 shadow-[0_0_8px_rgba(139,92,246,0.8)]"></div>
                                 <div class="w-full text-sm text-[#a1a5b7]">
                                     <ul class="space-y-3">
                                         <li class="flex justify-between border-b border-[#2b2b40] pb-2">
-                                            <span class="flex-1">1. เน€เธ•เธฃเธตเธขเธก RM</span>
+                                            <span class="flex-1">1. เตรียม RM</span>
                                             <span id="ct-prep" class="text-[#009ef7] font-bold self-end text-[15px]">--</span>
                                         </li>
                                         <li class="flex justify-between border-b border-[#2b2b40] pb-2">
-                                            <span class="flex-1">2. เน€เธฃเธตเธขเธเน€เธเธทเนเธญ (เธเธญเธเธงเธ”)</span>
+                                            <span class="flex-1">2. เรียงเนื้อ (คอขวด)</span>
                                             <span id="ct-arrange" class="text-[#8b5cf6] font-bold self-end text-[15px]">--</span>
                                         </li>
                                         <li class="flex justify-between border-b border-[#2b2b40] pb-2">
-                                            <span class="flex-1">3. เน€เธเนเธฒเน€เธเธฃเธทเนเธญเธ</span>
+                                            <span class="flex-1">3. เข้าเครื่อง</span>
                                             <span id="ct-machine" class="text-[#ffc700] font-bold self-end text-[15px]">--</span>
                                         </li>
                                         <li class="flex justify-between border-b border-[#2b2b40] pb-2">
-                                            <span class="flex-1">4. เน€เธเนเธเธชเน€เธเธ</span>
+                                            <span class="flex-1">4. เช็คสเปค</span>
                                             <span id="ct-inspec" class="text-[#f1416c] font-bold self-end text-[15px]">--</span>
                                         </li>
                                         <li class="flex justify-between">
@@ -230,11 +230,11 @@
                                             <span id="ct-pack" class="text-[#50cd89] font-bold self-end text-[15px]">--</span>
                                         </li>
                                         <li class="flex justify-between border-t border-[#323248] pt-3 mt-3">
-                                            <span class="flex-1 text-white font-bold">Total CT (เธงเธด)</span>
+                                            <span class="flex-1 text-white font-bold">Total CT (วิ)</span>
                                             <span id="ct-total" class="text-white font-bold self-end text-[15px]">--</span>
                                         </li>
                                         <li class="flex justify-between pt-1">
-                                            <span class="flex-1 text-[#009ef7] font-bold">เธขเธญเธ”เธเธฅเธดเธ• (เนเธกเน/เธเธก.)</span>
+                                            <span class="flex-1 text-[#009ef7] font-bold">ยอดผลิต (ไม้/ชม.)</span>
                                             <span id="ct-yield" class="text-[#009ef7] font-bold self-end text-[15px]">--</span>
                                         </li>
                                     </ul>
@@ -242,18 +242,18 @@
                             </div>
                         </div>
 
-                        <h4 class="text-[#009ef7] text-xs font-bold mb-3 uppercase tracking-wider border-t border-[#323248] pt-5">เธเนเธญเธกเธนเธฅเธเธณเธฅเธฑเธเธเธ (Manpower Layout)</h4>
+                        <h4 class="text-[#009ef7] text-xs font-bold mb-3 uppercase tracking-wider border-t border-[#323248] pt-5">ข้อมูลกำลังคน (Manpower Layout)</h4>
                         <div class="space-y-4">
                             <div class="flex items-start">
                                 <div class="w-2 h-2 rounded-full bg-[#009ef7] mt-1.5 mr-3 shadow-[0_0_8px_rgba(0,158,247,0.8)]"></div>
                                 <div class="w-full">
-                                    <p class="text-white text-sm font-medium mb-3">เธขเธญเธ”เธฃเธงเธกเธเธนเนเธเธเธดเธเธฑเธ•เธดเธเธฒเธ <span id="kpi-man" class="text-[#009ef7] font-bold text-lg bg-[#151521] px-2 py-1 rounded">--</span> เธเธ</p>
+                                    <p class="text-white text-sm font-medium mb-3">ยอดรวมผู้ปฏิบัติงาน <span id="kpi-man" class="text-[#009ef7] font-bold text-lg bg-[#151521] px-2 py-1 rounded">--</span> คน</p>
                                     <ul class="text-sm text-[#a1a5b7] space-y-2">
-                                        <li class="flex justify-between border-b border-[#2b2b40] pb-1.5"><span>โ€ข เธเธเธฑเธเธเธฒเธเน€เธ•เธฃเธตเธขเธก RM:</span> <span id="man-prep" class="text-white font-bold">--</span></li>
-                                        <li class="flex justify-between border-b border-[#2b2b40] pb-1.5"><span>โ€ข เธเธเธฑเธเธเธฒเธเน€เธฃเธตเธขเธเธฅเธเธเธฅเนเธญเธ:</span> <span id="man-block" class="text-white font-bold">--</span></li>
-                                        <li class="flex justify-between border-b border-[#2b2b40] pb-1.5"><span>โ€ข เธเธเธฑเธเธเธฒเธ inspec:</span> <span id="man-inspec" class="text-white font-bold">--</span></li>
-                                        <li class="flex justify-between border-b border-[#2b2b40] pb-1.5"><span>โ€ข เธเธเธฑเธเธเธฒเธเนเธเนเธ:</span> <span id="man-pack" class="text-white font-bold">--</span></li>
-                                        <li class="flex justify-between"><span>โ€ข เธเธเธฑเธเธเธฒเธ Machine Op:</span> <span id="man-op" class="text-white font-bold">--</span></li>
+                                        <li class="flex justify-between border-b border-[#2b2b40] pb-1.5"><span>• พนักงานเตรียม RM:</span> <span id="man-prep" class="text-white font-bold">--</span></li>
+                                        <li class="flex justify-between border-b border-[#2b2b40] pb-1.5"><span>• พนักงานเรียงลงบล็อค:</span> <span id="man-block" class="text-white font-bold">--</span></li>
+                                        <li class="flex justify-between border-b border-[#2b2b40] pb-1.5"><span>• พนักงาน inspec:</span> <span id="man-inspec" class="text-white font-bold">--</span></li>
+                                        <li class="flex justify-between border-b border-[#2b2b40] pb-1.5"><span>• พนักงานแพ็ค:</span> <span id="man-pack" class="text-white font-bold">--</span></li>
+                                        <li class="flex justify-between"><span>• พนักงาน Machine Op:</span> <span id="man-op" class="text-white font-bold">--</span></li>
                                     </ul>
                                 </div>
                             </div>
@@ -266,19 +266,19 @@
         <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden mb-6 mt-4">
             <div class="p-5 border-b border-[#323248] flex justify-between items-center">
                 <div>
-                    <h3 class="text-white font-bold text-sm">เธงเธดเน€เธเธฃเธฒเธฐเธซเนเน€เธงเธฅเธฒเนเธ•เนเธฅเธฐเธเธฑเนเธเธ•เธญเธ (Focus: เธเธญเธเธงเธ” Actual vs เธฃเธญเธเธ—เธตเนเน€เธฅเธทเธญเธ)</h3>
-                    <p class="text-xs text-[#a1a5b7] mt-1">เน€เธเธฃเธตเธขเธเน€เธ—เธตเธขเธเธซเธฒ Gap เนเธฅเธฐ % เธเธงเธฒเธกเนเธ•เธเธ•เนเธฒเธเน€เธเธทเนเธญเธงเธดเน€เธเธฃเธฒเธฐเธซเน Idle Production Time</p>
+                    <h3 class="text-white font-bold text-sm">วิเคราะห์เวลาแต่ละขั้นตอน (Focus: คอขวด Actual vs รอบที่เลือก)</h3>
+                    <p class="text-xs text-[#a1a5b7] mt-1">เปรียบเทียบหา Gap และ % ความแตกต่างเพื่อวิเคราะห์ Idle Production Time</p>
                 </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
                     <thead>
                         <tr class="bg-[#151521] text-[11px] uppercase tracking-wider text-[#a1a5b7] border-b border-[#323248]">
-                            <th class="p-4 font-medium text-left">เธเธฑเนเธเธ•เธญเธ (STATION)</th>
-                            <th class="p-4 font-medium text-center">Idle Production Time (เธงเธด)</th>
-                            <th class="p-4 font-medium text-center text-[#009ef7]" id="gap-header-selected">เธฃเธญเธเธเธฑเธเธเธธเธเธฑเธ (เธงเธด)</th>
-                            <th class="p-4 font-medium text-center">เธชเนเธงเธเธ•เนเธฒเธ GAP</th>
-                            <th class="p-4 font-medium text-center">% เธเธงเธฒเธกเนเธ•เธเธ•เนเธฒเธ</th>
+                            <th class="p-4 font-medium text-left">ขั้นตอน (STATION)</th>
+                            <th class="p-4 font-medium text-center">Idle Production Time (วิ)</th>
+                            <th class="p-4 font-medium text-center text-[#009ef7]" id="gap-header-selected">รอบปัจจุบัน (วิ)</th>
+                            <th class="p-4 font-medium text-center">ส่วนต่าง GAP</th>
+                            <th class="p-4 font-medium text-center">% ความแตกต่าง</th>
                         </tr>
                     </thead>
                     <tbody id="gapTableBody" class="divide-y divide-[#2b2b40]">
@@ -289,33 +289,33 @@
 
         <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden mb-8">
             <div class="p-5 border-b border-[#323248] flex justify-between items-center">
-                <h3 class="text-white font-bold text-sm">เธ•เธฒเธฃเธฒเธเน€เธเธฃเธตเธขเธเน€เธ—เธตเธขเธเธเนเธญเธกเธนเธฅเน€เธงเธฅเธฒเนเธฅเธฐเธเธณเธฅเธฑเธเธเธเนเธเธ—เธธเธเธเธฃเธฐเธเธงเธเธเธฒเธฃ</h3>
-                <p class="text-xs text-[#a1a5b7]">*เธเธฅเธดเธเธ—เธตเนเนเธ–เธงเน€เธเธทเนเธญเธ”เธนเธเนเธญเธกเธนเธฅเนเธเธเธฃเธฒเธเนเธฅเธฐ Panel เธ”เนเธฒเธเธเธงเธฒ</p>
+                <h3 class="text-white font-bold text-sm">ตารางเปรียบเทียบข้อมูลเวลาและกำลังคนในทุกกระบวนการ</h3>
+                <p class="text-xs text-[#a1a5b7]">*คลิกที่แถวเพื่อดูข้อมูลในกราฟและ Panel ด้านขวา</p>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
                     <thead>
                         <tr class="bg-[#151521] text-xs uppercase tracking-wider text-[#a1a5b7] border-b border-[#323248]">
-                            <th class="p-4 font-bold sticky left-0 bg-[#151521] z-10 text-white" rowspan="2">เธฃเธญเธเธเธฒเธฃเธเธฃเธฑเธเธเธฃเธธเธ</th>
+                            <th class="p-4 font-bold sticky left-0 bg-[#151521] z-10 text-white" rowspan="2">รอบการปรับปรุง</th>
                             <th class="p-4 font-medium text-[#50cd89] text-center" rowspan="2">Productivity</th>
                             <th class="p-4 font-medium text-center " rowspan="2">Efficiency</th>
-                            <th class="p-2 font-bold text-center border-l border-[#323248] text-[#8b5cf6]" colspan="7">เธเนเธญเธกเธนเธฅเน€เธงเธฅเธฒ (CYCLE TIME)</th>
-                            <th class="p-2 font-bold text-center border-l border-[#323248] text-[#009ef7]" colspan="6">เธเนเธญเธกเธนเธฅเธเธณเธฅเธฑเธเธเธ (Manpower)</th>
+                            <th class="p-2 font-bold text-center border-l border-[#323248] text-[#8b5cf6]" colspan="7">ข้อมูลเวลา (CYCLE TIME)</th>
+                            <th class="p-2 font-bold text-center border-l border-[#323248] text-[#009ef7]" colspan="6">ข้อมูลกำลังคน (Manpower)</th>
                         </tr>
                         <tr class="bg-[#1e1e2d] text-[11px] text-[#a1a5b7] border-b border-[#323248]">
-                            <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7]">1. เน€เธ•เธฃเธตเธขเธก RM</th>
-                            <th class="p-3 font-medium text-center text-[#8b5cf6]">2. เน€เธฃเธตเธขเธเน€เธเธทเนเธญ (เธเธญเธเธงเธ”)</th>
-                            <th class="p-3 font-medium text-center text-[#ffc700]">3. เน€เธเนเธฒเน€เธเธฃเธทเนเธญเธ</th>
-                            <th class="p-3 font-medium text-center text-[#f1416c]">4. เน€เธเนเธเธชเน€เธเธ</th>
+                            <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7]">1. เตรียม RM</th>
+                            <th class="p-3 font-medium text-center text-[#8b5cf6]">2. เรียงเนื้อ (คอขวด)</th>
+                            <th class="p-3 font-medium text-center text-[#ffc700]">3. เข้าเครื่อง</th>
+                            <th class="p-3 font-medium text-center text-[#f1416c]">4. เช็คสเปค</th>
                             <th class="p-3 font-medium text-center text-[#50cd89]">5. PACKING</th>
-                            <th class="p-3 font-medium text-center text-white bg-[#2b2b40]">Total CT (เธงเธด)</th>
-                            <th class="p-3 font-medium text-center text-[#009ef7] bg-[#2b2b40]">เธขเธญเธ”เธเธฅเธดเธ• (เนเธกเน/เธเธก.)</th>
+                            <th class="p-3 font-medium text-center text-white bg-[#2b2b40]">Total CT (วิ)</th>
+                            <th class="p-3 font-medium text-center text-[#009ef7] bg-[#2b2b40]">ยอดผลิต (ไม้/ชม.)</th>
 
-                            <th class="p-3 font-medium text-center border-l border-[#323248] text-white">เธฃเธงเธกเธเธ</th>
-                            <th class="p-3 font-medium text-center">เน€เธ•เธฃเธตเธขเธก</th>
-                            <th class="p-3 font-medium text-center">เน€เธฃเธตเธขเธ</th>
+                            <th class="p-3 font-medium text-center border-l border-[#323248] text-white">รวมคน</th>
+                            <th class="p-3 font-medium text-center">เตรียม</th>
+                            <th class="p-3 font-medium text-center">เรียง</th>
                             <th class="p-3 font-medium text-center">Inspec</th>
-                            <th class="p-3 font-medium text-center">เนเธเนเธ</th>
+                            <th class="p-3 font-medium text-center">แพ็ค</th>
                             <th class="p-3 font-medium text-center">Operate</th>
                         </tr>
                     </thead>
@@ -332,8 +332,8 @@
                         <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/>
                     </svg>
                     <div>
-                        <h3 class="text-white font-bold text-sm">เธชเธฃเธธเธเธเนเธญเธกเธนเธฅเน€เธเธดเธเธฅเธถเธเนเธฅเธฐเธเธฒเธฃเธงเธดเน€เธเธฃเธฒเธฐเธซเน (Process Insights)</h3>
-                        <p class="text-xs text-[#a1a5b7] mt-1">เธงเธดเน€เธเธฃเธฒเธฐเธซเนเธเธฑเธเธซเธฒเนเธฅเธฐเนเธเธงเธ—เธฒเธเธเธฒเธฃเธเธฃเธฑเธเธเธฃเธธเธเธเธฃเธฐเธเธณ <span id="insight-round" class="text-[#009ef7] font-bold"></span></p>
+                        <h3 class="text-white font-bold text-sm">สรุปข้อมูลเชิงลึกและการวิเคราะห์ (Process Insights)</h3>
+                        <p class="text-xs text-[#a1a5b7] mt-1">วิเคราะห์ปัญหาและแนวทางการปรับปรุงประจำ <span id="insight-round" class="text-[#009ef7] font-bold"></span></p>
                     </div>
                 </div>
                 <div class="px-3 py-1 bg-[rgba(139,92,246,0.15)] border border-[#8b5cf6] text-[#8b5cf6] text-[11px] font-bold rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(139,92,246,0.2)]">
@@ -360,18 +360,18 @@
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div class="bg-card-gradient rounded-xl p-5 border-t-4 border-[#009ef7] shadow-lg">
-                    <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Productivity (เนเธกเน/เธเธ/เธเธก.)</p>
+                    <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Productivity (ไม้/คน/ชม.)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-prod">เธเธฃเธฐเธเธงเธเธเธฒเธฃเน€เธ”เธดเธก โ” เธ”เธตเธ—เธตเนเธชเธธเธ”</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-prod">กระบวนการเดิม ➔ ดีที่สุด</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-prod">0.0</span>
-                                <span class="text-xs text-[#a1a5b7]">โ’</span>
+                                <span class="text-xs text-[#a1a5b7]">→</span>
                                 <span class="text-3xl font-bold text-[#50cd89] font-en glow-text-green" id="val-best-prod">0.0</span>
                             </div>
                         </div>
                         <div class="border border-[#323248] bg-[#151521] px-2 py-1.5 rounded-lg text-center">
-                            <span class="block text-[10px] text-[#50cd89] mb-0.5">เน€เธเธดเนเธกเธเธถเนเธ</span>
+                            <span class="block text-[10px] text-[#50cd89] mb-0.5">เพิ่มขึ้น</span>
                             <span class="text-sm font-bold text-[#50cd89] font-en" id="growth-prod">+0.0%</span>
                         </div>
                     </div>
@@ -381,51 +381,51 @@
                     <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Efficiency Leap (%)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-eff">เธเธฃเธฐเธเธงเธเธเธฒเธฃเน€เธ”เธดเธก โ” เธ”เธตเธ—เธตเนเธชเธธเธ”</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-eff">กระบวนการเดิม ➔ ดีที่สุด</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-eff">0.00</span>
-                                <span class="text-xs text-[#a1a5b7]">โ’</span>
+                                <span class="text-xs text-[#a1a5b7]">→</span>
                                 <span class="text-3xl font-bold text-[#50cd89] font-en glow-text-green" id="val-best-eff">0.00</span>
                             </div>
                         </div>
                         <div class="border border-[#323248] bg-[#151521] px-2 py-1.5 rounded-lg text-center">
-                            <span class="block text-[10px] text-[#50cd89] mb-0.5">เน€เธเธดเนเธกเธเธถเนเธ</span>
+                            <span class="block text-[10px] text-[#50cd89] mb-0.5">เพิ่มขึ้น</span>
                             <span class="text-sm font-bold text-[#50cd89] font-en" id="growth-eff">+0.0%</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-card-gradient rounded-xl p-5 border-t-4 border-[#8b5cf6] shadow-lg">
-                    <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Cycle Time (เธงเธดเธเธฒเธ—เธต/เนเธกเน)</p>
+                    <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Cycle Time (วินาที/ไม้)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-arrange">เธเธฃเธฐเธเธงเธเธเธฒเธฃเน€เธ”เธดเธก โ” เธ”เธตเธ—เธตเนเธชเธธเธ”</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-arrange">กระบวนการเดิม ➔ ดีที่สุด</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-total-ct">0.00</span>
-                                <span class="text-xs text-[#a1a5b7]">โ’</span>
+                                <span class="text-xs text-[#a1a5b7]">→</span>
                                 <span class="text-3xl font-bold text-[#50cd89] font-en glow-text-green" id="val-best-total-ct">0.00</span>
                             </div>
                         </div>
                         <div class="border border-[#323248] bg-[#151521] px-2 py-1.5 rounded-lg text-center">
-                            <span class="block text-[10px] text-[#50cd89] mb-0.5">เน€เธงเธฅเธฒเธฅเธ”เธฅเธ</span>
+                            <span class="block text-[10px] text-[#50cd89] mb-0.5">เวลาลดลง</span>
                             <span class="text-sm font-bold text-[#50cd89] font-en" id="growth-arrange">-0.0%</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-card-gradient rounded-xl p-5 border-t-4 border-[#f1416c] shadow-lg">
-                    <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Total Output (เนเธกเน/เธเธก.)</p>
+                    <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Total Output (ไม้/ชม.)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-total">เธเธฃเธฐเธเธงเธเธเธฒเธฃเน€เธ”เธดเธก โ” เธ”เธตเธ—เธตเนเธชเธธเธ”</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-total">กระบวนการเดิม ➔ ดีที่สุด</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-total">0</span>
-                                <span class="text-xs text-[#a1a5b7]">โ’</span>
+                                <span class="text-xs text-[#a1a5b7]">→</span>
                                 <span class="text-3xl font-bold text-[#50cd89] font-en glow-text-green" id="val-best-total">0</span>
                             </div>
                         </div>
                         <div class="border border-[#323248] bg-[#151521] px-2 py-1.5 rounded-lg text-center">
-                            <span class="block text-[10px] text-[#50cd89] mb-0.5">เธชเนเธงเธเธ•เนเธฒเธ</span>
+                            <span class="block text-[10px] text-[#50cd89] mb-0.5">ส่วนต่าง</span>
                             <span class="text-sm font-bold text-[#50cd89] font-en" id="growth-total">+0</span>
                         </div>
                     </div>
@@ -435,7 +435,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div class="bg-card rounded-xl p-6 border border-[#323248] shadow-lg flex flex-col">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-white font-bold text-sm">Productivity & Efficiency Journey (Focus: เน€เธ”เธดเธก vs Best vs Target)</h3>
+                        <h3 class="text-white font-bold text-sm">Productivity & Efficiency Journey (Focus: เดิม vs Best vs Target)</h3>
                         <span class="text-xs text-[#f1416c] bg-[rgba(241,65,108,0.1)] px-2 py-1 rounded border border-[rgba(241,65,108,0.2)]" id="chart-target-badge">Target: 130</span>
                     </div>
                     <div class="h-[250px] w-full relative flex-1">
@@ -446,7 +446,7 @@
                 <div class="bg-card rounded-xl p-6 border border-[#323248] shadow-lg flex flex-col">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-white font-bold text-sm">Cycle Time Reduction (Bottlenecks Comparison)</h3>
-                        <span class="text-xs text-[#a1a5b7]">เธซเธเนเธงเธข: เธงเธดเธเธฒเธ—เธต (Seconds)</span>
+                        <span class="text-xs text-[#a1a5b7]">หน่วย: วินาที (Seconds)</span>
                     </div>
                     <div class="h-[250px] w-full relative flex-1">
                         <canvas id="bottleneckChart"></canvas>
@@ -458,8 +458,8 @@
                 <div class="bg-card rounded-xl border border-[#323248] shadow-lg overflow-hidden flex flex-col">
                     <div class="p-5 border-b border-[#323248] bg-[#1a1d27] flex justify-between items-start gap-4">
                         <div>
-                            <h3 class="text-white font-bold text-sm">เธงเธดเน€เธเธฃเธฒเธฐเธซเนเธฃเธฐเธขเธฐเธซเนเธฒเธ (Gap Analysis)</h3>
-                            <p class="text-xs text-[#a1a5b7] mt-1">เน€เธเธฃเธตเธขเธเน€เธ—เธตเธขเธเธเธฃเธฐเธเธงเธเธเธฒเธฃเน€เธ”เธดเธก เนเธฅเธฐเธฃเธญเธเธ—เธตเนเธเธธเธ“เน€เธฅเธทเธญเธเธเธฑเธเธเธธเธเธฑเธเน€เธ—เธตเธขเธเธเธฑเธเน€เธเนเธฒเธซเธกเธฒเธขเนเธ•เนเธฅเธฐเธชเธฒเธขเธเธฒเธ</p>
+                            <h3 class="text-white font-bold text-sm">วิเคราะห์ระยะห่าง (Gap Analysis)</h3>
+                            <p class="text-xs text-[#a1a5b7] mt-1">เปรียบเทียบกระบวนการเดิม และรอบที่คุณเลือกปัจจุบันเทียบกับเป้าหมายแต่ละสายงาน</p>
                         </div>
                         <div class="flex items-center gap-3 shrink-0">
                             <span class="text-[11px] uppercase tracking-[0.2em] text-[#8b5cf6] font-bold">Compare</span>
@@ -470,13 +470,13 @@
                         <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
                             <thead>
                                 <tr class="bg-[#151521] text-xs uppercase tracking-wider text-[#a1a5b7] border-b border-[#323248]">
-                                    <th class="p-3 font-bold text-white">เธชเธฒเธขเธเธฒเธ</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248]">เน€เธเนเธฒเธซเธกเธฒเธข</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7] bg-[rgba(0,158,247,0.05)]" id="gap-header-t1">เธเธฒเธฃเธ—เธ”เธฅเธญเธเธฃเธญเธเนเธฃเธ</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">เธชเนเธงเธเธ•เนเธฒเธ (เธฃเธญเธเนเธฃเธ)</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">GAP % (เธฃเธญเธเนเธฃเธ)</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-header">เธฅเนเธฒเธชเธธเธ”</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6]">เธชเนเธงเธเธ•เนเธฒเธ</th>
+                                    <th class="p-3 font-bold text-white">สายงาน</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248]">เป้าหมาย</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7] bg-[rgba(0,158,247,0.05)]" id="gap-header-t1">การทดลองรอบแรก</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">ส่วนต่าง (รอบแรก)</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">GAP % (รอบแรก)</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-header">ล่าสุด</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6]">ส่วนต่าง</th>
                                     <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6]">GAP %</th>
                                 </tr>
                             </thead>
@@ -493,12 +493,12 @@
     <script src="../yakitori-runtime.js"></script>
     <script>
         // ==========================================
-        // 1. เธ•เธฑเธงเนเธเธฃเธชเธณเธซเธฃเธฑเธเธเธฑเธ”เธเธฒเธฃเธเนเธญเธกเธนเธฅ (Global Variables)
+        // 1. ตัวแปรสำหรับจัดการข้อมูล (Global Variables)
         // ==========================================
         let db = {}; 
         let keys = [];
         
-        // ๐ เนเธเนเนเธเธเธธเธ”เธ—เธตเน 1: เธเธฃเธฑเธเน€เธเธฅเธตเนเธขเธเธ•เธฑเธงเนเธเธฃเน€เธเนเธฒเธซเธกเธฒเธขเธซเธฅเธฑเธเธงเธดเธจเธงเธเธฃเธฃเธกเธเธฃเธฐเธเธงเธเธเธฒเธฃเธเธฒเธ 106 เน€เธเนเธ 130
+        // 🌟 แก้ไขจุดที่ 1: ปรับเปลี่ยนตัวแปรเป้าหมายหลักวิศวกรรมกระบวนการจาก 106 เป็น 130
         const targetProductivity = 130; 
         const actualBaseline = { prep: 0.00, arrange: 22.30, machine: 1.25, inspec: 5.00, pack: 5.40 };
 
@@ -526,7 +526,7 @@
         let gapComparisonKey = null;
 
         // ==========================================
-        // ๐ Web App URL
+        // 🌟 Web App URL
         // ==========================================
         const googleWebAppUrl = window.YakitoriRuntime.CONFIG.appsScriptUrl;
 
@@ -535,7 +535,7 @@
         };
 
         // ==========================================
-        // ๐ ๏ธ เธ”เธถเธเธเนเธญเธกเธนเธฅเธเธฒเธ Google Sheets เธซเธฃเธทเธญ Mock Data เธชเธณเธฃเธญเธ
+        // 🛠️ ดึงข้อมูลจาก Google Sheets หรือ Mock Data สำรอง
         // ==========================================
         async function loadData() {
             try {
@@ -546,11 +546,11 @@
                 db = await response.json();
                 
                 if (db.error) {
-                    throw new Error("เธซเธฅเธฑเธเธเนเธฒเธเนเธเนเธเธเนเธญเธเธดเธ”เธเธฅเธฒเธ”: " + db.error);
+                    throw new Error("หลังบ้านแจ้งข้อผิดพลาด: " + db.error);
                 }
                 if (db._records) delete db._records;
                 if (Object.keys(db).length === 0) {
-                    throw new Error("เนเธกเนเธกเธตเธเนเธญเธกเธนเธฅเธชเนเธเธเธฅเธฑเธเธกเธฒเธเธฒเธ Google Sheets");
+                    throw new Error("ไม่มีข้อมูลส่งกลับมาจาก Google Sheets");
                 }
                 
                 Object.keys(db).forEach(k => {
@@ -561,10 +561,10 @@
                 
                 initializeDashboardFromSheets();
             } catch (error) {
-                console.warn("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธ”เธถเธเธเนเธญเธกเธนเธฅเธเธฒเธ Google Sheets เนเธ”เนเธชเธณเน€เธฃเนเธ เธฃเธฐเธเธเน€เธเธดเธ”เนเธเนเธเธฒเธ Fallback Mock Data เธชเธณเธฃเธญเธ:", error);
+                console.warn("ไม่สามารถดึงข้อมูลจาก Google Sheets ได้สำเร็จ ระบบเปิดใช้งาน Fallback Mock Data สำรอง:", error);
                 
                 db = {
-                    "เน€เธ”เธดเธก": { "prod": 29.0, "eff": 22.31, "man": 18, "total": 530, "layout": { "prep": 6, "block": 6, "inspec": 3, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 15.00, "arrange": 55.65, "machine": 3.5, "inspec": 45.00, "pack": 20 } },
+                    "เดิม": { "prod": 29.0, "eff": 22.31, "man": 18, "total": 530, "layout": { "prep": 6, "block": 6, "inspec": 3, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 15.00, "arrange": 55.65, "machine": 3.5, "inspec": 45.00, "pack": 20 } },
                     "1": { "prod": 40.0, "eff": 30.77, "man": 18, "total": 720, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 0, "arrange": 44.85, "machine": 3.5, "inspec": 25.00, "pack": 20 } },
                     "2": { "prod": 102.0, "eff": 78.46, "man": 21, "total": 2142, "layout": { "prep": 4, "block": 10, "inspec": 4, "pack": 2, "op": 1 }, "cycle_detail": { "prep": 0, "arrange": 20.10, "machine": 1.25, "inspec": 4.80, "pack": 5.10 } },
                     "3": { "prod": 43.0, "eff": 33.08, "man": 17, "total": 731, "layout": { "prep": 4, "block": 8, "inspec": 3, "pack": 2, "op": 0 }, "cycle_detail": { "prep": 0, "arrange": 35.22, "machine": 3.5, "inspec": 25.00, "pack": 20 } },
@@ -619,6 +619,7 @@
 
             bestTrialKey = findBestTrialKey();
             gapComparisonKey = bestTrialKey;
+
             baselineKey = keys.find(isBaselineRecord) || keys[0];
 
             let maxYield = Math.max(...keys.map(k => db[k] ? Number(db[k].total) : 0));
@@ -632,8 +633,7 @@
             calculateExecutiveSummary(baselineKey, bestTrialKey);
             initSummaryCharts(baselineKey, bestTrialKey);
 
-
-            let defaultKey = getVisibleKeys().slice(-1)[0] || baselineKey || keys[keys.length - 1] || "เน€เธ”เธดเธก";
+            let defaultKey = getVisibleKeys().slice(-1)[0] || baselineKey || keys[keys.length - 1] || "เดิม";
             selectIteration(defaultKey); 
         }
 
@@ -709,7 +709,7 @@
 
         function isBaselineRecord(key) {
             const trial = getTrialLabel(key);
-            return trial === 'เน€เธ”เธดเธก' || trial === 'Baseline';
+            return trial === 'เดิม' || trial === 'Baseline';
         }
 
         function compareRecordKeys(a, b) {
@@ -749,7 +749,6 @@
             renderList();
             renderTable();
             initCharts();
-            syncGapComparisonSelect();
         }
 
         function syncShiftFilterSelect() {
@@ -806,8 +805,8 @@
             let html = '';
             getVisibleKeys().forEach(k => {
                 const trial = getTrialLabel(k);
-                let text = isBaselineRecord(k) ? trial : `เธเธฃเธฑเนเธเธ—เธตเน ${trial} / Shift ${getRecordShift(k)}`;
-                if (k === bestTrialKey) text += " ๐ (Best)";
+                let text = isBaselineRecord(k) ? trial : `ครั้งที่ ${trial} / Shift ${getRecordShift(k)}`;
+                if (k === bestTrialKey) text += " 🏆 (Best)";
                 let colorClass = isBaselineRecord(k) ? "text-white bg-[#323248]" : "text-[#a1a5b7] hover:bg-[#323248] hover:text-white";
                 html += `<button onclick="selectIteration('${k}')" class="w-full text-center px-2 py-2 rounded text-xs font-medium border border-[#323248] ${colorClass} transition">${text}</button>`;
             });
@@ -815,7 +814,7 @@
         }
 
         function renderInsight(key, data) {
-            let roundText = isBaselineRecord(key) ? 'เธเธฃเธฐเธเธงเธเธเธฒเธฃเน€เธ”เธดเธก' : `Trial ${getTrialLabel(key)} / Shift ${getRecordShift(key)}`;
+            let roundText = isBaselineRecord(key) ? 'กระบวนการเดิม' : `Trial ${getTrialLabel(key)} / Shift ${getRecordShift(key)}`;
             document.getElementById('insight-round').innerText = `[${roundText}]`;
             
             let man = data.man || 0;
@@ -827,58 +826,58 @@
 
             let arrangeGap = actualBaseline.arrange - cycle.arrange;
             let arrangeStatus = arrangeGap >= 0 
-                ? `<span class="text-[#50cd89]">เน€เธฃเนเธงเธเธงเนเธฒเธฃเธญเธเน€เธ”เธดเธก ${Math.abs(arrangeGap).toFixed(2)} เธงเธดเธเธฒเธ—เธต</span>`
-                : `<span class="text-[#f1416c]">เนเธเนเน€เธงเธฅเธฒเน€เธเธดเนเธกเธเธถเนเธ ${Math.abs(arrangeGap).toFixed(2)} เธงเธดเธเธฒเธ—เธต</span>`;
+                ? `<span class="text-[#50cd89]">เร็วกว่ารอบเดิม ${Math.abs(arrangeGap).toFixed(2)} วินาที</span>`
+                : `<span class="text-[#f1416c]">ใช้เวลาเพิ่มขึ้น ${Math.abs(arrangeGap).toFixed(2)} วินาที</span>`;
 
             let inspecGap = actualBaseline.inspec - cycle.inspec;
             let inspecStatus = inspecGap >= 0 
-                ? `<span class="text-[#50cd89]">เนเธเนเน€เธงเธฅเธฒเธฅเธ”เธฅเธ ${Math.abs(inspecGap).toFixed(2)} เธงเธดเธเธฒเธ—เธต</span>`
-                : `<span class="text-[#f1416c]">เนเธเนเน€เธงเธฅเธฒเน€เธเธดเนเธกเธเธถเนเธ ${Math.abs(inspecGap).toFixed(2)} เธงเธดเธเธฒเธ—เธต</span>`;
+                ? `<span class="text-[#50cd89]">ใช้เวลาลดลง ${Math.abs(inspecGap).toFixed(2)} วินาที</span>`
+                : `<span class="text-[#f1416c]">ใช้เวลาเพิ่มขึ้น ${Math.abs(inspecGap).toFixed(2)} วินาที</span>`;
 
-            let headerHtml = `เธเธฅเธเธฅเธดเธ•เธ•เธฒเธกเธชเธฑเธ”เธชเนเธงเธเธเธเธฑเธเธเธฒเธเธ—เธฑเนเธเธเธฃเธฐเธเธงเธเธเธฒเธฃเธญเธขเธนเนเธ—เธตเน <span class="font-bold text-[#009ef7] text-[15px]">${man} เธเธ</span> ` +
-                             `เนเธ”เนเธเธณเธเธงเธเนเธกเนเธญเธขเธนเนเธ—เธตเน <span class="font-bold text-[#50cd89] text-[15px]">${pProd.toFixed(1)} เนเธกเน / Hr / Man</span> ` +
-                             `<span class="text-[#a1a5b7]">[เธขเธญเธ”เธเธฒเธฃเธเธฅเธดเธ•เธฃเธงเธก ${total.toLocaleString()} เนเธกเน/เธเธฑเนเธงเนเธกเธ]</span> ` +
-                             `เธเธเธชเธ–เธฒเธเธฐเธเธฒเธฃเธ—เธณเธเธฒเธเนเธฅเธฐเธเธธเธ”เนเธเธเธฑเธชเธ”เธฑเธเธเธตเน:`;
+            let headerHtml = `ผลผลิตตามสัดส่วนพนักงานทั้งกระบวนการอยู่ที่ <span class="font-bold text-[#009ef7] text-[15px]">${man} คน</span> ` +
+                             `ได้จำนวนไม้อยู่ที่ <span class="font-bold text-[#50cd89] text-[15px]">${pProd.toFixed(1)} ไม้ / Hr / Man</span> ` +
+                             `<span class="text-[#a1a5b7]">[ยอดการผลิตรวม ${total.toLocaleString()} ไม้/ชั่วโมง]</span> ` +
+                             `พบสถานะการทำงานและจุดโฟกัสดังนี้:`;
             document.getElementById('insight-overall').innerHTML = headerHtml;
 
             let stepsHtml = `
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-6 h-6 rounded bg-[#2b2b40] text-[#009ef7] border border-[#009ef7]/30 flex items-center justify-center text-xs font-bold mt-0.5">1</div>
                     <div>
-                        <h4 class="text-white font-bold text-sm mb-1">เน€เธ•เธฃเธตเธขเธก (RM)</h4>
-                        <p class="text-[#a1a5b7] text-sm leading-relaxed">เธกเธตเธเธเธฑเธเธเธฒเธเธเธเธดเธเธฑเธ•เธดเธเธฒเธ <span class="text-[#50cd89]">${layout.prep} เธเธ</span> เนเธเนเน€เธงเธฅเธฒเนเธเธเธฒเธฃเน€เธ•เธฃเธตเธขเธกเธงเธฑเธ•เธ–เธธเธ”เธดเธเน€เธเธฅเธตเนเธข <span class="text-white">${cycle.prep} เธงเธดเธเธฒเธ—เธต</span> เน€เธเธทเนเธญเธเนเธญเธเธงเธฑเธ•เธ–เธธเธ”เธดเธเน€เธเนเธฒเธชเธนเนเธเธฃเธฐเธเธงเธเธเธฒเธฃเธ•เนเธญเนเธ</p>
+                        <h4 class="text-white font-bold text-sm mb-1">เตรียม (RM)</h4>
+                        <p class="text-[#a1a5b7] text-sm leading-relaxed">มีพนักงานปฏิบัติงาน <span class="text-[#50cd89]">${layout.prep} คน</span> ใช้เวลาในการเตรียมวัตถุดิบเฉลี่ย <span class="text-white">${cycle.prep} วินาที</span> เพื่อป้อนวัตถุดิบเข้าสู่กระบวนการต่อไป</p>
                     </div>
                 </div>
 
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-6 h-6 rounded bg-[#2b2b40] text-[#8b5cf6] border border-[#8b5cf6]/30 flex items-center justify-center text-xs font-bold mt-0.5">2</div>
                     <div>
-                        <h4 class="text-[#8b5cf6] font-bold text-sm mb-1 flex items-center">เน€เธฃเธตเธขเธเน€เธเธทเนเธญเธฅเธเธเธฅเนเธญเธ <span class="text-[10px] bg-[rgba(139,92,246,0.15)] border border-[#8b5cf6]/50 px-2 py-0.5 rounded text-[#8b5cf6] ml-2 font-bold uppercase tracking-wider">เธเธญเธเธงเธ”เธซเธฅเธฑเธ</span></h4>
-                        <p class="text-[#a1a5b7] text-sm leading-relaxed">เธเธฃเธฐเธเธงเธเธเธฒเธฃเธเธตเนเนเธเนเน€เธงเธฅเธฒเน€เธเธฅเธตเนเธข <span class="text-white">${cycle.arrange} เธงเธดเธเธฒเธ—เธต</span> (${arrangeStatus}) เนเธ”เธขเธเธฑเธ”เธเธเธฑเธเธเธฒเธเธฅเธเนเธฅเธเน <span class="text-[#f1416c]">${layout.block} เธเธ</span> <br><span class="text-[#009ef7] mt-1 inline-block">[Analysis: เน€เธงเธฅเธฒเธ—เธตเนเนเธเนเนเธเธเธธเธ”เธเธตเนเน€เธเนเธเธ•เธฑเธงเนเธเธฃเธชเธณเธเธฑเธเธ—เธตเนเธชเธธเธ”เธ—เธตเนเธเธณเธซเธเธ” Capacity เธฃเธงเธกเธ—เธตเน ${total.toLocaleString()} เนเธกเน/เธเธฑเนเธงเนเธกเธ เธเธฒเธฃเธ—เธณ Line Balancing เธเธงเธฃเนเธเธเธฑเธชเธเธงเธฒเธกเน€เธฃเนเธงเธเธญเธเธเธเธฑเธเธเธฒเธเธเธธเธ”เธเธตเนเน€เธเนเธเธซเธฅเธฑเธ]</span></p>
+                        <h4 class="text-[#8b5cf6] font-bold text-sm mb-1 flex items-center">เรียงเนื้อลงบล็อค <span class="text-[10px] bg-[rgba(139,92,246,0.15)] border border-[#8b5cf6]/50 px-2 py-0.5 rounded text-[#8b5cf6] ml-2 font-bold uppercase tracking-wider">คอขวดหลัก</span></h4>
+                        <p class="text-[#a1a5b7] text-sm leading-relaxed">กระบวนการนี้ใช้เวลาเฉลี่ย <span class="text-white">${cycle.arrange} วินาที</span> (${arrangeStatus}) โดยจัดพนักงานลงไลน์ <span class="text-[#f1416c]">${layout.block} คน</span> <br><span class="text-[#009ef7] mt-1 inline-block">[Analysis: เวลาที่ใช้ในจุดนี้เป็นตัวแปรสำคัญที่สุดที่กำหนด Capacity รวมที่ ${total.toLocaleString()} ไม้/ชั่วโมง การทำ Line Balancing ควรโฟกัสความเร็วของพนักงานจุดนี้เป็นหลัก]</span></p>
                     </div>
                 </div>
 
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-6 h-6 rounded bg-[#2b2b40] text-[#ffc700] border border-[#ffc700]/30 flex items-center justify-center text-xs font-bold mt-0.5">3</div>
                     <div>
-                        <h4 class="text-white font-bold text-sm mb-1">เน€เธเนเธฒเน€เธเธฃเธทเนเธญเธเน€เธชเธตเธขเธ</h4>
-                        <p class="text-[#a1a5b7] text-sm leading-relaxed">เธเธงเธเธเธธเธกเธเธฒเธฃเน€เธ”เธดเธเน€เธเธฃเธทเนเธญเธเธเธฑเธเธฃ (Machine Time) เนเธ”เธขเธเธเธฑเธเธเธฒเธ <span class="text-[#50cd89]">${layout.op} เธเธ</span> เนเธเนเน€เธงเธฅเธฒเธญเธขเธนเนเธ—เธตเน <span class="text-white">${cycle.machine} เธงเธดเธเธฒเธ—เธต</span></p>
+                        <h4 class="text-white font-bold text-sm mb-1">เข้าเครื่องเสียบ</h4>
+                        <p class="text-[#a1a5b7] text-sm leading-relaxed">ควบคุมการเดินเครื่องจักร (Machine Time) โดยพนักงาน <span class="text-[#50cd89]">${layout.op} คน</span> ใช้เวลาอยู่ที่ <span class="text-white">${cycle.machine} วินาที</span></p>
                     </div>
                 </div>
 
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-6 h-6 rounded bg-[#2b2b40] text-[#f1416c] border border-[#f1416c]/30 flex items-center justify-center text-xs font-bold mt-0.5">4</div>
                     <div>
-                        <h4 class="text-white font-bold text-sm mb-1">เธเธฒเธฃเน€เธเนเธเธชเน€เธเธ</h4>
-                        <p class="text-[#a1a5b7] text-sm leading-relaxed">เธเธเธฑเธเธเธฒเธเธ•เธฃเธงเธเธชเธญเธ <span class="text-[#50cd89]">${layout.inspec} เธเธ</span> เนเธเนเน€เธงเธฅเธฒเนเธเธเธฒเธฃเน€เธเนเธเธชเน€เธเธเธชเธดเธเธเนเธฒเน€เธเธฅเธตเนเธข <span class="text-white">${cycle.inspec} เธงเธดเธเธฒเธ—เธต</span> (${inspecStatus}) <br><span class="text-[#a1a5b7] mt-1 inline-block">เธซเธฒเธเน€เธงเธฅเธฒเนเธเธเธธเธ”เธเธตเนเธชเธนเธเธเธถเนเธ เธญเธฒเธเธเนเธเธเธญเธเธ–เธถเธเธเธฑเธเธซเธฒเธชเธดเธเธเนเธฒ Rework เธเธฒเธเน€เธเธฃเธทเนเธญเธเน€เธชเธตเธขเธเนเธกเนเธ—เธตเนเธ—เธณเนเธซเนเธ—เธณเธเธฒเธเธฅเนเธฒเธเนเธฒเธฅเธ</span></p>
+                        <h4 class="text-white font-bold text-sm mb-1">การเช็คสเปค</h4>
+                        <p class="text-[#a1a5b7] text-sm leading-relaxed">พนักงานตรวจสอบ <span class="text-[#50cd89]">${layout.inspec} คน</span> ใช้เวลาในการเช็คสเปคสินค้าเฉลี่ย <span class="text-white">${cycle.inspec} วินาที</span> (${inspecStatus}) <br><span class="text-[#a1a5b7] mt-1 inline-block">หากเวลาในจุดนี้สูงขึ้น อาจบ่งบอกถึงปัญหาสินค้า Rework จากเครื่องเสียบไม้ที่ทำให้ทำงานล่าช้าลง</span></p>
                     </div>
                 </div>
 
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-6 h-6 rounded bg-[#2b2b40] text-[#50cd89] border border-[#50cd89]/30 flex items-center justify-center text-xs font-bold mt-0.5">5</div>
                     <div>
-                        <h4 class="text-white font-bold text-sm mb-1">เธเธฒเธฃ Packing</h4>
-                        <p class="text-[#a1a5b7] text-sm leading-relaxed">เธเธเธฑเธเธเธฒเธเธเธฃเธฃเธเธธ <span class="text-[#50cd89]">${layout.pack} เธเธ</span> เธเธดเธ”เธเธเธเธฃเธฐเธเธงเธเธเธฒเธฃเธ”เนเธงเธขเน€เธงเธฅเธฒ <span class="text-white">${cycle.pack} เธงเธดเธเธฒเธ—เธต</span> เธเธฃเธฐเธชเธดเธ—เธเธดเธ เธฒเธเนเธเธเธธเธ”เธเธตเนเธชเธฒเธกเธฒเธฃเธ–เธฃเธญเธเธฃเธฑเธเธเธฒเธฃเธ”เธฑเธเธขเธญเธ”เธเธฅเธดเธ•เธ—เธตเน ${total.toLocaleString()} เนเธกเน/เธเธฑเนเธงเนเธกเธเนเธ”เนเธญเธขเนเธฒเธเธฃเธฒเธเธฃเธทเนเธ</p>
+                        <h4 class="text-white font-bold text-sm mb-1">การ Packing</h4>
+                        <p class="text-[#a1a5b7] text-sm leading-relaxed">พนักงานบรรจุ <span class="text-[#50cd89]">${layout.pack} คน</span> ปิดจบกระบวนการด้วยเวลา <span class="text-white">${cycle.pack} วินาที</span> ประสิทธิภาพในจุดนี้สามารถรองรับการดันยอดผลิตที่ ${total.toLocaleString()} ไม้/ชั่วโมงได้อย่างราบรื่น</p>
                     </div>
                 </div>
             `;
@@ -889,8 +888,8 @@
             const tbody = document.getElementById('gapTableBody');
             if(!tbody) return;
             const selectedHeader = isBaselineRecord(key)
-                ? 'เธเนเธญเธกเธนเธฅเน€เธ”เธดเธก (เธงเธด)'
-                : `TRIAL ${getTrialLabel(key)} / SHIFT ${getRecordShift(key)} (เธงเธด)`;
+                ? 'ข้อมูลเดิม (วิ)'
+                : `TRIAL ${getTrialLabel(key)} / SHIFT ${getRecordShift(key)} (วิ)`;
             const headerEl = document.getElementById('gap-header-selected');
             if (headerEl) headerEl.innerText = selectedHeader;
             const cycle = currentData.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
@@ -903,22 +902,22 @@
 
             const rowsData = [
                 {
-                    name: '1. เน€เธ•เธฃเธตเธขเธก RM',
+                    name: '1. เตรียม RM',
                     actual: actualBaseline.prep,
                     current: Number(cycle.prep) || 0,
                 },
                 {
-                    name: '2. เน€เธฃเธตเธขเธเน€เธเธทเนเธญ (เธเธญเธเธงเธ”)',
+                    name: '2. เรียงเนื้อ (คอขวด)',
                     actual: actualBaseline.arrange,
                     current: Number(cycle.arrange) || 0,
                 },
                 {
-                    name: '3. เน€เธเนเธฒเน€เธเธฃเธทเนเธญเธ',
+                    name: '3. เข้าเครื่อง',
                     actual: actualBaseline.machine,
                     current: Number(cycle.machine) || 0,
                 },
                 {
-                    name: '4. เน€เธเนเธเธชเน€เธเธ',
+                    name: '4. เช็คสเปค',
                     actual: actualBaseline.inspec,
                     current: Number(cycle.inspec) || 0,
                 },
@@ -945,7 +944,7 @@
                 const bottleneck = !row.total && percent > 10;
                 const nameClass = row.total ? 'font-bold text-white text-right' : `text-white text-left pl-6 ${bottleneck ? 'text-[#f1416c] font-bold' : ''}`;
                 const displayName = row.total
-                    ? 'เธฃเธฐเธขเธฐเน€เธงเธฅเธฒเธฃเธงเธก (TOTAL CT)'
+                    ? 'ระยะเวลารวม (TOTAL CT)'
                     : bottleneck
                         ? `${row.name} <span class="text-xs text-[#f1416c] ml-1">(Bottleneck)</span>`
                         : row.name;
@@ -972,9 +971,9 @@
                 if(!d) return; 
                 
                 let titleText = isBaselineRecord(k)
-                    ? 'เธเธฃเธฐเธเธงเธเธเธฒเธฃเน€เธ”เธดเธก'
-                    : `เธเธฃเธฑเนเธเธ—เธตเน ${getTrialLabel(k)} / Shift ${getRecordShift(k)}`;
-                if (k === bestTrialKey) titleText += " โญ (Best)";
+                    ? 'กระบวนการเดิม'
+                    : `ครั้งที่ ${getTrialLabel(k)} / Shift ${getRecordShift(k)}`;
+                if (k === bestTrialKey) titleText += " ⭐ (Best)";
                 let cycle = d.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
                 let layout = d.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 };
 
@@ -1019,11 +1018,11 @@
 
             if(!baseline || !best) return;
 
-            let baseLabel = baselineKey === "เน€เธ”เธดเธก" ? "เธเธฃเธฐเธเธงเธเธเธฒเธฃเน€เธ”เธดเธก" : `Trial ${baselineKey}`;
-            document.getElementById('lbl-summary-prod').innerText = `${baseLabel} โ” เธเธฃเธฑเนเธเธ—เธตเน ${bestTrialKey} (เธ”เธตเธ—เธตเนเธชเธธเธ”)`;
-            document.getElementById('lbl-summary-eff').innerText = `${baseLabel} โ” เธเธฃเธฑเนเธเธ—เธตเน ${bestTrialKey} (เธ”เธตเธ—เธตเนเธชเธธเธ”)`;
-            document.getElementById('lbl-summary-arrange').innerText = `${baseLabel} โ” เธเธฃเธฑเนเธเธ—เธตเน ${bestTrialKey} (เธ”เธตเธ—เธตเนเธชเธธเธ”)`;
-            document.getElementById('lbl-summary-total').innerText = `${baseLabel} โ” เธเธฃเธฑเนเธเธ—เธตเน ${bestTrialKey} (เธ”เธตเธ—เธตเนเธชเธธเธ”)`;
+            let baseLabel = baselineKey === "เดิม" ? "กระบวนการเดิม" : `Trial ${baselineKey}`;
+            document.getElementById('lbl-summary-prod').innerText = `${baseLabel} ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-eff').innerText = `${baseLabel} ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-arrange').innerText = `${baseLabel} ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-total').innerText = `${baseLabel} ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
 
             // 1. Productivity
             document.getElementById('val-t1-prod').innerText = baseline.prod.toFixed(1);
@@ -1037,7 +1036,7 @@
             let eGrowth = baseline.eff > 0 ? (((best.eff - baseline.eff) / baseline.eff) * 100) : 0;
             document.getElementById('growth-eff').innerText = `+${eGrowth.toFixed(1)}%`;
 
-            // 3. เธเธณเธเธงเธ“เน€เธงเธฅเธฒเธฃเธงเธกเธชเธธเธ—เธเธด
+            // 3. คำนวณเวลารวมสุทธิ
             const baseCycle = baseline.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
             const bestCycle = best.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
 
@@ -1056,18 +1055,17 @@
             let totalDiff = best.total - baseline.total;
             document.getElementById('growth-total').innerText = (totalDiff >= 0 ? "+" : "") + totalDiff.toLocaleString();
 
-            renderExecutiveGapTable(baselineKey, gapComparisonKey || bestTrialKey);
+            renderExecutiveGapTable(baselineKey);
         }
 
-        function renderExecutiveGapTable(baselineKeyParam, selectedKeyParam) {
+        function renderExecutiveGapTable(selectedKey) {
             const tableBody = document.getElementById('executiveGapTableBody');
             if(!tableBody) return;
 
             const visibleKeys = getVisibleKeys();
             if(!visibleKeys.length) return;
 
-            const baselineKey = baselineKeyParam && db[baselineKeyParam] ? baselineKeyParam : visibleKeys[0];
-            const selectedKey = (selectedKeyParam && db[selectedKeyParam]) ? selectedKeyParam : (gapComparisonKey && db[gapComparisonKey] ? gapComparisonKey : (bestTrialKey && db[bestTrialKey] ? bestTrialKey : visibleKeys[visibleKeys.length - 1]));
+            const baselineKey = visibleKeys[0];
             const baseline = db[baselineKey];
             const selected = db[selectedKey] || baseline;
             if(!baseline || !selected) return;
@@ -1124,18 +1122,18 @@
             selectedDataIndex = viewKeys.indexOf(key);
 
             let titleText = isBaselineRecord(key)
-                ? 'เธเธฃเธฐเธเธงเธเธเธฒเธฃเน€เธ”เธดเธก'
-                : `เธเธฃเธฑเธเธเธฃเธธเธเธเธฃเธฐเธเธงเธเธเธฒเธฃเธเธฃเธฑเนเธเธ—เธตเน ${getTrialLabel(key)} / Shift ${getRecordShift(key)}`;
+                ? 'กระบวนการเดิม'
+                : `ปรับปรุงกระบวนการครั้งที่ ${getTrialLabel(key)} / Shift ${getRecordShift(key)}`;
             let roundLabel = isBaselineRecord(key)
-                ? '(เน€เธ”เธดเธก)'
-                : `(เธเธฃเธฑเนเธเธ—เธตเน ${getTrialLabel(key)} / Shift ${getRecordShift(key)})`;
+                ? '(เดิม)'
+                : `(ครั้งที่ ${getTrialLabel(key)} / Shift ${getRecordShift(key)})`;
 
             document.getElementById('selectedIterText').innerText = titleText;
             
             let totalOutput = data.total || 0;
             let totalMan = data.man || 0;
-            document.getElementById('header-current-yield').innerHTML = `${totalOutput.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">เนเธกเน/เธเธก.</span>`;
-            document.getElementById('header-current-man').innerHTML = `${totalMan} <span class="text-xs font-normal text-[#6b7280]">เธเธ</span>`;
+            document.getElementById('header-current-yield').innerHTML = `${totalOutput.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
+            document.getElementById('header-current-man').innerHTML = `${totalMan} <span class="text-xs font-normal text-[#6b7280]">คน</span>`;
             document.getElementById('header-selected-round').innerText = roundLabel;
             document.getElementById('header-man-round').innerText = roundLabel;
 
@@ -1227,7 +1225,7 @@
         }
 
         // ==========================================
-        // 7. เธเธฒเธฃเธ•เธฑเนเธเธเนเธฒเนเธฅเธฐเธชเธฃเนเธฒเธเธเธฃเธฒเธเธซเธฅเธฑเธ
+        // 7. การตั้งค่าและสร้างกราฟหลัก
         // ==========================================
         const gapLabelPlugin = {
             id: 'gapLabelPlugin',
@@ -1290,8 +1288,8 @@
                             fill: true, tension: 0.2
                         },
                         {
-                            // ๐ เนเธเนเนเธเธเธธเธ”เธ—เธตเน 2: เธเธฃเธฑเธเน€เธชเนเธเธเธฃเธฐเน€เธเนเธฒเธซเธกเธฒเธขเธชเธตเนเธ”เธ (Target Line) เธเธญเธเธเธฃเธฒเธเธซเธฅเธฑเธเธเธฒเธ 106 เน€เธเนเธ 130
-                            label: 'เน€เธเนเธฒเธซเธกเธฒเธข', data: Array(chartLabels.length).fill(targetProductivity),
+                            // 🌟 แก้ไขจุดที่ 2: ปรับเส้นประเป้าหมายสีแดง (Target Line) ของกราฟหลักจาก 106 เป็น 130
+                            label: 'เป้าหมาย', data: Array(chartLabels.length).fill(targetProductivity),
                             borderColor: '#f1416c', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, fill: false
                         }
                     ]
@@ -1316,7 +1314,7 @@
                             }
                         }
                     },
-                    // ๐ เนเธเนเนเธเธเธธเธ”เธ—เธตเน 3: เธเธขเธฒเธขเธชเน€เธเธฅเธเนเธฒเธชเธนเธเธชเธธเธ”เธเธญเธเนเธเธ Y (Max Value) เธเธฒเธเน€เธ”เธดเธก 120 เนเธเน€เธเนเธ 150 เน€เธเธทเนเธญเนเธซเนเธชเธญเธ”เธเธฅเนเธญเธเธเธฑเธเน€เธชเนเธเน€เธเนเธฒเธซเธกเธฒเธข 130
+                    // 🌟 แก้ไขจุดที่ 3: ขยายสเกลค่าสูงสุดของแกน Y (Max Value) จากเดิม 120 ไปเป็น 150 เพื่อให้สอดคล้องกับเส้นเป้าหมาย 130
                     scales: { y: { beginAtZero: true, max: 150, grid: { color: '#2b2b40' } }, x: { grid: { display: false } } }
                 },
                 plugins: [gapLabelPlugin]
@@ -1330,7 +1328,7 @@
                     labels: chartLabels,
                     datasets: [
                         {
-                            label: 'เน€เธงเธฅเธฒเธฃเธงเธกเธ—เธฑเนเธเธซเธกเธ”',
+                            label: 'เวลารวมทั้งหมด',
                             data: viewKeys.map(k => {
                                 const cycle = db[k] ? db[k].cycle_detail : null;
                                 return cycle ? (Number(cycle.arrange)||0)+(Number(cycle.machine)||0)+(Number(cycle.inspec)||0)+(Number(cycle.pack)||0) : 0;
@@ -1341,19 +1339,19 @@
                             yAxisID: 'y', tension: 0.2, fill: false
                         },
                         {
-                            label: '2. เน€เธฃเธตเธขเธเน€เธเธทเนเธญ',
+                            label: '2. เรียงเนื้อ',
                             data: viewKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.arrange) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(139, 92, 246, 0.3)'),
                             stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         },
                         {
-                            label: '3. เน€เธเนเธฒเน€เธเธฃเธทเนเธญเธ',
+                            label: '3. เข้าเครื่อง',
                             data: viewKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.machine) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(255, 199, 0, 0.3)'),
                             stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         },
                         {
-                            label: '4. เน€เธเนเธเธชเน€เธเธ',
+                            label: '4. เช็คสเปค',
                             data: viewKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.inspec) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(241, 65, 108, 0.3)'),
                             stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
@@ -1373,7 +1371,7 @@
                         x: { stacked: true, grid: { display: false } },
                         y: {
                             stacked: true, type: 'linear', display: true, position: 'left',
-                            title: { display: true, text: 'เน€เธงเธฅเธฒ (Sec)', color: '#a1a5b7', font: { size: 10 } },
+                            title: { display: true, text: 'เวลา (Sec)', color: '#a1a5b7', font: { size: 10 } },
                             grid: { color: '#2b2b40' }
                         }
                     },
@@ -1386,8 +1384,8 @@
             const baseline = db[baselineKey] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
             const best = db[bestTrialKey] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
 
-            const baseLabel = baselineKey === "เน€เธ”เธดเธก" ? "เธเธฃเธฐเธเธงเธเธเธฒเธฃเน€เธ”เธดเธก" : `Trial ${baselineKey}`;
-            const summaryLabels = [`${baseLabel} (เน€เธฃเธดเนเธกเธ•เนเธ)`, `Trial ${bestTrialKey} (เธ”เธตเธ—เธตเนเธชเธธเธ”)`, 'Target (เน€เธเนเธฒเธซเธกเธฒเธขเธชเธนเธเธชเธธเธ”)'];
+            const baseLabel = baselineKey === "เดิม" ? "กระบวนการเดิม" : `Trial ${baselineKey}`;
+            const summaryLabels = [`${baseLabel} (เริ่มต้น)`, `Trial ${bestTrialKey} (ดีที่สุด)`, 'Target (เป้าหมายสูงสุด)'];
 
             const prodJourneyChartCtx = document.getElementById('prodJourneyChart').getContext('2d');
             if (prodJourneyChart) prodJourneyChart.destroy();
@@ -1397,8 +1395,8 @@
                     labels: summaryLabels,
                     datasets: [
                         {
-                            label: 'Productivity (เนเธกเน/เธเธ/เธเธก.)',
-                            // ๐ เนเธเนเนเธเธเธธเธ”เธ—เธตเน 4: เธเธฃเธฑเธเธชเธฑเธ”เธชเนเธงเธเนเธ—เนเธเนเธกเน€เธ”เธฅ Target (เน€เธเนเธฒเธซเธกเธฒเธขเธชเธนเธเธชเธธเธ”) เนเธเธเธฃเธฒเธ Journey เธชเธฃเธธเธเธ เธฒเธเธฃเธงเธกเธเธฒเธ 106 เน€เธเนเธ 130
+                            label: 'Productivity (ไม้/คน/ชม.)',
+                            // 🌟 แก้ไขจุดที่ 4: ปรับสัดส่วนแท่งโมเดล Target (เป้าหมายสูงสุด) ในกราฟ Journey สรุปภาพรวมจาก 106 เป็น 130
                             data: [baseline.prod, best.prod, targetProductivity],
                             backgroundColor: ['#323248', '#009ef7', '#50cd89'],
                             borderRadius: 4, barPercentage: 0.5, yAxisID: 'y'
@@ -1417,7 +1415,7 @@
                     plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } },
                     scales: {
                         x: { grid: { display: false } },
-                        // ๐ เนเธเนเนเธเธเธธเธ”เธ—เธตเน 5: เธเธขเธฒเธขเธชเน€เธเธฅเธเนเธฒเธชเธนเธเธชเธธเธ”เธเธญเธเนเธเธ Y เนเธเธเธฃเธฒเธเธชเธฃเธธเธเธ เธฒเธเธฃเธงเธกเธเธฒเธเน€เธ”เธดเธก 120 เน€เธเนเธ 150 เนเธซเนเธชเธฑเธกเธเธฑเธเธเนเธเธฑเธ
+                        // 🌟 แก้ไขจุดที่ 5: ขยายสเกลค่าสูงสุดของแกน Y ในกราฟสรุปภาพรวมจากเดิม 120 เป็น 150 ให้สัมพันธ์กัน
                         y: { beginAtZero: true, max: 150, title: { display: true, text: 'Productivity', color: '#a1a5b7', font: { size: 10 } }, grid: { color: '#2b2b40' } },
                         y1: { beginAtZero: true, max: 100, position: 'right', grid: { display: false }, title: { display: true, text: 'Efficiency (%)', color: '#a1a5b7', font: { size: 10 } } }
                     }
@@ -1428,7 +1426,7 @@
                         const ctx = chart.ctx;
                         const yG2 = chart.scales.y.getPixelForValue(94);
                         
-                        // ๐ เนเธเนเนเธเธเธธเธ”เธ—เธตเน 6: เธเธขเธฑเธเธ•เธณเนเธซเธเนเธเธฃเธฐเธเธฒเธเน€เธชเนเธเธ—เธถเธเธชเธตเนเธ”เธเธญเนเธฒเธเธญเธดเธเน€เธเนเธฒเธซเธกเธฒเธขเธเธญเธเธชเธ–เธฒเธเธตเธเธฒเธ เธเธฒเธเธฃเธฐเธ”เธฑเธ 106 เธเธถเนเธเนเธเน€เธเนเธเธฃเธฐเธ”เธฑเธ 130
+                        // 🌟 แก้ไขจุดที่ 6: ขยับตำแหน่งระนาบเส้นทึบสีแดงอ้างอิงเป้าหมายของสถานีงาน จากระดับ 106 ขึ้นไปเป็นระดับ 130
                         const yG1 = chart.scales.y.getPixelForValue(130);
                         const xAxis = chart.scales.x;
                         
@@ -1456,12 +1454,12 @@
                     labels: [`${baseLabel}`, `Trial ${bestTrialKey} (Best)`],
                     datasets: [
                         {
-                            label: 'เน€เธงเธฅเธฒเน€เธฃเธตเธขเธเธฅเธเธเธฅเนเธญเธ (sec)',
+                            label: 'เวลาเรียงลงบล็อค (sec)',
                             data: [t1Arrange, bestArrange],
                             backgroundColor: 'rgba(139, 92, 246, 0.8)', borderRadius: 4, barPercentage: 0.4
                         },
                         {
-                            label: 'เน€เธงเธฅเธฒเน€เธเนเธเธชเน€เธเธ (sec)',
+                            label: 'เวลาเช็คสเปค (sec)',
                             data: [t1Inspec, bestInspec],
                             backgroundColor: 'rgba(241, 65, 108, 0.8)', borderRadius: 4, barPercentage: 0.4
                         }
@@ -1472,7 +1470,7 @@
                     plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }, tooltip: { mode: 'index', intersect: false } },
                     scales: {
                         x: { grid: { display: false } },
-                        y: { beginAtZero: true, title: { display: true, text: 'เน€เธงเธฅเธฒ (เธงเธดเธเธฒเธ—เธต)', color: '#a1a5b7', font: { size: 10 } }, grid: { color: '#2b2b40' } }
+                        y: { beginAtZero: true, title: { display: true, text: 'เวลา (วินาที)', color: '#a1a5b7', font: { size: 10 } }, grid: { color: '#2b2b40' } }
                     }
                 }
             });
