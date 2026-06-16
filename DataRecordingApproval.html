@@ -352,7 +352,7 @@
             const payload = {
                 ...data,
                 ...metrics,
-                shift: isBl23gSheet() ? 'A' : (data.shift || 'A'),
+                shift: data.shift || 'A',
                 accessPassword: unlockedPassword || '',
                 type: 'record'
             };
@@ -393,11 +393,7 @@
         function syncShiftRule() {
             const shiftSelect = document.querySelector('select[name="shift"]');
             if (!shiftSelect) return;
-            const locked = isBl23gSheet();
-            shiftSelect.disabled = locked;
-            if (locked) {
-                shiftSelect.value = 'A';
-            }
+            shiftSelect.disabled = false;
         }
 
         document.getElementById('loginForm').addEventListener('submit', unlockAccess);
