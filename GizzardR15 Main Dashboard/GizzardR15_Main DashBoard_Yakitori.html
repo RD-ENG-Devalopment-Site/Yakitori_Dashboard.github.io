@@ -495,7 +495,7 @@
 
             if (!bestTrialKey && keys.length > 0) bestTrialKey = keys[0];
 
-            chartLabels = keys.map(k => `รอบที่ ${k}`);
+            chartLabels = keys.map(k => getDisplayTitle(k));
             chartData = keys.map(k => db[k] ? db[k].prod : 0);
 
             let maxYield = Math.max(...keys.map(k => db[k] ? Number(db[k].total) : 0));
@@ -547,7 +547,7 @@
             const listContainer = document.getElementById('dropdownList');
             let html = '';
             keys.forEach(k => {
-                let text = `รอบที่ ${k}`;
+                let text = getDisplayTitle(k);
                 if (k === bestTrialKey) text += " 🏆 (Best)";
                 html += `<button onclick="selectIteration('${k}')" class="w-full text-center px-2 py-2 rounded text-xs font-medium border border-[#323248] text-[#a1a5b7] hover:bg-[#323248] hover:text-white transition">${text}</button>`;
             });
@@ -556,7 +556,7 @@
 
         function updateGapAnalysis(key, currentData) {
             const tbody = document.getElementById('gapTableBody');
-            document.getElementById('gap-header-selected').innerText = `รอบที่ ${key} (วิ)`;
+            document.getElementById('gap-header-selected').innerText = `${getDisplayTitle(key)} (วิ)`;
 
             const cycle = currentData.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
             const steps = [
@@ -624,7 +624,7 @@
 
                 html += `
                     <tr id="row-${k}" class="hover:bg-[#2b2b40] transition duration-150 cursor-pointer text-center" onclick="selectIteration('${k}')">
-                        <td class="p-3 font-medium text-white sticky left-0 bg-[#1e1e2d] border-r border-[#323248] text-left">รอบที่ ${k} ${k===bestTrialKey?'⭐ (Best)':''}</td>
+                        <td class="p-3 font-medium text-white sticky left-0 bg-[#1e1e2d] border-r border-[#323248] text-left">${getDisplayTitle(k)} ${k===bestTrialKey?'⭐ (Best)':''}</td>
                         <td class="p-3 text-[#50cd89] font-bold">${(d.prod || 0).toFixed(1)}</td>
                         <td class="p-3">${(d.eff || 0).toFixed(2)}%</td>
                         <td class="p-3 border-l border-[#323248] text-[#009ef7]">${formatVal(m_prep)}</td>
@@ -654,10 +654,10 @@
 
             if(!baseline || !best) return;
 
-            document.getElementById('lbl-summary-prod').innerText = `รอบที่ ${firstKey} ➔ รอบที่ ${bestTrialKey} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-eff').innerText = `รอบที่ ${firstKey} ➔ รอบที่ ${bestTrialKey} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-arrange').innerText = `รอบที่ ${firstKey} ➔ รอบที่ ${bestTrialKey} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-total').innerText = `รอบที่ ${firstKey} ➔ รอบที่ ${bestTrialKey} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-prod').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestTrialKey)} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-eff').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestTrialKey)} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-arrange').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestTrialKey)} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-total').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestTrialKey)} (ดีที่สุด)`;
 
             document.getElementById('val-t1-prod').innerText = baseline.prod.toFixed(1);
             document.getElementById('val-best-prod').innerText = best.prod.toFixed(1);
@@ -689,7 +689,7 @@
             const baseline = db[keys[0]]; 
             if(!baseline) return;
 
-            document.getElementById('gap-header-t1').innerText = `รอบที่ ${keys[0]} (ไม้/คน/ชม.)`;
+            document.getElementById('gap-header-t1').innerText = `${getDisplayTitle(keys[0])} (ไม้/คน/ชม.)`;
 
             const rowsData = [
                 { name: 'G1 (สูงสุด)', target: 69, id: 'g1' },
@@ -734,9 +734,9 @@
             const data = db[key]; if(!data) return;
             selectedDataIndex = keys.indexOf(key);
 
-            document.getElementById('selectedIterText').innerText = `รอบการปรับปรุงที่ ${key}`;
-            document.getElementById('header-selected-round').innerText = `(รอบที่ ${key})`;
-            document.getElementById('header-man-round').innerText = `(รอบที่ ${key})`;
+            document.getElementById('selectedIterText').innerText = getDisplayTitle(key);
+            document.getElementById('header-selected-round').innerText = `(${getDisplayTitle(key)})`;
+            document.getElementById('header-man-round').innerText = `(${getDisplayTitle(key)})`;
 
             let totalOutput = data.total || 0;
             let totalMan = data.man || 0;
@@ -779,7 +779,7 @@
             updateGapAnalysis(key, data);
 
             let currentProd = data.prod || 0;
-            document.getElementById('gap-dyn-header').innerText = `รอบที่ ${key}`;
+            document.getElementById('gap-dyn-header').innerText = getDisplayTitle(key);
 
             function updateDynamicGapRow(idPrefix, targetVal) {
                 const valEl = document.getElementById(`gap-dyn-${idPrefix}-val`);
@@ -1357,3 +1357,4 @@
     </script>
 </body>
 </html>
+
