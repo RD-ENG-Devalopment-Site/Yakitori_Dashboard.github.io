@@ -746,6 +746,26 @@
             return keys.find(isBaselineRecord) || visibleKeys[0] || keys[0] || "เดิม";
         }
 
+        function getCompareGapPercent(baseValue, selectedValue, inverse = false) {
+            const base = Number(baseValue) || 0;
+            const selected = Number(selectedValue) || 0;
+            if (!base) return 0;
+            return inverse ? ((base - selected) / base) * 100 : ((selected - base) / base) * 100;
+        }
+
+        function formatSignedPercent(value) {
+            const num = Number(value) || 0;
+            return (num > 0 ? "+" : "") + num.toFixed(1) + "%";
+        }
+
+        function applySummaryBadge(id, value, inverseBetter = false) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const num = Number(value) || 0;
+            el.innerText = formatSignedPercent(num);
+            el.className = "text-sm font-bold font-en " + (inverseBetter ? (num <= 0 ? "text-[#50cd89]" : "text-[#f1416c]") : (num >= 0 ? "text-[#50cd89]" : "text-[#f1416c]"));
+        }
+
         function refreshShiftView() {
             viewKeys = getVisibleKeys();
             bestTrialKey = findBestTrialKey(viewKeys);
@@ -754,8 +774,8 @@
 
             chartLabels = viewKeys.map(k => {
                 const trial = getTrialLabel(k);
-                return selectedShiftFilter === 'ALL' && !isBaselineRecord(k)
-                    ? `${trial} (${getRecordShift(k)})`
+                return selectedShiftFilter === "ALL" && !isBaselineRecord(k)
+                    ? trial + " (" + getRecordShift(k) + ")"
                     : trial;
             });
             chartData = viewKeys.map(k => db[k] ? Number(db[k].prod) || 0 : 0);
@@ -763,10 +783,9 @@
             renderTable();
             initCharts();
             syncGapComparisonSelect();
-            calculateExecutiveSummary(summaryBaselineKey, bestTrialKey);
-            initSummaryCharts(summaryBaselineKey, bestTrialKey);
+            calculateExecutiveSummary(summaryBaselineKey, gapComparisonKey);
+            initSummaryCharts(summaryBaselineKey, gapComparisonKey);
         }
-
         function syncShiftFilterSelect() {
             const select = document.getElementById('shiftFilterSelect');
             if (select && select.value !== selectedShiftFilter) {
@@ -813,9 +832,8 @@
         function setGapComparison(key) {
             if (!key) return;
             gapComparisonKey = key;
-            renderExecutiveGapTable(baselineKey, gapComparisonKey);
+            refreshShiftView();
         }
-
         function renderList() {
             const listContainer = document.getElementById('dropdownList');
             let html = '';
@@ -1028,57 +1046,54 @@
             tableBody.innerHTML = html;
         }
 
-        function calculateExecutiveSummary(baselineKey, bestTrialKey) {
+        function calculateExecutiveSummary(baselineKey, selectedKey) {
             const baseline = db[baselineKey];
-            const best = db[bestTrialKey];
+            const selected = db[selectedKey] || baseline;
 
-            if(!baseline || !best) return;
+            if(!baseline || !selected) return;
 
             const baseLabel = isBaselineRecord(baselineKey)
-                ? "กระบวนการเดิม"
-                : `Trial ${getTrialLabel(baselineKey)} / Shift ${getRecordShift(baselineKey)}`;
-            const bestLabel = isBaselineRecord(bestTrialKey)
-                ? "กระบวนการเดิม"
-                : `Trial ${getTrialLabel(bestTrialKey)} / Shift ${getRecordShift(bestTrialKey)}`;
-            document.getElementById('lbl-summary-prod').innerText = `${baseLabel} ➔ ${bestLabel} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-eff').innerText = `${baseLabel} ➔ ${bestLabel} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-arrange').innerText = `${baseLabel} ➔ ${bestLabel} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-total').innerText = `${baseLabel} ➔ ${bestLabel} (ดีที่สุด)`;
+                ? "?????????????"
+                : "Trial " + getTrialLabel(baselineKey) + " / Shift " + getRecordShift(baselineKey);
+            const selectedLabel = isBaselineRecord(selectedKey)
+                ? "?????????????????"
+                : "Trial " + getTrialLabel(selectedKey) + " / Shift " + getRecordShift(selectedKey);
+            document.getElementById("lbl-summary-prod").innerText = baseLabel + " vs " + selectedLabel + " (???????????)";
+            document.getElementById("lbl-summary-eff").innerText = baseLabel + " vs " + selectedLabel + " (???????????)";
+            document.getElementById("lbl-summary-arrange").innerText = baseLabel + " vs " + selectedLabel + " (???????????)";
+            document.getElementById("lbl-summary-total").innerText = baseLabel + " vs " + selectedLabel + " (???????????)";
 
-            // 1. Productivity
-            document.getElementById('val-t1-prod').innerText = baseline.prod.toFixed(1);
-            document.getElementById('val-best-prod').innerText = best.prod.toFixed(1);
-            let pGrowth = baseline.prod > 0 ? (((best.prod - baseline.prod) / baseline.prod) * 100) : 0;
-            document.getElementById('growth-prod').innerText = `+${pGrowth.toFixed(1)}%`;
+            const badgeIds = ["growth-prod", "growth-eff", "growth-arrange", "growth-total"];
+            badgeIds.forEach(id => {
+                const badge = document.getElementById(id);
+                if (badge && badge.previousElementSibling) {
+                    badge.previousElementSibling.innerText = "Gap %";
+                }
+            });
 
-            // 2. Efficiency
-            document.getElementById('val-t1-eff').innerText = baseline.eff.toFixed(2);
-            document.getElementById('val-best-eff').innerText = best.eff.toFixed(2);
-            let eGrowth = baseline.eff > 0 ? (((best.eff - baseline.eff) / baseline.eff) * 100) : 0;
-            document.getElementById('growth-eff').innerText = `+${eGrowth.toFixed(1)}%`;
-
-            // 3. คำนวณเวลารวมสุทธิ
             const baseCycle = baseline.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
-            const bestCycle = best.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
+            const selectedCycle = selected.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
+            const baseTotalCT = (Number(baseCycle.prep)||0) + (Number(baseCycle.arrange)||0) + (Number(baseCycle.machine)||0) + (Number(baseCycle.inspec)||0) + (Number(baseCycle.pack)||0);
+            const selectedTotalCT = (Number(selectedCycle.prep)||0) + (Number(selectedCycle.arrange)||0) + (Number(selectedCycle.machine)||0) + (Number(selectedCycle.inspec)||0) + (Number(selectedCycle.pack)||0);
 
-            let baseTotalCT = (Number(baseCycle.prep)||0) + (Number(baseCycle.arrange)||0) + (Number(baseCycle.machine)||0) + (Number(baseCycle.inspec)||0) + (Number(baseCycle.pack)||0);
-            let bestTotalCT = (Number(bestCycle.prep)||0) + (Number(bestCycle.arrange)||0) + (Number(bestCycle.machine)||0) + (Number(bestCycle.inspec)||0) + (Number(bestCycle.pack)||0);
+            document.getElementById("val-t1-prod").innerText = Number(baseline.prod || 0).toFixed(1);
+            document.getElementById("val-best-prod").innerText = Number(selected.prod || 0).toFixed(1);
+            applySummaryBadge("growth-prod", getCompareGapPercent(baseline.prod, selected.prod));
 
-            document.getElementById('val-t1-total-ct').innerText = baseTotalCT.toFixed(2);
-            document.getElementById('val-best-total-ct').innerText = bestTotalCT.toFixed(2);
+            document.getElementById("val-t1-eff").innerText = Number(baseline.eff || 0).toFixed(2);
+            document.getElementById("val-best-eff").innerText = Number(selected.eff || 0).toFixed(2);
+            applySummaryBadge("growth-eff", getCompareGapPercent(baseline.eff, selected.eff));
 
-            let ctReduction = baseTotalCT > 0 ? (((baseTotalCT - bestTotalCT) / baseTotalCT) * 100) : 0;
-            document.getElementById('growth-arrange').innerText = `-${ctReduction.toFixed(1)}%`;
+            document.getElementById("val-t1-total-ct").innerText = Number(baseTotalCT || 0).toFixed(2);
+            document.getElementById("val-best-total-ct").innerText = Number(selectedTotalCT || 0).toFixed(2);
+            applySummaryBadge("growth-arrange", getCompareGapPercent(baseTotalCT, selectedTotalCT), true);
 
-            // 4. Total Output
-            document.getElementById('val-t1-total').innerText = baseline.total.toLocaleString();
-            document.getElementById('val-best-total').innerText = best.total.toLocaleString();
-            let totalDiff = best.total - baseline.total;
-            document.getElementById('growth-total').innerText = (totalDiff >= 0 ? "+" : "") + totalDiff.toLocaleString();
+            document.getElementById("val-t1-total").innerText = Number(baseline.total || 0).toLocaleString();
+            document.getElementById("val-best-total").innerText = Number(selected.total || 0).toLocaleString();
+            applySummaryBadge("growth-total", getCompareGapPercent(baseline.total, selected.total));
 
-            renderExecutiveGapTable(baselineKey, gapComparisonKey || bestTrialKey);
+            renderExecutiveGapTable(baselineKey, selectedKey);
         }
-
         function renderExecutiveGapTable(baselineKeyParam, selectedKeyParam) {
             const tableBody = document.getElementById('executiveGapTableBody');
             if(!tableBody) return;
@@ -1406,104 +1421,143 @@
             });
         }
 
-        function initSummaryCharts(baselineKey, bestTrialKey) {
-            const baseline = db[baselineKey] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
-            const best = db[bestTrialKey] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
+        function initSummaryCharts(baselineKey, selectedKey) {
+            const baseline = db[baselineKey] || { prod: 0, eff: 0, total: 0, cycle_detail: { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 } };
+            const selected = db[selectedKey] || baseline;
+            const baseCycle = baseline.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
+            const selectedCycle = selected.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
+            const baseTotalCT = (Number(baseCycle.prep)||0) + (Number(baseCycle.arrange)||0) + (Number(baseCycle.machine)||0) + (Number(baseCycle.inspec)||0) + (Number(baseCycle.pack)||0);
+            const selectedTotalCT = (Number(selectedCycle.prep)||0) + (Number(selectedCycle.arrange)||0) + (Number(selectedCycle.machine)||0) + (Number(selectedCycle.inspec)||0) + (Number(selectedCycle.pack)||0);
 
             const baseLabel = isBaselineRecord(baselineKey)
-                ? "กระบวนการเดิม"
-                : `Trial ${getTrialLabel(baselineKey)} / Shift ${getRecordShift(baselineKey)}`;
-            const bestLabel = isBaselineRecord(bestTrialKey)
-                ? "กระบวนการเดิม"
-                : `Trial ${getTrialLabel(bestTrialKey)} / Shift ${getRecordShift(bestTrialKey)}`;
-            const summaryLabels = [`${baseLabel} (เริ่มต้น)`, `${bestLabel} (ดีที่สุด)`, 'Target (เป้าหมายสูงสุด)'];
+                ? "?????????????"
+                : "Trial " + getTrialLabel(baselineKey) + " / Shift " + getRecordShift(baselineKey);
+            const selectedLabel = isBaselineRecord(selectedKey)
+                ? "?????????????????"
+                : "Trial " + getTrialLabel(selectedKey) + " / Shift " + getRecordShift(selectedKey);
+            const compareLabel = baseLabel + " vs " + selectedLabel;
 
-            const prodJourneyChartCtx = document.getElementById('prodJourneyChart').getContext('2d');
+            const compareCanvas = document.getElementById("bottleneckChart");
+            const rightTitle = compareCanvas ? compareCanvas.closest(".bg-card") : null;
+            if (rightTitle) {
+                const titleEl = rightTitle.querySelector("h3");
+                const subtitleEl = rightTitle.querySelector("span.text-xs");
+                if (titleEl) titleEl.innerText = "Comparison Gap Overview (Baseline vs Selected)";
+                if (subtitleEl) subtitleEl.innerText = "?????: %Gap (??? = ??????, ?? = ?????)";
+            }
+
+            const prodJourneyChartCtx = document.getElementById("prodJourneyChart").getContext("2d");
             if (prodJourneyChart) prodJourneyChart.destroy();
             prodJourneyChart = new Chart(prodJourneyChartCtx, {
-                type: 'bar',
+                type: "bar",
                 data: {
-                    labels: summaryLabels,
+                    labels: [baseLabel + " (????????)", selectedLabel + " (????????)", "Target (??????????????)"],
                     datasets: [
                         {
-                            label: 'Productivity (ไม้/คน/ชม.)',
-                            // 🌟 แก้ไขจุดที่ 4: ปรับสัดส่วนแท่งโมเดล Target (เป้าหมายสูงสุด) ในกราฟ Journey สรุปภาพรวมจาก 106 เป็น 130
-                            data: [baseline.prod, best.prod, targetProductivity],
-                            backgroundColor: ['#323248', '#009ef7', '#50cd89'],
-                            borderRadius: 4, barPercentage: 0.5, yAxisID: 'y'
+                            label: "Productivity (???/??/??.)",
+                            data: [baseline.prod, selected.prod, targetProductivity],
+                            backgroundColor: ["#323248", "#009ef7", "#50cd89"],
+                            borderRadius: 4, barPercentage: 0.5, yAxisID: "y"
                         },
                         {
-                            label: 'Efficiency (%)',
-                            data: [baseline.eff, best.eff, 100.0],
-                            type: 'line', borderColor: '#50cd89', borderWidth: 3,
-                            pointBackgroundColor: '#1e1e2d', pointBorderColor: '#50cd89', pointBorderWidth: 2, pointRadius: 5, yAxisID: 'y1'
+                            label: "Efficiency (%)",
+                            data: [baseline.eff, selected.eff, 100.0],
+                            type: "line", borderColor: "#50cd89", borderWidth: 3,
+                            pointBackgroundColor: "#1e1e2d", pointBorderColor: "#50cd89", pointBorderWidth: 2, pointRadius: 5, yAxisID: "y1"
                         }
                     ]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } },
+                    interaction: { mode: "index", intersect: false },
+                    plugins: { legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8 } } },
                     scales: {
                         x: { grid: { display: false } },
-                        // 🌟 แก้ไขจุดที่ 5: ขยายสเกลค่าสูงสุดของแกน Y ในกราฟสรุปภาพรวมจากเดิม 120 เป็น 150 ให้สัมพันธ์กัน
-                        y: { beginAtZero: true, max: 150, title: { display: true, text: 'Productivity', color: '#a1a5b7', font: { size: 10 } }, grid: { color: '#2b2b40' } },
-                        y1: { beginAtZero: true, max: 100, position: 'right', grid: { display: false }, title: { display: true, text: 'Efficiency (%)', color: '#a1a5b7', font: { size: 10 } } }
+                        y: { beginAtZero: true, max: 150, title: { display: true, text: "Productivity", color: "#a1a5b7", font: { size: 10 } }, grid: { color: "#2b2b40" } },
+                        y1: { beginAtZero: true, max: 100, position: "right", grid: { display: false }, title: { display: true, text: "Efficiency (%)", color: "#a1a5b7", font: { size: 10 } } }
                     }
                 },
                 plugins: [{
-                    id: 'targetLineSummary',
+                    id: "targetLineSummary",
                     afterDraw: chart => {
                         const ctx = chart.ctx;
                         const yG2 = chart.scales.y.getPixelForValue(94);
-                        
-                        // 🌟 แก้ไขจุดที่ 6: ขยับตำแหน่งระนาบเส้นทึบสีแดงอ้างอิงเป้าหมายของสถานีงาน จากระดับ 106 ขึ้นไปเป็นระดับ 130
                         const yG1 = chart.scales.y.getPixelForValue(130);
                         const xAxis = chart.scales.x;
-                        
                         ctx.save();
                         ctx.beginPath(); ctx.moveTo(xAxis.left, yG2); ctx.lineTo(xAxis.right, yG2);
-                        ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(241, 65, 108, 0.6)'; ctx.setLineDash([5, 5]); ctx.stroke();
-                        
+                        ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(241, 65, 108, 0.6)"; ctx.setLineDash([5, 5]); ctx.stroke();
                         ctx.beginPath(); ctx.moveTo(xAxis.left, yG1); ctx.lineTo(xAxis.right, yG1);
-                        ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(241, 65, 108, 1)'; ctx.setLineDash([]); ctx.stroke();
+                        ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(241, 65, 108, 1)"; ctx.setLineDash([]); ctx.stroke();
                         ctx.restore();
                     }
                 }]
             });
 
-            let t1Arrange = baseline.cycle_detail ? Number(baseline.cycle_detail.arrange)||0 : 0;
-            let bestArrange = best.cycle_detail ? Number(best.cycle_detail.arrange)||0 : 0;
-            let t1Inspec = baseline.cycle_detail ? Number(baseline.cycle_detail.inspec)||0 : 0;
-            let bestInspec = best.cycle_detail ? Number(best.cycle_detail.inspec)||0 : 0;
+            const comparisonMetrics = [
+                { label: "Productivity", value: getCompareGapPercent(baseline.prod, selected.prod), color: "#009ef7" },
+                { label: "Efficiency", value: getCompareGapPercent(baseline.eff, selected.eff), color: "#50cd89" },
+                { label: "Cycle Time Reduction", value: getCompareGapPercent(baseTotalCT, selectedTotalCT, true), color: "#8b5cf6" },
+                { label: "Total Output", value: getCompareGapPercent(baseline.total, selected.total), color: "#f1416c" }
+            ];
 
-            const bottleneckChartCtx = document.getElementById('bottleneckChart').getContext('2d');
+            const comparisonChartCtx = document.getElementById("bottleneckChart").getContext("2d");
             if (bottleneckChart) bottleneckChart.destroy();
-            bottleneckChart = new Chart(bottleneckChartCtx, {
-                type: 'bar',
+            bottleneckChart = new Chart(comparisonChartCtx, {
+                type: "bar",
                 data: {
-                    labels: [`${baseLabel}`, `${bestLabel} (Best)`],
-                    datasets: [
-                        {
-                            label: 'เวลาเรียงลงบล็อค (sec)',
-                            data: [t1Arrange, bestArrange],
-                            backgroundColor: 'rgba(139, 92, 246, 0.8)', borderRadius: 4, barPercentage: 0.4
-                        },
-                        {
-                            label: 'เวลาเช็คสเปค (sec)',
-                            data: [t1Inspec, bestInspec],
-                            backgroundColor: 'rgba(241, 65, 108, 0.8)', borderRadius: 4, barPercentage: 0.4
-                        }
-                    ]
+                    labels: comparisonMetrics.map(item => item.label),
+                    datasets: [{
+                        label: "Gap % vs Baseline",
+                        data: comparisonMetrics.map(item => item.value),
+                        backgroundColor: comparisonMetrics.map(item => item.value >= 0 ? item.color : "#f1416c"),
+                        borderRadius: 8,
+                        barPercentage: 0.55,
+                        categoryPercentage: 0.7
+                    }]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }, tooltip: { mode: 'index', intersect: false } },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: "y",
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => " " + compareLabel + ": " + formatSignedPercent(ctx.raw)
+                            }
+                        }
+                    },
                     scales: {
-                        x: { grid: { display: false } },
-                        y: { beginAtZero: true, title: { display: true, text: 'เวลา (วินาที)', color: '#a1a5b7', font: { size: 10 } }, grid: { color: '#2b2b40' } }
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: "#2b2b40" },
+                            ticks: { color: "#a1a5b7", callback: value => value + "%" },
+                            title: { display: true, text: "%Gap (Positive = Better)", color: "#a1a5b7", font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { color: "#a1a5b7" }
+                        }
                     }
-                }
+                },
+                plugins: [{
+                    id: "comparisonGapZeroLine",
+                    afterDraw: chart => {
+                        const { ctx, chartArea, scales } = chart;
+                        if (!chartArea) return;
+                        const zeroX = scales.x.getPixelForValue(0);
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.moveTo(zeroX, chartArea.top);
+                        ctx.lineTo(zeroX, chartArea.bottom);
+                        ctx.lineWidth = 1;
+                        ctx.strokeStyle = "rgba(161,165,183,0.45)";
+                        ctx.setLineDash([4, 4]);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }]
             });
         }
     </script>
