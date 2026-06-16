@@ -629,10 +629,6 @@
             selectedShiftFilter = 'all';
             syncShiftFilterSelect();
             refreshShiftView();
-            syncGapComparisonSelect();
-
-            calculateExecutiveSummary(baselineKey, bestTrialKey);
-            initSummaryCharts(baselineKey, bestTrialKey);
 
             let defaultKey = getVisibleKeys().slice(-1)[0] || baselineKey || keys[keys.length - 1] || "เดิม";
             selectIteration(defaultKey); 
@@ -665,10 +661,11 @@
             return (Number(cycle.prep) || 0) + (Number(cycle.arrange) || 0) + (Number(cycle.machine) || 0) + (Number(cycle.inspec) || 0) + (Number(cycle.pack) || 0);
         }
 
-        function findBestTrialKey() {
+        function findBestTrialKey(sourceKeys) {
+            const scanKeys = Array.isArray(sourceKeys) && sourceKeys.length ? sourceKeys : keys;
             let bestKey = null;
             let bestScore = -Infinity;
-            keys.forEach(k => {
+            scanKeys.forEach(k => {
                 if (isBaselineRecord(k)) return;
                 const record = db[k];
                 if (!record) return;
@@ -683,7 +680,7 @@
                     bestKey = k;
                 }
             });
-            return bestKey || keys.find(k => !isBaselineRecord(k)) || keys[0] || "เดิม";
+            return bestKey || scanKeys.find(k => !isBaselineRecord(k)) || scanKeys[0] || "เดิม";
         }
 
         function highlightTableRow(key) {
@@ -732,14 +729,29 @@
             const shift = String(selectedShiftFilter || 'all').trim().toUpperCase();
             return keys.filter(k => {
                 if (!isSelectableTrialKey(k)) return false;
-                if (isBaselineRecord(k)) return true;
                 if (shift === 'ALL') return true;
+                if (shift === 'B') {
+                    return !isBaselineRecord(k) && getRecordShift(k) === 'B';
+                }
+                if (isBaselineRecord(k)) return true;
                 return getRecordShift(k) === shift;
             });
         }
 
+        function getSummaryBaselineKey() {
+            const visibleKeys = getVisibleKeys();
+            const shift = String(selectedShiftFilter || 'all').trim().toUpperCase();
+            if (!visibleKeys.length) return baselineKey || keys[0] || "เดิม";
+            if (shift === 'B') return visibleKeys[0];
+            return keys.find(isBaselineRecord) || visibleKeys[0] || keys[0] || "เดิม";
+        }
+
         function refreshShiftView() {
             viewKeys = getVisibleKeys();
+            bestTrialKey = findBestTrialKey(viewKeys);
+            gapComparisonKey = (viewKeys.includes(gapComparisonKey) ? gapComparisonKey : bestTrialKey);
+            const summaryBaselineKey = getSummaryBaselineKey();
+
             chartLabels = viewKeys.map(k => {
                 const trial = getTrialLabel(k);
                 return selectedShiftFilter === 'ALL' && !isBaselineRecord(k)
@@ -751,6 +763,8 @@
             renderTable();
             initCharts();
             syncGapComparisonSelect();
+            calculateExecutiveSummary(summaryBaselineKey, bestTrialKey);
+            initSummaryCharts(summaryBaselineKey, bestTrialKey);
         }
 
         function syncShiftFilterSelect() {
@@ -1020,11 +1034,16 @@
 
             if(!baseline || !best) return;
 
-            let baseLabel = baselineKey === "เดิม" ? "กระบวนการเดิม" : `Trial ${baselineKey}`;
-            document.getElementById('lbl-summary-prod').innerText = `${baseLabel} ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-eff').innerText = `${baseLabel} ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-arrange').innerText = `${baseLabel} ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-total').innerText = `${baseLabel} ➔ ครั้งที่ ${bestTrialKey} (ดีที่สุด)`;
+            const baseLabel = isBaselineRecord(baselineKey)
+                ? "กระบวนการเดิม"
+                : `Trial ${getTrialLabel(baselineKey)} / Shift ${getRecordShift(baselineKey)}`;
+            const bestLabel = isBaselineRecord(bestTrialKey)
+                ? "กระบวนการเดิม"
+                : `Trial ${getTrialLabel(bestTrialKey)} / Shift ${getRecordShift(bestTrialKey)}`;
+            document.getElementById('lbl-summary-prod').innerText = `${baseLabel} ➔ ${bestLabel} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-eff').innerText = `${baseLabel} ➔ ${bestLabel} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-arrange').innerText = `${baseLabel} ➔ ${bestLabel} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-total').innerText = `${baseLabel} ➔ ${bestLabel} (ดีที่สุด)`;
 
             // 1. Productivity
             document.getElementById('val-t1-prod').innerText = baseline.prod.toFixed(1);
@@ -1391,8 +1410,13 @@
             const baseline = db[baselineKey] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
             const best = db[bestTrialKey] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
 
-            const baseLabel = baselineKey === "เดิม" ? "กระบวนการเดิม" : `Trial ${baselineKey}`;
-            const summaryLabels = [`${baseLabel} (เริ่มต้น)`, `Trial ${bestTrialKey} (ดีที่สุด)`, 'Target (เป้าหมายสูงสุด)'];
+            const baseLabel = isBaselineRecord(baselineKey)
+                ? "กระบวนการเดิม"
+                : `Trial ${getTrialLabel(baselineKey)} / Shift ${getRecordShift(baselineKey)}`;
+            const bestLabel = isBaselineRecord(bestTrialKey)
+                ? "กระบวนการเดิม"
+                : `Trial ${getTrialLabel(bestTrialKey)} / Shift ${getRecordShift(bestTrialKey)}`;
+            const summaryLabels = [`${baseLabel} (เริ่มต้น)`, `${bestLabel} (ดีที่สุด)`, 'Target (เป้าหมายสูงสุด)'];
 
             const prodJourneyChartCtx = document.getElementById('prodJourneyChart').getContext('2d');
             if (prodJourneyChart) prodJourneyChart.destroy();
@@ -1458,7 +1482,7 @@
             bottleneckChart = new Chart(bottleneckChartCtx, {
                 type: 'bar',
                 data: {
-                    labels: [`${baseLabel}`, `Trial ${bestTrialKey} (Best)`],
+                    labels: [`${baseLabel}`, `${bestLabel} (Best)`],
                     datasets: [
                         {
                             label: 'เวลาเรียงลงบล็อค (sec)',
