@@ -930,6 +930,8 @@
             bestTrialKey = findBestTrialKey(keys);
             gapComparisonKey = bestTrialKey;
             selectedShiftFilter = 'all';
+            chartLabels = getVisibleKeys().map(k => getDisplayTitle(k));
+            chartData = getVisibleKeys().map(k => db[k] ? Number(db[k].prod) || 0 : 0);
             syncShiftFilterSelect();
             renderList();
             renderTable();
