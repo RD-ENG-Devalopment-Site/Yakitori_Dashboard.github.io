@@ -180,6 +180,14 @@
                                 <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
                             </svg>
                         </button>
+                        <div class="mt-3 space-y-2">
+                            <label for="shiftFilterSelect" class="block text-[11px] font-bold uppercase tracking-wider text-[#a1a5b7]">Shift Filter</label>
+                            <select id="shiftFilterSelect" class="w-full px-4 py-3 bg-[#151521] border border-[#323248] text-white rounded-lg hover:bg-[#2b2b40] transition" onchange="setShiftFilter(this.value)">
+                                <option value="all">All Shift</option>
+                                <option value="A">Shift A</option>
+                                <option value="B">Shift B</option>
+                            </select>
+                        </div>
                         <div id="iterDropdown" class="absolute top-full left-0 right-0 mt-2 bg-[#1e1e2d] border border-[#323248] rounded-lg shadow-2xl z-50">
                             <div id="dropdownList" class="p-2 grid grid-cols-2 gap-2"></div>
                         </div>
@@ -386,10 +394,14 @@
 
             <div class="grid grid-cols-1 gap-6 mb-8">
                 <div class="bg-card rounded-xl border border-[#323248] shadow-lg overflow-hidden flex flex-col">
-                    <div class="p-5 border-b border-[#323248] bg-[#1a1d27] flex justify-between items-center">
+                    <div class="p-5 border-b border-[#323248] bg-[#1a1d27] flex justify-between items-start gap-4">
                         <div>
                             <h3 class="text-white font-bold text-sm">วิเคราะห์ระยะห่างเป้าหมายสายงาน (Gap Analysis)</h3>
                             <p class="text-xs text-[#a1a5b7] mt-1">เปรียบเทียบกระบวนการทดลองรอบแรก และรอบที่คุณเลือกปัจจุบันเทียบกับเป้าหมายแต่ละสายงาน</p>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <span class="text-[11px] uppercase tracking-[0.2em] text-[#8b5cf6] font-bold">Compare</span>
+                            <select id="gapComparisonSelect" onchange="setGapComparison(this.value)" class="bg-[#151521] border border-[#323248] text-white text-sm rounded-lg px-3 py-2 outline-none focus:border-[#8b5cf6] min-w-[190px]"></select>
                         </div>
                     </div>
                     <div class="overflow-x-auto flex-1">
@@ -822,6 +834,375 @@
                 const bgColors4 = new Array(chartLabels.length).fill('rgba(241, 65, 108, 0.3)');
                 const bgColors5 = new Array(chartLabels.length).fill('rgba(80, 205, 137, 0.3)');
 
+                if (selectedDataIndex !== -1) {
+                    bgColors1[selectedDataIndex] = 'rgba(0, 158, 247, 0.9)';
+                    bgColors2[selectedDataIndex] = 'rgba(139, 92, 246, 0.9)';
+                    bgColors3[selectedDataIndex] = 'rgba(255, 199, 0, 0.9)';
+                    bgColors4[selectedDataIndex] = 'rgba(241, 65, 108, 0.9)';
+                    bgColors5[selectedDataIndex] = 'rgba(80, 205, 137, 0.9)';
+                }
+                cycleChart.data.datasets[0].backgroundColor = bgColors1;
+                cycleChart.data.datasets[1].backgroundColor = bgColors2;
+                cycleChart.data.datasets[2].backgroundColor = bgColors3;
+                cycleChart.data.datasets[3].backgroundColor = bgColors4;
+                cycleChart.data.datasets[4].backgroundColor = bgColors5;
+                cycleChart.update();
+            }
+
+            highlightTableRow(key);
+            if (isOpen) toggleDropdown();
+        }
+
+        let selectedShiftFilter = 'all';
+        let gapComparisonKey = '';
+
+        function getTrialLabel(key) {
+            const record = db[key] || {};
+            return String(record.trial || String(key || '').split('__')[0]).trim();
+        }
+
+        function getRecordShift(key) {
+            return String((db[key] && db[key].shift) || String(key || '').split('__')[1] || 'A').trim().toUpperCase();
+        }
+
+        function getDisplayTitle(key) {
+            const trial = getTrialLabel(key);
+            const shift = getRecordShift(key);
+            return trial ? `รอบที่ ${trial} / Shift ${shift}` : String(key || '');
+        }
+
+        function getVisibleKeys() {
+            const shift = String(selectedShiftFilter || 'all').trim().toUpperCase();
+            return keys.filter(k => {
+                if (shift === 'ALL') return true;
+                if (shift === 'A' || shift === 'B') return getRecordShift(k) === shift;
+                return true;
+            });
+        }
+
+        function setShiftFilter(shift) {
+            selectedShiftFilter = String(shift || 'all').trim().toLowerCase();
+            renderList();
+            renderTable();
+            calculateExecutiveSummary();
+            renderExecutiveGapTable();
+        }
+
+        function setGapComparison(key) {
+            gapComparisonKey = key;
+            renderExecutiveGapTable();
+        }
+
+        function findBestTrialKey(sourceKeys) {
+            const scanKeys = Array.isArray(sourceKeys) && sourceKeys.length ? sourceKeys : keys;
+            let bestKey = null;
+            let bestProd = -Infinity;
+            scanKeys.forEach(k => {
+                const record = db[k];
+                if (!record) return;
+                const prod = Number(record.prod) || 0;
+                if (prod > bestProd) {
+                    bestProd = prod;
+                    bestKey = k;
+                }
+            });
+            return bestKey || scanKeys[0] || '';
+        }
+
+        function syncShiftFilterSelect() {
+            const select = document.getElementById('shiftFilterSelect');
+            if (select && select.value !== selectedShiftFilter) {
+                select.value = selectedShiftFilter;
+            }
+        }
+
+        function initializeDashboardFromSheets() {
+            const allSheetKeys = Object.keys(db).filter(k => String(k || '').trim() !== '' && !String(k || '').startsWith('_'));
+            allSheetKeys.sort((a, b) => {
+                const aTrial = getTrialLabel(a);
+                const bTrial = getTrialLabel(b);
+                const nA = Number(aTrial);
+                const nB = Number(bTrial);
+                if (Number.isFinite(nA) && Number.isFinite(nB)) return nA - nB;
+                return aTrial.localeCompare(bTrial, 'th', { numeric: true }) || getRecordShift(a).localeCompare(getRecordShift(b));
+            });
+            keys = [...allSheetKeys];
+            bestTrialKey = findBestTrialKey(keys);
+            gapComparisonKey = bestTrialKey;
+            selectedShiftFilter = 'all';
+            syncShiftFilterSelect();
+            renderList();
+            renderTable();
+            calculateExecutiveSummary();
+            renderExecutiveGapTable();
+            initCharts();
+            initSummaryCharts();
+
+            const defaultKey = getVisibleKeys().slice(-1)[0] || keys[keys.length - 1] || '';
+            if (defaultKey) selectIteration(defaultKey);
+        }
+
+        function renderList() {
+            const listContainer = document.getElementById('dropdownList');
+            const visibleKeys = getVisibleKeys();
+            let html = '';
+            visibleKeys.forEach(k => {
+                let text = getDisplayTitle(k);
+                if (k === bestTrialKey) text += ' 🏆 (Best)';
+                html += `<button onclick="selectIteration('${k}')" class="w-full text-center px-2 py-2 rounded text-xs font-medium border border-[#323248] text-[#a1a5b7] hover:bg-[#323248] hover:text-white transition">${text}</button>`;
+            });
+            listContainer.innerHTML = html || '<div class="col-span-2 text-center text-xs text-[#6b7280] py-3">ไม่มีข้อมูล</div>';
+        }
+
+        function updateGapAnalysis(key, currentData) {
+            const tbody = document.getElementById('gapTableBody');
+            if (!tbody) return;
+            const headerEl = document.getElementById('gap-header-selected');
+            if (headerEl) headerEl.innerText = getDisplayTitle(key);
+
+            const cycle = currentData.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
+            const steps = [
+                { name: '1. เตรียม (RM)', actual: actualBaseline.prep, current: cycle.prep },
+                { name: '2. เรียงเนื้อลงบล็อค', actual: actualBaseline.arrange, current: cycle.arrange },
+                { name: '3. การเข้าเครื่องเสียบ', actual: actualBaseline.machine, current: cycle.machine },
+                { name: '4. การเช็คสเปค', actual: actualBaseline.inspec, current: cycle.inspec },
+                { name: '5. การ Packing', actual: actualBaseline.pack, current: cycle.pack }
+            ];
+
+            let html = '';
+            let totalActual = 0;
+            let totalCurrent = 0;
+            steps.forEach(step => {
+                const currentVal = Number(step.current) || 0;
+                totalActual += step.actual;
+                totalCurrent += currentVal;
+                const gap = currentVal - step.actual;
+                const percent = step.actual > 0 ? (gap / step.actual) * 100 : 0;
+                const gapColor = gap > 0 ? 'text-[#f1416c]' : (gap < 0 ? 'text-[#50cd89]' : 'text-[#a1a5b7]');
+                html += `<tr class="hover:bg-[#2b2b40] transition duration-150 text-center">
+                    <td class="p-4 text-white text-left pl-6">${step.name}</td>
+                    <td class="p-4 text-[#009ef7]">${formatVal(step.actual)}</td>
+                    <td class="p-4 text-white">${formatVal(currentVal)}</td>
+                    <td class="p-4 font-bold ${gapColor}">${gap > 0 ? '+' : ''}${formatVal(gap)}</td>
+                    <td class="p-4 font-bold ${gapColor}">${gap > 0 ? '+' : ''}${formatVal(percent)}%</td>
+                </tr>`;
+            });
+
+            const totalGap = totalCurrent - totalActual;
+            const totalPercent = totalActual > 0 ? (totalGap / totalActual) * 100 : 0;
+            html += `<tr class="bg-[#1e1e2d] text-center border-t-2 border-[#323248]">
+                <td class="p-4 font-bold text-white text-right">ระยะเวลารวม (TOTAL CT)</td>
+                <td class="p-4 font-bold text-[#009ef7]">${formatVal(totalActual)}</td>
+                <td class="p-4 font-bold text-white">${formatVal(totalCurrent)}</td>
+                <td class="p-4 font-bold ${totalGap > 0 ? 'text-[#f1416c]' : 'text-[#50cd89]'}">${totalGap > 0 ? '+' : ''}${formatVal(totalGap)}</td>
+                <td class="p-4 font-bold ${totalGap > 0 ? 'text-[#f1416c]' : 'text-[#50cd89]'}">${totalGap > 0 ? '+' : ''}${formatVal(totalPercent)}%</td>
+            </tr>`;
+            tbody.innerHTML = html;
+        }
+
+        function renderTable() {
+            const tableBody = document.getElementById('tableBody');
+            const visibleKeys = getVisibleKeys();
+            let html = '';
+            visibleKeys.forEach(k => {
+                const d = db[k];
+                if (!d) return;
+                const cycle = d.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
+                const layout = d.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 };
+                const totalCt = (Number(cycle.prep) || 0) + (Number(cycle.arrange) || 0) + (Number(cycle.machine) || 0) + (Number(cycle.inspec) || 0) + (Number(cycle.pack) || 0);
+                html += `<tr id="row-${k}" class="hover:bg-[#2b2b40] transition duration-150 cursor-pointer text-center" onclick="selectIteration('${k}')">
+                    <td class="p-3 font-medium text-white sticky left-0 bg-[#1e1e2d] border-r border-[#323248] text-left">${getDisplayTitle(k)} ${k===bestTrialKey?'⭐ (Best)':''}</td>
+                    <td class="p-3 text-[#50cd89] font-bold">${(d.prod || 0).toFixed(1)}</td>
+                    <td class="p-3">${(d.eff || 0).toFixed(2)}%</td>
+                    <td class="p-3 border-l border-[#323248] text-[#009ef7]">${formatVal(cycle.prep)}</td>
+                    <td class="p-3 text-[#8b5cf6] font-bold">${formatVal(cycle.arrange)}</td>
+                    <td class="p-3 text-[#ffc700]">${formatVal(cycle.machine)}</td>
+                    <td class="p-3 text-[#f1416c]">${formatVal(cycle.inspec)}</td>
+                    <td class="p-3 text-[#50cd89]">${formatVal(cycle.pack)}</td>
+                    <td class="p-3 bg-[#2b2b40] font-bold text-white border-l border-[#323248]">${formatVal(totalCt)}</td>
+                    <td class="p-3 bg-[#2b2b40] font-bold text-[#009ef7]">${(d.total || 0).toLocaleString()}</td>
+                    <td class="p-3 border-l border-[#323248] font-bold">${d.man || 0}</td>
+                    <td class="p-3 text-[#a1a5b7]">${layout.prep}</td>
+                    <td class="p-3 text-[#a1a5b7]">${layout.block}</td>
+                    <td class="p-3 text-[#a1a5b7]">${layout.inspec}</td>
+                    <td class="p-3 text-[#a1a5b7]">${layout.pack}</td>
+                    <td class="p-3 text-[#a1a5b7]">${layout.op}</td>
+                </tr>`;
+            });
+            tableBody.innerHTML = html || '<tr><td colspan="16" class="p-6 text-center text-[#6b7280]">ไม่มีข้อมูล</td></tr>';
+        }
+
+        function calculateExecutiveSummary() {
+            const visibleKeys = getVisibleKeys();
+            if (visibleKeys.length === 0) return;
+            const firstKey = visibleKeys[0];
+            const baseline = db[firstKey];
+            const bestKey = findBestTrialKey(visibleKeys);
+            const best = db[bestKey];
+            if (!baseline || !best) return;
+
+            bestTrialKey = bestKey;
+            if (!gapComparisonKey || !visibleKeys.includes(gapComparisonKey)) {
+                gapComparisonKey = bestKey;
+            }
+
+            document.getElementById('lbl-summary-prod').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestKey)} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-eff').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestKey)} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-arrange').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestKey)} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-total').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestKey)} (ดีที่สุด)`;
+
+            document.getElementById('val-t1-prod').innerText = baseline.prod.toFixed(1);
+            document.getElementById('val-best-prod').innerText = best.prod.toFixed(1);
+            const pGrowth = baseline.prod > 0 ? ((best.prod - baseline.prod) / baseline.prod) * 100 : 0;
+            document.getElementById('growth-prod').innerText = `${pGrowth >= 0 ? '+' : ''}${pGrowth.toFixed(1)}%`;
+
+            document.getElementById('val-t1-eff').innerText = baseline.eff.toFixed(2);
+            document.getElementById('val-best-eff').innerText = best.eff.toFixed(2);
+            const eGrowth = baseline.eff > 0 ? ((best.eff - baseline.eff) / baseline.eff) * 100 : 0;
+            document.getElementById('growth-eff').innerText = `${eGrowth >= 0 ? '+' : ''}${eGrowth.toFixed(1)}%`;
+
+            const baseArrange = baseline.cycle_detail ? baseline.cycle_detail.arrange : 0;
+            const bestArrange = best.cycle_detail ? best.cycle_detail.arrange : 0;
+            document.getElementById('val-t1-arrange').innerText = baseArrange.toFixed(2);
+            document.getElementById('val-best-arrange').innerText = bestArrange.toFixed(2);
+            const aReduction = baseArrange > 0 ? (((baseArrange - bestArrange) / baseArrange) * 100) : 0;
+            document.getElementById('growth-arrange').innerText = `-${aReduction.toFixed(1)}%`;
+
+            document.getElementById('val-t1-total').innerText = baseline.total.toLocaleString();
+            document.getElementById('val-best-total').innerText = best.total.toLocaleString();
+            document.getElementById('growth-total').innerText = `+${(best.total - baseline.total).toLocaleString()}`;
+        }
+
+        function renderExecutiveGapTable() {
+            const tableBody = document.getElementById('executiveGapTableBody');
+            const visibleKeys = getVisibleKeys();
+            if (visibleKeys.length === 0) return;
+            const baseline = db[visibleKeys[0]];
+            if (!baseline) return;
+
+            document.getElementById('gap-header-t1').innerText = getDisplayTitle(visibleKeys[0]);
+
+            const compareKeys = visibleKeys.filter(k => k !== visibleKeys[0]);
+            const compareSelect = document.getElementById('gapComparisonSelect');
+            const fallbackKey = compareKeys[compareKeys.length - 1] || visibleKeys[visibleKeys.length - 1] || visibleKeys[0];
+            if (!gapComparisonKey || !compareKeys.includes(gapComparisonKey)) {
+                gapComparisonKey = fallbackKey;
+            }
+            if (compareSelect) {
+                compareSelect.innerHTML = compareKeys.map(k => `<option value="${k}">${getDisplayTitle(k)}</option>`).join('');
+                compareSelect.value = gapComparisonKey;
+            }
+
+            const compareRecord = db[gapComparisonKey] || db[fallbackKey] || baseline;
+            document.getElementById('gap-dyn-header').innerText = getDisplayTitle(gapComparisonKey || fallbackKey);
+
+            const rowsData = [
+                { name: 'G1 (สูงสุด)', target: 69, id: 'g1' },
+                { name: 'G2', target: 58, id: 'g2' },
+                { name: 'G3', target: 54, id: 'g3' },
+                { name: 'G4', target: 46, id: 'bb_ref', isRef: true },
+                { name: 'Other', target: 24, id: 'swp_ref', isRef: true },
+            ];
+
+            let html = '';
+            rowsData.forEach(row => {
+                const baselineProd = baseline.prod || 0;
+                const compareProd = compareRecord.prod || 0;
+                html += `<tr class="hover:bg-[#2b2b40] transition duration-150">
+                    <td class="p-3 text-white font-medium pl-4">${row.name}</td>
+                    <td class="p-3 text-center font-en text-white font-bold">${row.target}</td>`;
+
+                if (!row.isRef) {
+                    const baseDiff = row.target - baselineProd;
+                    const compareDiff = row.target - compareProd;
+                    html += `
+                        <td class="p-3 text-center font-en font-bold text-[#009ef7] bg-[rgba(0,158,247,0.05)]">${baselineProd.toFixed(1)}</td>
+                        <td class="p-3 text-center font-en font-bold ${baseDiff<=0?'text-[#50cd89]':'text-[#f1416c]'}">${baseDiff<=0?'':'+'}${baseDiff.toFixed(1)}</td>
+                        <td class="p-3 text-center font-en font-bold ${baseDiff<=0?'text-[#50cd89]':'text-[#f1416c]'}">${baseDiff<=0?'ทะลุเป้า':((baseDiff/row.target)*100).toFixed(1)+'%'}</td>
+                        <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]">${compareProd.toFixed(1)}</td>
+                        <td class="p-3 text-center font-en font-bold ${compareDiff<=0?'text-[#50cd89]':'text-[#f1416c]'}">${compareDiff<=0?'':'+'}${compareDiff.toFixed(1)}</td>
+                        <td class="p-3 text-center font-en font-bold ${compareDiff<=0?'text-[#50cd89]':'text-[#f1416c]'}">${compareDiff<=0?'ทะลุเป้า':((compareDiff/row.target)*100).toFixed(1)+'%'}</td>
+                    `;
+                } else {
+                    const baseDiff = baselineProd - row.target;
+                    const compareDiff = compareProd - row.target;
+                    html += `
+                        <td class="p-3 text-center font-en bg-[rgba(0,158,247,0.05)]">${baselineProd.toFixed(1)}</td>
+                        <td colspan="2" class="p-3 text-center text-[11px] ${baseDiff>=0?'text-[#50cd89]':'text-[#f1416c]'}">${baseDiff>=0?'สูงกว่าสายงานนี้ +':'ต่ำกว่าสายงานนี้ '}${baseDiff.toFixed(1)}</td>
+                        <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]">${compareProd.toFixed(1)}</td>
+                        <td colspan="2" class="p-3 text-center text-[11px] ${compareDiff>=0?'text-[#50cd89]':'text-[#f1416c]'}">${compareDiff>=0?'สูงกว่าสายงานนี้ +':'ต่ำกว่าสายงานนี้ '}${compareDiff.toFixed(1)}</td>
+                    `;
+                }
+                html += `</tr>`;
+            });
+            tableBody.innerHTML = html;
+        }
+
+        function selectIteration(key) {
+            const data = db[key];
+            if(!data) return;
+            selectedDataIndex = keys.indexOf(key);
+
+            document.getElementById('selectedIterText').innerText = getDisplayTitle(key);
+            document.getElementById('header-selected-round').innerText = `(${getDisplayTitle(key)})`;
+            document.getElementById('header-man-round').innerText = `(${getDisplayTitle(key)})`;
+
+            const totalOutput = data.total || 0;
+            const totalMan = data.man || 0;
+            document.getElementById('header-current-yield').innerHTML = `${totalOutput.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
+            document.getElementById('header-current-man').innerHTML = `${totalMan} <span class="text-xs font-normal text-[#6b7280]">คน</span>`;
+
+            const cycle = data.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
+            const layout = data.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 };
+            const m_prep = Number(cycle.prep) || 0;
+            const m_arrange = Number(cycle.arrange) || 0;
+            const m_machine = Number(cycle.machine) || 0;
+            const m_inspec = Number(cycle.inspec) || 0;
+            const m_pack = Number(cycle.pack) || 0;
+            const total_ct = m_prep + m_arrange + m_machine + m_inspec + m_pack;
+
+            const kpiProdEl = document.getElementById('kpi-prod');
+            kpiProdEl.innerText = (data.prod || 0).toFixed(1);
+            kpiProdEl.style.color = data.prod >= targetProductivity ? '#50cd89' : '#f1416c';
+
+            document.getElementById('kpi-eff').innerText = (data.eff || 0).toFixed(2) + '%';
+            document.getElementById('kpi-cycle').innerHTML = `${formatVal(total_ct)} <span class="text-lg font-normal text-[#a1a5b7]">Sec</span>`;
+            document.getElementById('kpi-total').innerText = totalOutput.toLocaleString();
+            document.getElementById('kpi-man').innerText = totalMan;
+            document.getElementById('man-prep').innerText = layout.prep;
+            document.getElementById('man-block').innerText = layout.block;
+            document.getElementById('man-inspec').innerText = layout.inspec;
+            document.getElementById('man-pack').innerText = layout.pack;
+            document.getElementById('man-op').innerText = layout.op;
+
+            document.getElementById('ct-prep').innerText = formatVal(m_prep);
+            document.getElementById('ct-arrange').innerText = formatVal(m_arrange);
+            document.getElementById('ct-machine').innerText = formatVal(m_machine);
+            document.getElementById('ct-inspec').innerText = formatVal(m_inspec);
+            document.getElementById('ct-pack').innerText = formatVal(m_pack);
+            document.getElementById('ct-total').innerText = formatVal(total_ct);
+            document.getElementById('ct-yield').innerText = totalOutput.toLocaleString();
+
+            updateGapAnalysis(key, data);
+            if (gapComparisonKey) {
+                document.getElementById('gap-dyn-header').innerText = getDisplayTitle(gapComparisonKey);
+            }
+
+            if (trendChart) {
+                const pRadii = new Array(chartLabels.length).fill(3);
+                const pColors = new Array(chartLabels.length).fill('#1e1e2d');
+                if (selectedDataIndex !== -1) { pRadii[selectedDataIndex] = 8; pColors[selectedDataIndex] = '#50cd89'; }
+                trendChart.data.datasets[0].pointRadius = pRadii;
+                trendChart.data.datasets[0].pointBorderColor = pColors;
+                trendChart.update();
+            }
+
+            if (cycleChart) {
+                const bgColors1 = new Array(chartLabels.length).fill('rgba(0, 158, 247, 0.3)');
+                const bgColors2 = new Array(chartLabels.length).fill('rgba(139, 92, 246, 0.3)');
+                const bgColors3 = new Array(chartLabels.length).fill('rgba(255, 199, 0, 0.3)');
+                const bgColors4 = new Array(chartLabels.length).fill('rgba(241, 65, 108, 0.3)');
+                const bgColors5 = new Array(chartLabels.length).fill('rgba(80, 205, 137, 0.3)');
                 if (selectedDataIndex !== -1) {
                     bgColors1[selectedDataIndex] = 'rgba(0, 158, 247, 0.9)';
                     bgColors2[selectedDataIndex] = 'rgba(139, 92, 246, 0.9)';

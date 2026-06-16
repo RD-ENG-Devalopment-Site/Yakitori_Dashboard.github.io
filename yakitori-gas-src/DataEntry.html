@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APEX Flow Data Entry System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #151521;
+            color: #a1a5b7;
+        }
+        .bg-card { background-color: #1e1e2d; }
+        .input-dark {
+            background-color: #151521;
+            border: 1px solid #323248;
+            color: #fff;
+        }
+        .input-dark:focus {
+            border-color: #009ef7;
+            outline: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 flex justify-center items-center">
+
+    <div id="loginSection" class="w-full max-w-md bg-card rounded-xl p-6 shadow-2xl border border-[#323248]">
+        <div class="text-center mb-6">
+            <h2 class="text-xl font-bold text-white mb-2">ระบบป้องกันการเข้าถึง</h2>
+            <p class="text-xs text-[#a1a5b7]">สิทธิ์ผู้ใช้งานเพื่อเข้าถึงระบบ Data Entry</p>
+        </div>
+
+        <form onsubmit="checkLogin(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-white mb-1.5">Username</label>
+                <input type="text" id="loginUser" required class="w-full px-3 py-2 rounded-lg input-dark text-sm" placeholder="ระบุชื่อผู้ใช้งาน">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-white mb-1.5">Password</label>
+                <input type="password" id="loginPass" required class="w-full px-3 py-2 rounded-lg input-dark text-sm" placeholder="ระบุรหัสผ่าน">
+            </div>
+
+            <div id="loginError" class="hidden text-xs text-[#f1416c] font-semibold text-center bg-[#f1416c]/10 py-2 rounded-lg border border-[#f1416c]/20">
+                Username หรือ Password ไม่ถูกต้อง!
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" class="w-full py-2.5 bg-[#009ef7] hover:bg-[#0086d1] text-white font-bold rounded-lg shadow-lg transition duration-150 text-sm">
+                    Login
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div id="mainContent" class="hidden w-full max-w-2xl bg-card rounded-xl p-6 shadow-2xl border border-[#323248]">
+        
+        <header class="mb-6 border-b border-[#323248] pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-white mb-1">ระบบบันทึกข้อมูล (Data Entry)</h1>
+                <p class="text-xs text-[#009ef7]">[Project APEX Flow - การปรับปรุงกระบวนการผลิต]</p>
+            </div>
+            <div class="w-full md:w-auto">
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-[#a1a5b7] mb-1">Target Datalog</label>
+                <select name="targetSheet" id="targetSheet" form="dataForm" class="w-full md:w-48 px-3 py-1.5 rounded-lg input-dark font-bold text-[#50cd89] text-xs cursor-pointer">
+                    <option value="BL23gR15_DataLog">BL23gR15_DataLog</option>
+                    <option value="GZ30gR15_DataLog">GZ30gR15_DataLog</option>
+                    <option value="GZ40gS18_DataLog">GZ40gS18_DataLog</option>
+                </select>
+            </div>
+            <div class="w-full md:w-auto">
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-[#a1a5b7] mb-1">Shift</label>
+                <select name="shift" id="shift" form="dataForm" class="w-full md:w-32 px-3 py-1.5 rounded-lg input-dark font-bold text-[#8b5cf6] text-xs cursor-pointer">
+                    <option value="A">Shift A</option>
+                    <option value="B">Shift B</option>
+                </select>
+            </div>
+        </header>
+
+        <form id="dataForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
+            
+            <div class="grid grid-cols-1 gap-4 bg-[#151521] p-4 rounded-lg border border-[#323248]">
+                <div>
+                    <label class="block text-sm font-semibold text-white mb-2">รอบการปรับปรุง / ครั้งที่ (Trial Number)</label>
+                    <input type="text" name="trial" id="trial" required class="w-full px-4 py-2 rounded-lg input-dark font-bold text-[#009ef7]" placeholder="ระบุเฉพาะตัวเลขรอบการทดลอง เช่น: 1, 2, 3">
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-[#8b5cf6] text-sm font-bold mb-3 uppercase tracking-wider">ข้อมูลเวลา (CYCLE TIME) - วินาที</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs mb-1">1. เตรียม RM</label>
+                        <input type="number" step="0.01" name="ct_prep" id="ct_prep" value="0.00" oninput="calculateMetrics()" class="w-full px-3 py-2 rounded input-dark">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">2. เรียงเนื้อ (คอขวด)</label>
+                        <input type="number" step="0.01" name="ct_arrange" id="ct_arrange" value="35.22" oninput="calculateMetrics()" class="w-full px-3 py-2 rounded input-dark font-semibold text-[#8b5cf6]">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">3. เข้าเครื่อง</label>
+                        <input type="number" step="0.01" name="ct_machine" id="ct_machine" value="3.50" oninput="calculateMetrics()" class="w-full px-3 py-2 rounded input-dark">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">4. เช็คสเปค</label>
+                        <input type="number" step="0.01" name="ct_inspec" id="ct_inspec" value="25.00" oninput="calculateMetrics()" class="w-full px-3 py-2 rounded input-dark">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">5. PACKING</label>
+                        <input type="number" step="0.01" name="ct_pack" id="ct_pack" value="20.00" oninput="calculateMetrics()" class="w-full px-3 py-2 rounded input-dark">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-[#009ef7] text-sm font-bold mb-3 uppercase tracking-wider border-t border-[#323248] pt-4">ข้อมูลกำลังคน (MANPOWER LAYOUT) - คน</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs mb-1">พนักงานเตรียม RM</label>
+                        <input type="number" name="man_prep" id="man_prep" value="4" oninput="calculateMetrics()" class="w-full px-3 py-2 rounded input-dark">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">พนักงานเรียงลงบล็อค</label>
+                        <input type="number" name="man_block" id="man_block" value="8" oninput="calculateMetrics()" class="w-full px-3 py-2 rounded input-dark">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">พนักงาน inspec</label>
+                        <input type="number" name="man_inspec" id="man_inspec" value="3" oninput="calculateMetrics()" class="w-full px-3 py-2 rounded input-dark">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">พนักงานแพ็ค</label>
+                        <input type="number" name="man_pack" id="man_pack" value="2" oninput="calculateMetrics()" class="w-full px-3 py-2 rounded input-dark">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">พนักงาน Machine Op</label>
+                        <input type="number" name="man_op" id="man_op" value="0" oninput="calculateMetrics()" class="w-full px-3 py-2 rounded input-dark">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#151521] p-4 rounded-lg border border-[#323248] grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                    <span class="block text-[11px] font-bold uppercase">Total CT (วิ)</span>
+                    <span id="lbl_total_ct" class="text-xl font-bold text-white">83.72</span>
+                    <input type="hidden" name="ct_total" id="ct_total" value="83.72">
+                </div>
+                <div>
+                    <span class="block text-[11px] font-bold uppercase text-[#009ef7]">ยอดผลิต (ไม้/ชม.)</span>
+                    <span id="lbl_yield_hour" class="text-xl font-bold text-[#009ef7]">731</span>
+                    <input type="hidden" name="yield_hour" id="yield_hour" value="731">
+                </div>
+                <div>
+                    <span class="block text-[11px] font-bold uppercase text-[#8b5cf6]">รวมผู้ปฏิบัติงาน</span>
+                    <span id="lbl_man_total" class="text-xl font-bold text-[#8b5cf6]">17</span>
+                    <input type="hidden" name="man_total" id="man_total" value="17">
+                </div>
+                <div>
+                    <span class="block text-[11px] font-bold uppercase text-[#50cd89]">Productivity</span>
+                    <span id="lbl_productivity" class="text-xl font-bold text-[#50cd89]">43.0</span>
+                    <input type="hidden" name="productivity" id="productivity" value="43.0">
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" id="submitBtn" class="w-full py-3 bg-[#009ef7] hover:bg-[#0086d1] text-white font-bold rounded-lg shadow-lg transition duration-150">
+                    บันทึกข้อมูลเข้า Google Sheets
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const SECURE_USER = "Admin_2026";
+        const SECURE_PASS = "Apex2026";
+
+        function isBl23gSheet() {
+            return String(document.getElementById('targetSheet')?.value || '').trim() === 'BL23gR15_DataLog';
+        }
+
+        function syncShiftRule() {
+            const shiftSelect = document.getElementById('shift');
+            if (!shiftSelect) return;
+            shiftSelect.disabled = false;
+        }
+
+        function checkLogin(event) {
+            event.preventDefault();
+            const userInput = document.getElementById('loginUser').value;
+            const passInput = document.getElementById('loginPass').value;
+            const errorBanner = document.getElementById('loginError');
+            
+            const loginSection = document.getElementById('loginSection');
+            const mainContent = document.getElementById('mainContent');
+
+            if (userInput === SECURE_USER && passInput === SECURE_PASS) {
+                loginSection.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+                errorBanner.classList.add('hidden');
+                syncShiftRule();
+                calculateMetrics();
+            } else {
+                errorBanner.classList.remove('hidden');
+            }
+        }
+
+        function calculateMetrics() {
+            const prep = parseFloat(document.getElementById('ct_prep').value) || 0;
+            const arrange = parseFloat(document.getElementById('ct_arrange').value) || 0;
+            const machine = parseFloat(document.getElementById('ct_machine').value) || 0;
+            const inspec = parseFloat(document.getElementById('ct_inspec').value) || 0;
+            const pack = parseFloat(document.getElementById('ct_pack').value) || 0;
+
+            const m_prep = parseInt(document.getElementById('man_prep').value) || 0;
+            const m_block = parseInt(document.getElementById('man_block').value) || 0;
+            const m_inspec = parseInt(document.getElementById('man_inspec').value) || 0;
+            const m_pack = parseInt(document.getElementById('man_pack').value) || 0;
+            const m_op = parseInt(document.getElementById('man_op').value) || 0;
+
+            const totalCT = prep + arrange + machine + inspec + pack;
+            document.getElementById('lbl_total_ct').innerText = totalCT.toFixed(2);
+            document.getElementById('ct_total').value = totalCT.toFixed(2);
+
+            const totalMan = m_prep + m_block + m_inspec + m_pack + m_op;
+            document.getElementById('lbl_man_total').innerText = totalMan;
+            document.getElementById('man_total').value = totalMan;
+
+            let yieldHour = 0;
+            if (totalCT > 0) {
+                yieldHour = Math.round((3600 / totalCT) * totalMan);
+            }
+            document.getElementById('lbl_yield_hour').innerText = yieldHour.toLocaleString();
+            document.getElementById('yield_hour').value = yieldHour;
+
+            let productivity = 0;
+            if (totalMan > 0) {
+                productivity = parseFloat((yieldHour / totalMan).toFixed(1));
+            }
+            document.getElementById('lbl_productivity').innerText = productivity.toFixed(1);
+            document.getElementById('productivity').value = productivity.toFixed(1);
+        }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerText = 'กำลังส่งข้อมูลเข้า Sheets...';
+            btn.className = "w-full py-3 bg-[#323248] text-[#a1a5b7] font-bold rounded-lg cursor-not-allowed";
+
+            const form = document.getElementById('dataForm');
+            const formData = {
+                targetSheet: document.getElementById('targetSheet').value, 
+                shift: document.getElementById('shift').value,
+                trial: form.trial.value,
+                ct_prep: form.ct_prep.value,
+                ct_arrange: form.ct_arrange.value,
+                ct_machine: form.ct_machine.value,
+                ct_inspec: form.ct_inspec.value,
+                ct_pack: form.ct_pack.value,
+                ct_total: form.ct_total.value,
+                yield_hour: form.yield_hour.value,
+                man_total: form.man_total.value,
+                man_prep: form.man_prep.value,
+                man_block: form.man_block.value,
+                man_inspec: form.man_inspec.value,
+                man_pack: form.man_pack.value,
+                man_op: form.man_op.value,
+                productivity: form.productivity.value
+            };
+
+            google.script.run
+                .withSuccessHandler(function(response) {
+                    alert(response.message);
+                    form.trial.value = ""; 
+                    btn.disabled = false;
+                    btn.innerText = 'บันทึกข้อมูลเข้า Google Sheets';
+                    btn.className = "w-full py-3 bg-[#009ef7] hover:bg-[#0086d1] text-white font-bold rounded-lg shadow-lg transition duration-150";
+                })
+                .withFailureHandler(function(err) {
+                    alert('เกิดข้อผิดพลาด: ' + err);
+                    btn.disabled = false;
+                    btn.innerText = 'ลองใหม่อีกครั้ง';
+                    btn.className = "w-full py-3 bg-[#f1416c] text-white font-bold rounded-lg shadow-lg";
+                })
+                .saveData(formData);
+        }
+
+        document.getElementById('targetSheet').addEventListener('change', syncShiftRule);
+        syncShiftRule();
+    </script>
+</body>
+</html>
