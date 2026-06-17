@@ -33,6 +33,10 @@ function doPost(e) {
       return jsonOutput_(createGz40gShiftBSheet());
     }
 
+    if (action === "reset_gizzard_data") {
+      return jsonOutput_(resetGizzardDataSheets_());
+    }
+
     return jsonOutput_({
       status: "error",
       message: "Unknown action: " + action
@@ -102,6 +106,17 @@ function ensureShiftBSheetCopy_(ss, sourceSheetName, shiftBSheetName) {
   return sheet;
 }
 
+function clearSheetDataRows_(sheet) {
+  if (!sheet) return 0;
+
+  var lastRow = sheet.getLastRow();
+  var lastCol = sheet.getLastColumn();
+  if (lastRow <= 1 || lastCol <= 0) return 0;
+
+  sheet.getRange(2, 1, lastRow - 1, lastCol).clearContent();
+  return lastRow - 1;
+}
+
 function ensureBl23ShiftBSheet_(ss) {
   var sheet = ss.getSheetByName(BL23G_SHIFT_B_SHEET);
   if (sheet) return sheet;
@@ -142,6 +157,38 @@ function createGz40gShiftBSheet() {
   return {
     status: "success",
     sheet: sheet.getName()
+  };
+}
+
+function resetGizzardDataSheets_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var targets = [
+    { source: GZ30G_SOURCE_SHEET, shift: GZ30G_SHIFT_B_SHEET },
+    { source: GZ40G_SOURCE_SHEET, shift: GZ40G_SHIFT_B_SHEET }
+  ];
+
+  var cleared = [];
+  targets.forEach(function (target) {
+    var sourceSheet = ss.getSheetByName(target.source);
+    if (!sourceSheet) {
+      throw new Error("Source sheet not found: " + target.source);
+    }
+
+    var shiftSheet = ensureShiftBSheetCopy_(ss, target.source, target.shift);
+    cleared.push({
+      sheet: target.source,
+      rowsCleared: clearSheetDataRows_(sourceSheet)
+    });
+    cleared.push({
+      sheet: target.shift,
+      rowsCleared: clearSheetDataRows_(shiftSheet)
+    });
+  });
+
+  return {
+    status: "success",
+    message: "Gizzard data sheets reset to header-only templates",
+    cleared: cleared
   };
 }
 
@@ -236,43 +283,48 @@ function parseGizzardSheet_(sheet, defaultShift, db, records, lineLabel, targetP
     var trialKey = row[0] ? row[0].toString().trim() : "";
     if (trialKey === "" || trialKey === "Default" || trialKey === "เดิม") continue;
 
-    var shiftOffset = isShiftToken_(row[1]) ? 1 : 0;
-    var shift = shiftOffset ? normalizeShift_(row[1], defaultShift) : normalizeShift_(defaultShift);
-    var totalOutput = Number(row[7 + shiftOffset]) || 0;
-    var totalMan = Number(row[8 + shiftOffset]) || 0;
-    var productivity = totalMan > 0 ? (totalOutput / totalMan) : 0;
+    var hasStructuredShift = isShiftToken_(row[15]) || isShiftToken_(row[16]);
+    var hasLegacyShift = !hasStructuredShift && isShiftToken_(row[1]);
+    var shift = hasStructuredShift
+      ? normalizeShift_(row[15], defaultShift)
+      : (hasLegacyShift ? normalizeShift_(row[1], defaultShift) : normalizeShift_(defaultShift));
+    var dataOffset = hasStructuredShift ? 0 : (hasLegacyShift ? 1 : 0);
+    var totalOutput = Number(row[7 + dataOffset]) || 0;
+    var totalMan = Number(row[8 + dataOffset]) || 0;
+    var productivity = Number(row[14 + dataOffset]) || 0;
+    if (!productivity && totalMan > 0) {
+      productivity = totalOutput / totalMan;
+    }
 
     var recordKey = buildRecordKey_(trialKey, shift);
     var cycleDetail = {
-      prep: Number(row[1 + shiftOffset]) || 0,
-      arrange: Number(row[2 + shiftOffset]) || 0,
-      machine: Number(row[3 + shiftOffset]) || 0,
-      inspec: Number(row[4 + shiftOffset]) || 0,
-      pack: Number(row[5 + shiftOffset]) || 0
+      prep: Number(row[1 + dataOffset]) || 0,
+      arrange: Number(row[2 + dataOffset]) || 0,
+      machine: Number(row[3 + dataOffset]) || 0,
+      inspec: Number(row[4 + dataOffset]) || 0,
+      pack: Number(row[5 + dataOffset]) || 0
     };
     var layout = {
-      prep: Number(row[9 + shiftOffset]) || 0,
-      block: Number(row[10 + shiftOffset]) || 0,
-      inspec: Number(row[11 + shiftOffset]) || 0,
-      pack: Number(row[12 + shiftOffset]) || 0,
-      op: Number(row[13 + shiftOffset]) || 0
+      prep: Number(row[9 + dataOffset]) || 0,
+      block: Number(row[10 + dataOffset]) || 0,
+      inspec: Number(row[11 + dataOffset]) || 0,
+      pack: Number(row[12 + dataOffset]) || 0,
+      op: Number(row[13 + dataOffset]) || 0
     };
     var calculatedEff = (productivity / targetProductivity) * 100;
-    var line = row[15 + shiftOffset] ? row[15 + shiftOffset].toString().trim() : lineLabel;
-    var recordDate = row[14 + shiftOffset] ? row[14 + shiftOffset].toString().trim() : "";
-    var status = row[20 + shiftOffset] ? row[20 + shiftOffset].toString().trim() : "";
+    var line = lineLabel;
 
     db[recordKey] = {
       trial: trialKey,
-      line: line || lineLabel,
+      line: line,
       shift: shift,
       prod: Number(productivity),
       eff: Number(calculatedEff),
       man: totalMan,
       total: totalOutput,
-      recordDate: recordDate,
-      status: status,
-      ct_total: Number(row[6 + shiftOffset]) || 0,
+      recordDate: "",
+      status: "",
+      ct_total: Number(row[6 + dataOffset]) || 0,
       layout: layout,
       cycle_detail: cycleDetail
     };
@@ -280,14 +332,14 @@ function parseGizzardSheet_(sheet, defaultShift, db, records, lineLabel, targetP
     records.push({
       key: recordKey,
       trial: trialKey,
-      line: line || lineLabel,
+      line: line,
       shift: shift,
       prod: Number(productivity),
       eff: Number(calculatedEff),
       man: totalMan,
       total: totalOutput,
-      recordDate: recordDate,
-      status: status
+      recordDate: "",
+      status: ""
     });
   }
 }
@@ -475,22 +527,7 @@ function saveExternalRecord_(payload) {
       throw new Error("Source sheet not found: " + gSourceSheetName);
     }
 
-    gTargetSheet.appendRow([
-      valueOrEmpty_(payload.trial),
-      Number(payload.ct_prep) || 0,
-      Number(payload.ct_arrange) || 0,
-      Number(payload.ct_machine) || 0,
-      Number(payload.ct_inspec) || 0,
-      Number(payload.ct_pack) || 0,
-      Number(payload.ct_total) || Number(payload.total) || 0,
-      Number(payload.yield_hour) || Number(payload.prod) || 0,
-      Number(payload.man_total) || Number(payload.man) || 0,
-      Number(payload.man_prep) || 0,
-      Number(payload.man_block) || 0,
-      Number(payload.man_inspec) || 0,
-      Number(payload.man_pack) || 0,
-      Number(payload.man_op) || 0
-    ]);
+    gTargetSheet.appendRow(buildBl23gRow_(payload, gShift));
 
     return {
       status: "success",
@@ -666,22 +703,7 @@ function saveData(formData) {
           message: "Sheet not found: " + gSourceSheetName
         };
       }
-      newRow = [
-        formData.trial,
-        Number(formData.ct_prep),
-        Number(formData.ct_arrange),
-        Number(formData.ct_machine),
-        Number(formData.ct_inspec),
-        Number(formData.ct_pack),
-        Number(formData.ct_total),
-        Number(formData.yield_hour),
-        Number(formData.man_total),
-        Number(formData.man_prep),
-        Number(formData.man_block),
-        Number(formData.man_inspec),
-        Number(formData.man_pack),
-        Number(formData.man_op)
-      ];
+      newRow = buildBl23gRow_(formData, gShift);
     }
 
     sheet.appendRow(newRow);

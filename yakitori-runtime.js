@@ -1,5 +1,5 @@
 (function (global) {
-    const BUILD_VERSION = "20260617-03";
+    const BUILD_VERSION = "20260617-04";
     const CONFIG = {
         appsScriptUrl: "https://script.google.com/macros/s/AKfycbzCP20irjQdA65MEQXeB4KW8kkvmYRMJYbL8Zm1IdklPpKvvmTIIFcx0Zs_pm3Nwyel/exec",
         buildVersion: BUILD_VERSION
