@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Gz30g_Main Dashboard_Yakitori</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -305,7 +308,7 @@
                     <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Productivity (ไม้/คน/ชม.)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-prod">รอบแรก ➔ ดีที่สุด</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-prod">ครั้งแรกเทียบกับครั้งที่เลือก</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-prod">0.0</span>
                                 <span class="text-xs text-[#a1a5b7]">➔</span>
@@ -322,7 +325,7 @@
                     <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Efficiency Leap (%)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-eff">รอบแรก ➔ ดีที่สุด</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-eff">ครั้งแรกเทียบกับครั้งที่เลือก</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-eff">0.00</span>
                                 <span class="text-xs text-[#a1a5b7]">➔</span>
@@ -339,7 +342,7 @@
                     <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Cycle Time เรียงบล็อค (วิ)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-arrange">รอบแรก ➔ ดีที่สุด</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-arrange">ครั้งแรกเทียบกับครั้งที่เลือก</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-arrange">0.00</span>
                                 <span class="text-xs text-[#a1a5b7]">➔</span>
@@ -356,7 +359,7 @@
                     <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Total Output (ไม้/ชม.)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-total">รอบแรก ➔ ดีที่สุด</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-total">ครั้งแรกเทียบกับครั้งที่เลือก</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-total">0</span>
                                 <span class="text-xs text-[#a1a5b7]">➔</span>
@@ -654,10 +657,10 @@
 
             if(!baseline || !best) return;
 
-            document.getElementById('lbl-summary-prod').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestTrialKey)} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-eff').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestTrialKey)} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-arrange').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestTrialKey)} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-total').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestTrialKey)} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-prod').textContent = getCompareSummaryLabel(firstKey, bestTrialKey);
+            document.getElementById('lbl-summary-eff').textContent = getCompareSummaryLabel(firstKey, bestTrialKey);
+            document.getElementById('lbl-summary-arrange').textContent = getCompareSummaryLabel(firstKey, bestTrialKey);
+            document.getElementById('lbl-summary-total').textContent = getCompareSummaryLabel(firstKey, bestTrialKey);
 
             document.getElementById('val-t1-prod').innerText = baseline.prod.toFixed(1);
             document.getElementById('val-best-prod').innerText = best.prod.toFixed(1);
@@ -869,6 +872,10 @@
             const trial = getTrialLabel(key);
             const shift = getRecordShift(key);
             return trial ? `ครั้งที่ ${trial} / Shift ${shift}` : String(key || '');
+        }
+
+        function getCompareSummaryLabel(fromKey, toKey) {
+            return `${getDisplayTitle(fromKey)} เทียบกับ ${getDisplayTitle(toKey)}`;
         }
 
         function getVisibleKeys() {
