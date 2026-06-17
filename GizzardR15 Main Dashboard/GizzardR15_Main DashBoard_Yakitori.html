@@ -985,6 +985,19 @@
             }
         }
 
+        function applySummaryDeltaColor(elementId, value) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.classList.remove('text-[#50cd89]', 'text-[#f1416c]', 'text-[#a1a5b7]');
+            if (value < 0) {
+                el.classList.add('text-[#f1416c]');
+            } else if (value > 0) {
+                el.classList.add('text-[#50cd89]');
+            } else {
+                el.classList.add('text-[#a1a5b7]');
+            }
+        }
+
         function getVisibleKeys() {
             const shift = String(selectedShiftFilter || 'all').trim().toUpperCase();
             return keys.filter(k => {
@@ -1184,22 +1197,27 @@
             document.getElementById('val-best-prod').innerText = best.prod.toFixed(1);
             const pGrowth = baseline.prod > 0 ? ((best.prod - baseline.prod) / baseline.prod) * 100 : 0;
             document.getElementById('growth-prod').innerText = `${pGrowth >= 0 ? '+' : ''}${pGrowth.toFixed(1)}%`;
+            applySummaryDeltaColor('growth-prod', pGrowth);
 
             document.getElementById('val-t1-eff').innerText = baseline.eff.toFixed(2);
             document.getElementById('val-best-eff').innerText = best.eff.toFixed(2);
             const eGrowth = baseline.eff > 0 ? ((best.eff - baseline.eff) / baseline.eff) * 100 : 0;
             document.getElementById('growth-eff').innerText = `${eGrowth >= 0 ? '+' : ''}${eGrowth.toFixed(1)}%`;
+            applySummaryDeltaColor('growth-eff', eGrowth);
 
             const baseArrange = baseline.cycle_detail ? baseline.cycle_detail.arrange : 0;
             const bestArrange = best.cycle_detail ? best.cycle_detail.arrange : 0;
             document.getElementById('val-t1-arrange').innerText = baseArrange.toFixed(2);
             document.getElementById('val-best-arrange').innerText = bestArrange.toFixed(2);
             const aReduction = baseArrange > 0 ? (((baseArrange - bestArrange) / baseArrange) * 100) : 0;
-            document.getElementById('growth-arrange').innerText = `-${aReduction.toFixed(1)}%`;
+            document.getElementById('growth-arrange').innerText = `${aReduction >= 0 ? '-' : '+'}${Math.abs(aReduction).toFixed(1)}%`;
+            applySummaryDeltaColor('growth-arrange', aReduction);
 
             document.getElementById('val-t1-total').innerText = baseline.total.toLocaleString();
             document.getElementById('val-best-total').innerText = best.total.toLocaleString();
-            document.getElementById('growth-total').innerText = `+${(best.total - baseline.total).toLocaleString()}`;
+            const totalDiff = best.total - baseline.total;
+            document.getElementById('growth-total').innerText = `${totalDiff >= 0 ? '+' : ''}${totalDiff.toLocaleString()}`;
+            applySummaryDeltaColor('growth-total', totalDiff);
         }
 
         function renderExecutiveGapTable() {
