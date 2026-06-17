@@ -21,7 +21,7 @@
         .bg-card-gradient {
             background: linear-gradient(145deg, #1e1e2d 0%, #151521 100%);
         }
-        
+
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #151521; }
         ::-webkit-scrollbar-thumb { background: #323248; border-radius: 4px; }
@@ -40,12 +40,12 @@
             visibility: hidden;
         }
         #iterDropdown.open {
-            max-height: 350px; 
+            max-height: 350px;
             opacity: 1;
-            overflow-y: auto;  
+            overflow-y: auto;
             visibility: visible;
         }
-        
+
         .top-nav {
           background: #1a1d27;
           border-bottom: 1px solid #323248;
@@ -78,7 +78,7 @@
           left: 0;
           right: 0;
           height: 3px;
-          background: #ef4444; 
+          background: #ef4444;
         }
         .nav-item:hover { color: #fff; }
         .glow-text-green { text-shadow: 0 0 15px rgba(80, 205, 137, 0.4); }
@@ -97,7 +97,7 @@
                 <h1 class="text-3xl font-bold text-white mb-2 tracking-wide font-en">Experimental data</h1>
                 <p class="text-sm text-[#009ef7]">[Project APEX Flow - การปรับปรุงกระบวนการเสียบไม้]</p>
             </div>
-            
+
             <div class="flex flex-wrap gap-3">
                 <div class="bg-[#151521] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm">
                     <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">1. ยอดผลิตเป้าหมาย (Actual)</p>
@@ -122,11 +122,11 @@
     <main class="flex-1 w-full pb-8">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#009ef7] shadow-lg">
-                <p class="text-sm font-semibold mb-2">Productivity (ไม้/คน/ชม.)</p>
+                <p class="text-sm font-semibold mb-2">Productivity (sticks/person/hour)</p>
                 <div class="flex items-end gap-3 mt-1">
                     <h2 class="text-4xl font-bold text-white font-en" id="kpi-prod">--</h2>
                 </div>
-                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">เป้าหมาย Target: 69</p>
+                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">Target: 69</p>
             </div>
 
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#50cd89] shadow-lg">
@@ -134,7 +134,7 @@
                 <div class="flex items-end gap-3 mt-1">
                     <h2 class="text-4xl font-bold text-white font-en" id="kpi-eff">--%</h2>
                 </div>
-                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">เทียบกับเป้าหมายความสามารถไลน์</p>
+                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2">Compared against the line capability target</p>
             </div>
 
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#8b5cf6] shadow-lg">
@@ -299,16 +299,16 @@
 
         <div class="mt-8 pt-8 border-t-2 border-[#323248]">
             <h2 class="text-2xl font-bold text-white mb-6 font-en flex items-center">
-                Efficiency Growth & Impact Analysis 
+                Efficiency Growth & Impact Analysis
                 <span class="text-xs font-normal text-[#50cd89] bg-[rgba(80,205,137,0.1)] border border-[#50cd89] px-3 py-1 rounded-full ml-4">Executive Summary</span>
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div class="bg-card-gradient rounded-xl p-5 border-t-4 border-[#009ef7] shadow-lg">
-                    <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Productivity (ไม้/คน/ชม.)</p>
+                    <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Productivity (sticks/person/hour)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-prod">ครั้งแรกเทียบกับครั้งที่เลือก</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-prod">Trial 1 vs Selected Trial</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-prod">0.0</span>
                                 <span class="text-xs text-[#a1a5b7]">➔</span>
@@ -325,7 +325,7 @@
                     <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Efficiency Leap (%)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-eff">ครั้งแรกเทียบกับครั้งที่เลือก</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-eff">Trial 1 vs Selected Trial</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-eff">0.00</span>
                                 <span class="text-xs text-[#a1a5b7]">➔</span>
@@ -339,10 +339,10 @@
                 </div>
 
                 <div class="bg-card-gradient rounded-xl p-5 border-t-4 border-[#8b5cf6] shadow-lg">
-                    <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Cycle Time เรียงบล็อค (วิ)</p>
+                    <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Cycle Time (sec)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-arrange">ครั้งแรกเทียบกับครั้งที่เลือก</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-arrange">Trial 1 vs Selected Trial</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-arrange">0.00</span>
                                 <span class="text-xs text-[#a1a5b7]">➔</span>
@@ -359,7 +359,7 @@
                     <p class="text-[11px] font-bold text-[#a1a5b7] mb-4 uppercase tracking-wider">Total Output (ไม้/ชม.)</p>
                     <div class="flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-total">ครั้งแรกเทียบกับครั้งที่เลือก</p>
+                            <p class="text-[10px] text-[#7e8299] mb-1" id="lbl-summary-total">Trial 1 vs Selected Trial</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-bold text-white font-en" id="val-t1-total">0</span>
                                 <span class="text-xs text-[#a1a5b7]">➔</span>
@@ -376,7 +376,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div class="bg-card rounded-xl p-6 border border-[#323248] shadow-lg flex flex-col">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-white font-bold text-sm">Productivity & Efficiency Journey (Focus: รอบแรก vs Best vs Target)</h3>
+                        <h3 class="text-white font-bold text-sm">Productivity & Efficiency Journey (Focus: Baseline vs Best vs Target)</h3>
                         <span class="text-xs text-[#f1416c] bg-[rgba(241,65,108,0.1)] px-2 py-1 rounded border border-[rgba(241,65,108,0.2)]">Target: 69</span>
                     </div>
                     <div class="h-[250px] w-full relative flex-1">
@@ -387,7 +387,7 @@
                 <div class="bg-card rounded-xl p-6 border border-[#323248] shadow-lg flex flex-col">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-white font-bold text-sm">Cycle Time Reduction (Bottlenecks Comparison)</h3>
-                        <span class="text-xs text-[#a1a5b7]">หน่วย: วินาที (Seconds)</span>
+                        <span class="text-xs text-[#a1a5b7]">Unit: seconds</span>
                     </div>
                     <div class="h-[250px] w-full relative flex-1">
                         <canvas id="bottleneckChart"></canvas>
@@ -399,8 +399,8 @@
                 <div class="bg-card rounded-xl border border-[#323248] shadow-lg overflow-hidden flex flex-col">
                     <div class="p-5 border-b border-[#323248] bg-[#1a1d27] flex justify-between items-start gap-4">
                         <div>
-                            <h3 class="text-white font-bold text-sm">วิเคราะห์ระยะห่างเป้าหมายสายงาน (Gap Analysis)</h3>
-                            <p class="text-xs text-[#a1a5b7] mt-1">เปรียบเทียบกระบวนการทดลองรอบแรก และรอบที่คุณเลือกปัจจุบันเทียบกับเป้าหมายแต่ละสายงาน</p>
+                            <h3 class="text-white font-bold text-sm">Gap Analysis</h3>
+                            <p class="text-xs text-[#a1a5b7] mt-1">Compare the baseline trial and the selected trial against each line target.</p>
                         </div>
                         <div class="flex items-center gap-3 shrink-0">
                             <span class="text-[11px] uppercase tracking-[0.2em] text-[#8b5cf6] font-bold">Compare</span>
@@ -411,14 +411,14 @@
                         <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
                             <thead>
                                 <tr class="bg-[#151521] text-xs uppercase tracking-wider text-[#a1a5b7] border-b border-[#323248]">
-                                    <th class="p-3 font-bold text-white">สายงาน</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248]">เป้าหมาย</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7] bg-[rgba(0,158,247,0.05)]" id="gap-header-t1">การทดลองรอบแรก</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">ส่วนต่าง (รอบแรก)</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">GAP % (รอบแรก)</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-header">ล่าสุด</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6]">ส่วนต่าง</th>
-                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6]">GAP %</th>
+                                    <th class="p-3 font-bold text-white">Line</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248]">Target</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7] bg-[rgba(0,158,247,0.05)]" id="gap-header-t1">Baseline Trial</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">Gap (Baseline)</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#f1416c]">Gap % (Baseline)</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-header">Selected Trial</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6]">Gap</th>
+                                    <th class="p-3 font-medium text-center border-l border-[#323248] text-[#8b5cf6]">Gap %</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#2b2b40]" id="executiveGapTableBody">
@@ -432,9 +432,9 @@
 
     <script src="../yakitori-runtime.js"></script>
     <script>
-        let db = {}; 
+        let db = {};
         let keys = [];
-        const targetProductivity = 69; 
+        const targetProductivity = 69;
         const actualBaseline = { prep: 20.00, arrange: 20.00, machine: 1.25, inspec: 5.00, pack: 5.90 };
 
         const popup = document.getElementById('iterDropdown');
@@ -444,7 +444,7 @@
 
         let trendChart, cycleChart, prodJourneyChart, bottleneckChart;
         let chartLabels = [], chartData = [];
-        let bestTrialKey = ""; 
+        let bestTrialKey = "";
 
         Chart.defaults.color = '#a1a5b7';
         Chart.defaults.borderColor = '#323248';
@@ -453,7 +453,7 @@
         const googleWebAppUrl = window.YakitoriRuntime.CONFIG.appsScriptUrl;
 
         window.onload = function() {
-            loadData(); 
+            loadData();
         };
 
         async function loadData() {
@@ -461,7 +461,7 @@
                 const fetchUrl = window.YakitoriRuntime.buildApiUrl('GZ30gR15_DataLog');
                 const response = await fetch(fetchUrl);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
+
                 db = await response.json();
                 if (db.error) throw new Error(db.error);
 
@@ -470,13 +470,13 @@
                 if (Object.keys(db).length === 0) {
                     throw new Error("ไม่มีข้อมูลผลการทดลองในคลังชีต");
                 }
-                
+
                 Object.keys(db).forEach(k => {
                     if (db[k] && db[k].prod !== undefined) {
                         db[k].eff = (db[k].prod / targetProductivity) * 100;
                     }
                 });
-                
+
                 initializeDashboardFromSheets();
             } catch (error) {
                 console.error("เกิดข้อผิดพลาดในการโหลดระบบสตรีมข้อมูล:", error);
@@ -507,7 +507,7 @@
 
             renderList();
             renderTable();
-            
+
             let defaultKey = keys[keys.length - 1] || "";
             if (defaultKey) {
                 selectedDataIndex = keys.indexOf(defaultKey); // 🎯 ผูกค่าความสัมพันธ์ index ปัจจุบันก่อนวาดกราฟ
@@ -515,9 +515,9 @@
 
             initCharts();
             calculateExecutiveSummary();
-            initSummaryCharts(); 
+            initSummaryCharts();
 
-            if (defaultKey) selectIteration(defaultKey); 
+            if (defaultKey) selectIteration(defaultKey);
         }
 
         function toggleDropdown() {
@@ -534,7 +534,7 @@
         });
 
         function formatVal(val) {
-            return Number(val).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}); 
+            return Number(val).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
 
         function highlightTableRow(key) {
@@ -579,7 +579,7 @@
 
                 let gap = currentVal - step.actual;
                 let percent = step.actual > 0 ? (gap / step.actual) * 100 : 0;
-                let isBottleneck = percent > 10; 
+                let isBottleneck = percent > 10;
 
                 let gapColor = gap > 0 ? 'text-[#f1416c]' : (gap < 0 ? 'text-[#50cd89]' : 'text-[#a1a5b7]');
                 let rowBg = isBottleneck ? 'bg-[rgba(241,65,108,0.05)] border-l-4 border-[#f1416c]' : 'hover:bg-[#2b2b40] border-l-4 border-transparent';
@@ -614,7 +614,7 @@
             const tableBody = document.getElementById('tableBody');
             let html = '';
             keys.forEach(k => {
-                const d = db[k]; if(!d) return; 
+                const d = db[k]; if(!d) return;
                 let cycle = d.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
                 let layout = d.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 };
 
@@ -652,7 +652,7 @@
         function calculateExecutiveSummary() {
             if(keys.length === 0) return;
             const firstKey = keys[0];
-            const baseline = db[firstKey]; 
+            const baseline = db[firstKey];
             const best = db[bestTrialKey];
 
             if(!baseline || !best) return;
@@ -689,13 +689,13 @@
         function renderExecutiveGapTable() {
             const tableBody = document.getElementById('executiveGapTableBody');
             if(keys.length === 0) return;
-            const baseline = db[keys[0]]; 
+            const baseline = db[keys[0]];
             if(!baseline) return;
 
-            document.getElementById('gap-header-t1').innerText = `${getDisplayTitle(keys[0])} (ไม้/คน/ชม.)`;
+            document.getElementById('gap-header-t1').innerText = `${getDisplayTitle(keys[0])} (sticks/person/hour)`;
 
             const rowsData = [
-                { name: 'G1 (สูงสุด)', target: 69, id: 'g1' },
+                { name: 'G1 (Highest)', target: 69, id: 'g1' },
                 { name: 'G2', target: 58, id: 'g2' },
                 { name: 'G3', target: 54, id: 'g3' },
                 { name: 'G4', target: 46, id: 'bb_ref', isRef: true },
@@ -714,7 +714,7 @@
                     html += `
                         <td class="p-3 text-center font-en font-bold text-[#009ef7] bg-[rgba(0,158,247,0.05)]">${baselineProd.toFixed(1)}</td>
                         <td class="p-3 text-center font-en font-bold ${t1Diff<=0?'text-[#50cd89]':'text-[#f1416c]'}">${t1Diff<=0?'':'+'}${t1Diff.toFixed(1)}</td>
-                        <td class="p-3 text-center font-en font-bold ${t1Diff<=0?'text-[#50cd89]':'text-[#f1416c]'}">${t1Diff<=0?'ทะลุเป้า':((t1Diff/row.target)*100).toFixed(1)+'%'}</td>
+                        <td class="p-3 text-center font-en font-bold ${t1Diff<=0?'text-[#50cd89]':'text-[#f1416c]'}">${t1Diff<=0?'Above target':((t1Diff/row.target)*100).toFixed(1)+'%'}</td>
                         <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-${row.id}-val">--</td>
                         <td class="p-3 text-center font-en font-bold" id="gap-dyn-${row.id}-diff">--</td>
                         <td class="p-3 text-center font-en font-bold" id="gap-dyn-${row.id}-pct">--</td>
@@ -723,7 +723,7 @@
                     let t1Diff = baselineProd - row.target;
                     html += `
                         <td class="p-3 text-center font-en bg-[rgba(0,158,247,0.05)]">${baselineProd.toFixed(1)}</td>
-                        <td colspan="2" class="p-3 text-center text-[11px] ${t1Diff>=0?'text-[#50cd89]':'text-[#f1416c]'}">${t1Diff>=0?'สูงกว่าสายงานนี้ +':'ต่ำกว่าสายงานนี้ '}${t1Diff.toFixed(1)}</td>
+                        <td colspan="2" class="p-3 text-center text-[11px] ${t1Diff>=0?'text-[#50cd89]':'text-[#f1416c]'}">${t1Diff>=0?'Above line +':'Below line '}${t1Diff.toFixed(1)}</td>
                         <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]" id="gap-dyn-${row.id}-val">--</td>
                         <td colspan="2" class="p-3 text-center text-[11px]" id="gap-dyn-${row.id}-diff">--</td>
                     `;
@@ -763,7 +763,7 @@
             document.getElementById('kpi-eff').innerText = (data.eff || 0).toFixed(2) + '%';
             document.getElementById('kpi-cycle').innerHTML = `${formatVal(total_ct)} <span class="text-lg font-normal text-[#a1a5b7]">Sec</span>`;
             document.getElementById('kpi-total').innerText = totalOutput.toLocaleString();
-            
+
             document.getElementById('kpi-man').innerText = totalMan;
             document.getElementById('man-prep').innerText = layout.prep;
             document.getElementById('man-block').innerText = layout.block;
@@ -795,7 +795,7 @@
 
                 if (diff <= 0) {
                     diffEl.innerText = diff.toFixed(1); diffEl.className = "p-3 text-center font-bold text-[#50cd89]";
-                    if(pctEl) { pctEl.innerText = "ทะลุเป้า"; pctEl.className = "p-3 text-center font-bold text-[#50cd89]"; }
+                    if(pctEl) { pctEl.innerText = "Above target"; pctEl.className = "p-3 text-center font-bold text-[#50cd89]"; }
                 } else {
                     diffEl.innerText = "+" + diff.toFixed(1); diffEl.className = "p-3 text-center font-bold text-[#f1416c]";
                     if(pctEl) { pctEl.innerText = ((diff / targetVal) * 100).toFixed(1) + "%"; pctEl.className = "p-3 text-center font-bold text-[#f1416c]"; }
@@ -813,7 +813,7 @@
 
                 valEl.innerText = currentProd.toFixed(1);
                 let diff = currentProd - refVal;
-                diffEl.innerHTML = diff >= 0 ? `สูงกว่าสายงานนี้ <span class="font-bold">+${diff.toFixed(1)}</span>` : `ต่ำกว่าสายงานนี้ <span class="font-bold">${diff.toFixed(1)}</span>`;
+                diffEl.innerHTML = diff >= 0 ? `Above line <span class="font-bold">+${diff.toFixed(1)}</span>` : `Below line <span class="font-bold">${diff.toFixed(1)}</span>`;
                 diffEl.className = diff >= 0 ? "p-3 text-center text-[11px] text-[#50cd89]" : "p-3 text-center text-[11px] text-[#f1416c]";
             }
 
@@ -871,11 +871,11 @@
         function getDisplayTitle(key) {
             const trial = getTrialLabel(key);
             const shift = getRecordShift(key);
-            return trial ? `ครั้งที่ ${trial} / Shift ${shift}` : String(key || '');
+            return trial ? `Trial ${trial} / Shift ${shift}` : String(key || '');
         }
 
         function getCompareSummaryLabel(fromKey, toKey) {
-            return `${getDisplayTitle(fromKey)} เทียบกับ ${getDisplayTitle(toKey)}`;
+            return `${getDisplayTitle(fromKey)} vs ${getDisplayTitle(toKey)}`;
         }
 
         function getVisibleKeys() {
@@ -1055,10 +1055,10 @@
                 gapComparisonKey = bestKey;
             }
 
-            document.getElementById('lbl-summary-prod').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestKey)} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-eff').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestKey)} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-arrange').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestKey)} (ดีที่สุด)`;
-            document.getElementById('lbl-summary-total').innerText = `${getDisplayTitle(firstKey)} ➔ ${getDisplayTitle(bestKey)} (ดีที่สุด)`;
+            document.getElementById('lbl-summary-prod').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
+            document.getElementById('lbl-summary-eff').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
+            document.getElementById('lbl-summary-arrange').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
+            document.getElementById('lbl-summary-total').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
 
             document.getElementById('val-t1-prod').innerText = baseline.prod.toFixed(1);
             document.getElementById('val-best-prod').innerText = best.prod.toFixed(1);
@@ -1106,7 +1106,7 @@
             document.getElementById('gap-dyn-header').innerText = getDisplayTitle(gapComparisonKey || fallbackKey);
 
             const rowsData = [
-                { name: 'G1 (สูงสุด)', target: 69, id: 'g1' },
+                { name: 'G1 (Highest)', target: 69, id: 'g1' },
                 { name: 'G2', target: 58, id: 'g2' },
                 { name: 'G3', target: 54, id: 'g3' },
                 { name: 'G4', target: 46, id: 'bb_ref', isRef: true },
@@ -1127,19 +1127,19 @@
                     html += `
                         <td class="p-3 text-center font-en font-bold text-[#009ef7] bg-[rgba(0,158,247,0.05)]">${baselineProd.toFixed(1)}</td>
                         <td class="p-3 text-center font-en font-bold ${baseDiff<=0?'text-[#50cd89]':'text-[#f1416c]'}">${baseDiff<=0?'':'+'}${baseDiff.toFixed(1)}</td>
-                        <td class="p-3 text-center font-en font-bold ${baseDiff<=0?'text-[#50cd89]':'text-[#f1416c]'}">${baseDiff<=0?'ทะลุเป้า':((baseDiff/row.target)*100).toFixed(1)+'%'}</td>
+                        <td class="p-3 text-center font-en font-bold ${baseDiff<=0?'text-[#50cd89]':'text-[#f1416c]'}">${baseDiff<=0?'Above target':((baseDiff/row.target)*100).toFixed(1)+'%'}</td>
                         <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]">${compareProd.toFixed(1)}</td>
                         <td class="p-3 text-center font-en font-bold ${compareDiff<=0?'text-[#50cd89]':'text-[#f1416c]'}">${compareDiff<=0?'':'+'}${compareDiff.toFixed(1)}</td>
-                        <td class="p-3 text-center font-en font-bold ${compareDiff<=0?'text-[#50cd89]':'text-[#f1416c]'}">${compareDiff<=0?'ทะลุเป้า':((compareDiff/row.target)*100).toFixed(1)+'%'}</td>
+                        <td class="p-3 text-center font-en font-bold ${compareDiff<=0?'text-[#50cd89]':'text-[#f1416c]'}">${compareDiff<=0?'Above target':((compareDiff/row.target)*100).toFixed(1)+'%'}</td>
                     `;
                 } else {
                     const baseDiff = baselineProd - row.target;
                     const compareDiff = compareProd - row.target;
                     html += `
                         <td class="p-3 text-center font-en bg-[rgba(0,158,247,0.05)]">${baselineProd.toFixed(1)}</td>
-                        <td colspan="2" class="p-3 text-center text-[11px] ${baseDiff>=0?'text-[#50cd89]':'text-[#f1416c]'}">${baseDiff>=0?'สูงกว่าสายงานนี้ +':'ต่ำกว่าสายงานนี้ '}${baseDiff.toFixed(1)}</td>
+                        <td colspan="2" class="p-3 text-center text-[11px] ${baseDiff>=0?'text-[#50cd89]':'text-[#f1416c]'}">${baseDiff>=0?'Above line +':'Below line '}${baseDiff.toFixed(1)}</td>
                         <td class="p-3 text-center font-en font-bold text-[#8b5cf6] bg-[rgba(139,92,246,0.05)]">${compareProd.toFixed(1)}</td>
-                        <td colspan="2" class="p-3 text-center text-[11px] ${compareDiff>=0?'text-[#50cd89]':'text-[#f1416c]'}">${compareDiff>=0?'สูงกว่าสายงานนี้ +':'ต่ำกว่าสายงานนี้ '}${compareDiff.toFixed(1)}</td>
+                        <td colspan="2" class="p-3 text-center text-[11px] ${compareDiff>=0?'text-[#50cd89]':'text-[#f1416c]'}">${compareDiff>=0?'Above line +':'Below line '}${compareDiff.toFixed(1)}</td>
                     `;
                 }
                 html += `</tr>`;
@@ -1264,14 +1264,14 @@
                     labels: chartLabels,
                     datasets: [
                         { label: 'Productivity', data: chartData, borderColor: '#009ef7', backgroundColor: 'rgba(0,158,247,0.1)', borderWidth: 2, fill: true, tension: 0.2 },
-                        { label: 'เป้าหมาย', data: Array(chartLabels.length).fill(targetProductivity), borderColor: '#f1416c', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 0 }
+                        { label: 'Target', data: Array(chartLabels.length).fill(targetProductivity), borderColor: '#f1416c', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 0 }
                     ]
                 },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
                     plugins: { legend: { position: 'bottom' } },
-                    scales: { y: { beginAtZero: true, max: 100, grid: { color: '#2b2b40' } }, x: { grid: { display: false } } } 
+                    scales: { y: { beginAtZero: true, max: 100, grid: { color: '#2b2b40' } }, x: { grid: { display: false } } }
                 },
                 plugins: [gapLabelPlugin]
             });
@@ -1311,8 +1311,8 @@
                         }
                     ]
                 },
-                options: { 
-                    responsive: true, 
+                options: {
+                    responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { position: 'bottom' } },
                     scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, grid: { color: '#2b2b40' } } }
@@ -1330,13 +1330,13 @@
             prodJourneyChart = new Chart(prodJourneyCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['รอบแรกเริ่ม', 'ดีที่สุด', 'เป้าหมาย'],
+                    labels: ['Baseline', 'Best', 'Target'],
                     datasets: [
                         { label: 'Productivity', data: [baseline.prod, best.prod, targetProductivity], backgroundColor: ['#323248', '#009ef7', '#f1416c'], barPercentage: 0.5 }
                     ]
                 },
-                options: { 
-                    responsive: true, 
+                options: {
+                    responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: { y: { beginAtZero: true, max: 100, grid: { color: '#2b2b40' } }, x: { grid: { display: false } } }
@@ -1348,13 +1348,13 @@
             bottleneckChart = new Chart(bottleneckCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['รอบแรกเริ่ม', 'รอบดีที่สุด'],
+                    labels: ['Baseline', 'Best'],
                     datasets: [
-                        { label: 'เวลาเรียงลงบล็อค (sec)', data: [baseline.cycle_detail?.arrange||0, best.cycle_detail?.arrange||0], backgroundColor: '#8b5cf6', barPercentage: 0.4 }
+                        { label: 'Arrange time (sec)', data: [baseline.cycle_detail?.arrange||0, best.cycle_detail?.arrange||0], backgroundColor: '#8b5cf6', barPercentage: 0.4 }
                     ]
                 },
-                options: { 
-                    responsive: true, 
+                options: {
+                    responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { position: 'bottom' } },
                     scales: { y: { beginAtZero: true, grid: { color: '#2b2b40' } }, x: { grid: { display: false } } }
@@ -1364,4 +1364,5 @@
     </script>
 </body>
 </html>
+
 
