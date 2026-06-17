@@ -1012,7 +1012,9 @@
 
         function setGapComparison(key) {
             gapComparisonKey = key;
+            calculateExecutiveSummary();
             renderExecutiveGapTable();
+            initSummaryCharts();
         }
 
         function findBestTrialKey(sourceKeys) {
@@ -1162,20 +1164,21 @@
             const firstKey = visibleKeys[0];
             const baseline = db[firstKey];
             const bestKey = findBestTrialKey(visibleKeys);
-            const best = db[bestKey];
+            const compareKey = gapComparisonKey && visibleKeys.includes(gapComparisonKey) ? gapComparisonKey : bestKey;
+            const best = db[compareKey];
             if (!baseline || !best) return;
 
             bestTrialKey = bestKey;
             if (!gapComparisonKey || !visibleKeys.includes(gapComparisonKey)) {
-                gapComparisonKey = bestKey;
+                gapComparisonKey = compareKey;
             }
             refreshTopSummaryCards();
 
-            normalizeExecutiveSummaryCopy(firstKey, bestKey);
-            document.getElementById('lbl-summary-prod').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
-            document.getElementById('lbl-summary-eff').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
-            document.getElementById('lbl-summary-arrange').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
-            document.getElementById('lbl-summary-total').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
+            normalizeExecutiveSummaryCopy(firstKey, compareKey);
+            document.getElementById('lbl-summary-prod').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(compareKey)}`;
+            document.getElementById('lbl-summary-eff').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(compareKey)}`;
+            document.getElementById('lbl-summary-arrange').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(compareKey)}`;
+            document.getElementById('lbl-summary-total').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(compareKey)}`;
 
             document.getElementById('val-t1-prod').innerText = baseline.prod.toFixed(1);
             document.getElementById('val-best-prod').innerText = best.prod.toFixed(1);
@@ -1444,14 +1447,17 @@
             const visibleKeys = getVisibleKeys();
             if(visibleKeys.length === 0) return;
             const baseline = db[visibleKeys[0]] || { prod: 0, eff: 0 };
-            const best = db[findBestTrialKey(visibleKeys)] || { prod: 0, eff: 0 };
+            const bestKey = gapComparisonKey && visibleKeys.includes(gapComparisonKey)
+                ? gapComparisonKey
+                : findBestTrialKey(visibleKeys);
+            const best = db[bestKey] || { prod: 0, eff: 0 };
 
             const prodJourneyCtx = document.getElementById('prodJourneyChart').getContext('2d');
             if (prodJourneyChart) prodJourneyChart.destroy();
             prodJourneyChart = new Chart(prodJourneyCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Baseline', 'Best', 'Target'],
+                    labels: ['Baseline', 'Selected', 'Target'],
                     datasets: [
                         { label: 'Productivity', data: [baseline.prod, best.prod, targetProductivity], backgroundColor: ['#323248', '#009ef7', '#f1416c'], barPercentage: 0.5 }
                     ]
@@ -1469,7 +1475,7 @@
             bottleneckChart = new Chart(bottleneckCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Baseline', 'Best'],
+                    labels: ['Baseline', 'Selected'],
                     datasets: [
                         { label: 'Arrange time (sec)', data: [baseline.cycle_detail?.arrange||0, best.cycle_detail?.arrange||0], backgroundColor: '#8b5cf6', barPercentage: 0.4 }
                     ]
