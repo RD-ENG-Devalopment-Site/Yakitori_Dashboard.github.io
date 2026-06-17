@@ -493,7 +493,7 @@
 
     </main>
 
-    <script src="../yakitori-runtime.js?v=20260617-01"></script>
+    <script src="../yakitori-runtime.js?v=20260617-03"></script>
     <script>
         // ==========================================
         // 1. ตัวแปรสำหรับจัดการข้อมูล (Global Variables)
@@ -845,6 +845,7 @@
 
             if(!t1 || !best) return;
 
+            normalizeExecutiveSummaryCopy("1", bestTrialKey);
             document.getElementById('lbl-summary-prod').textContent = getCompareSummaryLabel("1", bestTrialKey);
             document.getElementById('lbl-summary-eff').textContent = getCompareSummaryLabel("1", bestTrialKey);
             document.getElementById('lbl-summary-arrange').textContent = getCompareSummaryLabel("1", bestTrialKey);
@@ -877,6 +878,77 @@
             document.getElementById('growth-total').innerText = `+${totalDiff.toLocaleString()}`;
 
             renderExecutiveGapTable();
+        }
+
+        function normalizeExecutiveSummaryCopy(firstKey, bestKey) {
+            const root = Array.from(document.querySelectorAll('h2')).find(el => el.textContent.includes('Efficiency Growth & Impact Analysis'));
+            if (!root) return;
+            const section = root.closest('.mt-8.pt-8.border-t-2');
+            if (!section) return;
+
+            const sectionTitle = section.querySelector('h2');
+            if (sectionTitle) {
+                const titleNode = Array.from(sectionTitle.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
+                if (titleNode) titleNode.textContent = '\n                Efficiency Growth & Impact Analysis\n            ';
+                const badge = sectionTitle.querySelector('span');
+                if (badge) badge.textContent = 'Executive Summary';
+            }
+
+            const summaryGrid = section.querySelector('.grid.grid-cols-1.md\\:grid-cols-4');
+            if (summaryGrid) {
+                const cards = Array.from(summaryGrid.children);
+                const cardTitles = [
+                    'Productivity (sticks/person/hour)',
+                    'Efficiency Leap (%)',
+                    'Cycle Time (sec)',
+                    'Total Output (sticks/hour)'
+                ];
+
+                cards.forEach((card, index) => {
+                    const title = card.querySelector('p.text-\\[11px\\].font-bold');
+                    if (title && cardTitles[index]) title.textContent = cardTitles[index];
+
+                    const unitsRow = card.querySelector('.flex.items-baseline.gap-2');
+                    if (unitsRow) {
+                        const spans = unitsRow.querySelectorAll('span');
+                        if (spans[1]) spans[1].textContent = '→';
+                    }
+                });
+            }
+
+            const charts = section.querySelectorAll('.grid.grid-cols-1.lg\\:grid-cols-2 > div');
+            if (charts[0]) {
+                const title = charts[0].querySelector('h3');
+                const target = charts[0].querySelector('span.text-xs');
+                if (title) title.textContent = 'Productivity & Efficiency Journey (Focus: Baseline vs Best vs Target)';
+                if (target) target.textContent = `Target: ${targetProductivity}`;
+            }
+            if (charts[1]) {
+                const title = charts[1].querySelector('h3');
+                const unit = charts[1].querySelector('span.text-xs');
+                if (title) title.textContent = 'Cycle Time Reduction (Bottlenecks Comparison)';
+                if (unit) unit.textContent = 'Unit: seconds';
+            }
+
+            const gapCard = section.querySelector('.grid.grid-cols-1.gap-6.mb-8 .bg-card');
+            if (gapCard) {
+                const title = gapCard.querySelector('h3');
+                const subtitle = gapCard.querySelector('p.text-xs');
+                const compare = gapCard.querySelector('span.uppercase');
+                if (title) title.textContent = 'Gap Analysis';
+                if (subtitle) subtitle.textContent = 'Compare the baseline trial and the selected trial against each line target.';
+                if (compare) compare.textContent = 'Compare';
+            }
+
+            const gapHeader = document.getElementById('gap-header-t1');
+            if (gapHeader) gapHeader.textContent = `${getDisplayTitle(firstKey)} (sticks/person/hour)`;
+            const dynHeader = document.getElementById('gap-dyn-header');
+            if (dynHeader) dynHeader.textContent = getDisplayTitle(bestKey);
+
+            ['prod', 'eff', 'arrange', 'total'].forEach(suffix => {
+                const label = document.getElementById(`lbl-summary-${suffix}`);
+                if (label) label.textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
+            });
         }
 
         function renderExecutiveGapTable() {
@@ -1303,6 +1375,7 @@
                 gapComparisonKey = bestKey;
             }
 
+            normalizeExecutiveSummaryCopy(firstKey, bestKey);
             document.getElementById('lbl-summary-prod').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
             document.getElementById('lbl-summary-eff').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
             document.getElementById('lbl-summary-arrange').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
