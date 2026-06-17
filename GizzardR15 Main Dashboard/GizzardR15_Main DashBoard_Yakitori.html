@@ -435,6 +435,7 @@
         let db = {};
         let keys = [];
         const targetProductivity = 69;
+        const actualOutputTarget = 1600;
         const actualBaseline = { prep: 20.00, arrange: 20.00, machine: 1.25, inspec: 5.00, pack: 5.90 };
 
         const popup = document.getElementById('iterDropdown');
@@ -443,8 +444,9 @@
         let selectedDataIndex = 0; // 🎯 แก้ไขจาก -1 เป็น 0 เพื่อให้โปรแกรมเข้าถึง index อาร์เรย์ที่ถูกต้องและไม่แครชตอนเริ่มระบบ
 
         let trendChart, cycleChart, prodJourneyChart, bottleneckChart;
-        let chartLabels = [], chartData = [];
+        let chartLabels = [], chartData = [], currentChartKeys = [];
         let bestTrialKey = "";
+        let selectedKey = "";
 
         Chart.defaults.color = '#a1a5b7';
         Chart.defaults.borderColor = '#323248';
@@ -950,6 +952,39 @@
             return `${getDisplayTitle(fromKey)} vs ${getDisplayTitle(toKey)}`;
         }
 
+        function getCardRoundLabel(key) {
+            const trial = getTrialLabel(key);
+            const shift = getRecordShift(key);
+            return trial ? `(ครั้งที่ ${trial} / Shift ${shift})` : 'ครั้งที่เลือก';
+        }
+
+        function rebuildVisibleChartState() {
+            currentChartKeys = getVisibleKeys();
+            chartLabels = currentChartKeys.map(k => {
+                const trial = getTrialLabel(k);
+                const shift = getRecordShift(k);
+                return `ครั้งที่ ${trial} / Shift ${shift}`;
+            });
+            chartData = currentChartKeys.map(k => db[k] ? Number(db[k].prod) || 0 : 0);
+            return currentChartKeys;
+        }
+
+        function refreshTopSummaryCards() {
+            const actualYieldEl = document.getElementById('header-actual-yield');
+            const maxYieldEl = document.getElementById('header-max-yield');
+            if (actualYieldEl) {
+                actualYieldEl.innerHTML = `${actualOutputTarget.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
+            }
+            const visibleKeys = currentChartKeys.length ? currentChartKeys : getVisibleKeys();
+            const maxYield = visibleKeys.reduce((maxValue, key) => {
+                const total = db[key] ? Number(db[key].total) || 0 : 0;
+                return Math.max(maxValue, total);
+            }, 0);
+            if (maxYieldEl) {
+                maxYieldEl.innerHTML = `${maxYield.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
+            }
+        }
+
         function getVisibleKeys() {
             const shift = String(selectedShiftFilter || 'all').trim().toUpperCase();
             return keys.filter(k => {
@@ -961,10 +996,18 @@
 
         function setShiftFilter(shift) {
             selectedShiftFilter = String(shift || 'all').trim().toLowerCase();
+            const visibleKeys = rebuildVisibleChartState();
+            bestTrialKey = findBestTrialKey(visibleKeys);
+            syncShiftFilterSelect();
+            refreshTopSummaryCards();
             renderList();
             renderTable();
             calculateExecutiveSummary();
             renderExecutiveGapTable();
+            initCharts();
+            initSummaryCharts();
+            const fallbackKey = visibleKeys.includes(selectedKey) ? selectedKey : (visibleKeys.slice(-1)[0] || '');
+            if (fallbackKey) selectIteration(fallbackKey);
         }
 
         function setGapComparison(key) {
@@ -1006,12 +1049,12 @@
                 return aTrial.localeCompare(bTrial, 'th', { numeric: true }) || getRecordShift(a).localeCompare(getRecordShift(b));
             });
             keys = [...allSheetKeys];
-            bestTrialKey = findBestTrialKey(keys);
-            gapComparisonKey = bestTrialKey;
             selectedShiftFilter = 'all';
-            chartLabels = getVisibleKeys().map(k => getDisplayTitle(k));
-            chartData = getVisibleKeys().map(k => db[k] ? Number(db[k].prod) || 0 : 0);
+            const visibleKeys = rebuildVisibleChartState();
+            bestTrialKey = findBestTrialKey(visibleKeys.length ? visibleKeys : keys);
+            gapComparisonKey = bestTrialKey;
             syncShiftFilterSelect();
+            refreshTopSummaryCards();
             renderList();
             renderTable();
             calculateExecutiveSummary();
@@ -1019,7 +1062,7 @@
             initCharts();
             initSummaryCharts();
 
-            const defaultKey = getVisibleKeys().slice(-1)[0] || keys[keys.length - 1] || '';
+            const defaultKey = visibleKeys.slice(-1)[0] || keys[keys.length - 1] || '';
             if (defaultKey) selectIteration(defaultKey);
         }
 
@@ -1126,6 +1169,7 @@
             if (!gapComparisonKey || !visibleKeys.includes(gapComparisonKey)) {
                 gapComparisonKey = bestKey;
             }
+            refreshTopSummaryCards();
 
             normalizeExecutiveSummaryCopy(firstKey, bestKey);
             document.getElementById('lbl-summary-prod').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
@@ -1223,11 +1267,13 @@
         function selectIteration(key) {
             const data = db[key];
             if(!data) return;
-            selectedDataIndex = keys.indexOf(key);
+            selectedKey = key;
+            if (!currentChartKeys.length) rebuildVisibleChartState();
+            selectedDataIndex = currentChartKeys.indexOf(key);
 
             document.getElementById('selectedIterText').innerText = getDisplayTitle(key);
-            document.getElementById('header-selected-round').innerText = `(${getDisplayTitle(key)})`;
-            document.getElementById('header-man-round').innerText = `(${getDisplayTitle(key)})`;
+            document.getElementById('header-selected-round').innerText = getCardRoundLabel(key);
+            document.getElementById('header-man-round').innerText = getCardRoundLabel(key);
 
             const totalOutput = data.total || 0;
             const totalMan = data.man || 0;
@@ -1307,7 +1353,7 @@
         const gapLabelPlugin = {
             id: 'gapLabelPlugin',
             afterDatasetsDraw(chart) {
-                if (selectedDataIndex === -1 || keys.length === 0) return;
+                if (selectedDataIndex === -1 || currentChartKeys.length === 0) return;
                 const ctx = chart.ctx, meta = chart.getDatasetMeta(0), point = meta.data[selectedDataIndex];
                 if (!point) return;
 
@@ -1329,6 +1375,7 @@
         };
 
         function initCharts() {
+            if (!currentChartKeys.length) rebuildVisibleChartState();
             const trendCtx = document.getElementById('trendChart').getContext('2d');
             if (trendChart) trendChart.destroy();
             trendChart = new Chart(trendCtx, {
@@ -1359,27 +1406,27 @@
                         // 🎯 ปรับโครงสร้างกราฟแท่งหลักให้กลับมาเป็นแบบสะสม (Stacked) ตาม 5 สถานีงานให้สอดรับกับ UI ตารางเวลา
                         {
                             label: '1. เตรียม RM',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.prep) || 0 : 0),
+                            data: currentChartKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.prep) || 0 : 0),
                             backgroundColor: 'rgba(0, 158, 247, 0.3)', stack: 'stack1'
                         },
                         {
                             label: '2. เรียงเนื้อ (คอขวด)',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.arrange) || 0 : 0),
+                            data: currentChartKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.arrange) || 0 : 0),
                             backgroundColor: 'rgba(139, 92, 246, 0.3)', stack: 'stack1'
                         },
                         {
                             label: '3. เข้าเครื่อง',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.machine) || 0 : 0),
+                            data: currentChartKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.machine) || 0 : 0),
                             backgroundColor: 'rgba(255, 199, 0, 0.3)', stack: 'stack1'
                         },
                         {
                             label: '4. เช็คสเปค',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.inspec) || 0 : 0),
+                            data: currentChartKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.inspec) || 0 : 0),
                             backgroundColor: 'rgba(241, 65, 108, 0.3)', stack: 'stack1'
                         },
                         {
                             label: '5. PACKING',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.pack) || 0 : 0),
+                            data: currentChartKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.pack) || 0 : 0),
                             backgroundColor: 'rgba(80, 205, 137, 0.3)', stack: 'stack1'
                         }
                     ]
@@ -1394,9 +1441,10 @@
         }
 
         function initSummaryCharts() {
-            if(keys.length === 0) return;
-            const baseline = db[keys[0]] || { prod: 0, eff: 0 };
-            const best = db[bestTrialKey] || { prod: 0, eff: 0 };
+            const visibleKeys = getVisibleKeys();
+            if(visibleKeys.length === 0) return;
+            const baseline = db[visibleKeys[0]] || { prod: 0, eff: 0 };
+            const best = db[findBestTrialKey(visibleKeys)] || { prod: 0, eff: 0 };
 
             const prodJourneyCtx = document.getElementById('prodJourneyChart').getContext('2d');
             if (prodJourneyChart) prodJourneyChart.destroy();

@@ -501,6 +501,7 @@
         let db = {};
         let keys = [];
         const targetProductivity = 84;
+        const actualOutputTarget = 1600;
         const actualBaseline = { prep: 15.10, arrange: 16.00, machine: 1.25, inspec: 5.00, pack: 5.50 };
 
         const popup = document.getElementById('iterDropdown');
@@ -515,6 +516,8 @@
 
         let chartLabels = [];
         let chartData = [];
+        let currentChartKeys = [];
+        let selectedKey = '';
 
         Chart.defaults.color = '#a1a5b7';
         Chart.defaults.borderColor = '#323248';
@@ -1187,6 +1190,39 @@
             return `${getDisplayTitle(fromKey)} vs ${getDisplayTitle(toKey)}`;
         }
 
+        function getCardRoundLabel(key) {
+            const trial = getTrialLabel(key);
+            const shift = getRecordShift(key);
+            return trial ? `(ครั้งที่ ${trial} / Shift ${shift})` : 'ครั้งที่เลือก';
+        }
+
+        function rebuildVisibleChartState() {
+            currentChartKeys = getVisibleKeys();
+            chartLabels = currentChartKeys.map(k => {
+                const trial = getTrialLabel(k);
+                const shift = getRecordShift(k);
+                return `ครั้งที่ ${trial} / Shift ${shift}`;
+            });
+            chartData = currentChartKeys.map(k => db[k] ? Number(db[k].prod) || 0 : 0);
+            return currentChartKeys;
+        }
+
+        function refreshTopSummaryCards() {
+            const actualYieldEl = document.getElementById('header-actual-yield');
+            const maxYieldEl = document.getElementById('header-max-yield');
+            if (actualYieldEl) {
+                actualYieldEl.innerHTML = `${actualOutputTarget.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
+            }
+            const visibleKeys = currentChartKeys.length ? currentChartKeys : getVisibleKeys();
+            const maxYield = visibleKeys.reduce((maxValue, key) => {
+                const total = db[key] ? Number(db[key].total) || 0 : 0;
+                return Math.max(maxValue, total);
+            }, 0);
+            if (maxYieldEl) {
+                maxYieldEl.innerHTML = `${maxYield.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
+            }
+        }
+
         function getVisibleKeys() {
             const shift = String(selectedShiftFilter || 'all').trim().toUpperCase();
             return keys.filter(k => {
@@ -1198,10 +1234,18 @@
 
         function setShiftFilter(shift) {
             selectedShiftFilter = String(shift || 'all').trim().toLowerCase();
+            const visibleKeys = rebuildVisibleChartState();
+            bestTrialKey = findBestTrialKey(visibleKeys);
+            syncShiftFilterSelect();
+            refreshTopSummaryCards();
             renderList();
             renderTable();
             calculateExecutiveSummary();
             renderExecutiveGapTable();
+            initCharts();
+            initSummaryCharts();
+            const fallbackKey = visibleKeys.includes(selectedKey) ? selectedKey : (visibleKeys.slice(-1)[0] || '');
+            if (fallbackKey) selectIteration(fallbackKey);
         }
 
         function setGapComparison(key) {
@@ -1243,12 +1287,12 @@
                 return aTrial.localeCompare(bTrial, 'th', { numeric: true }) || getRecordShift(a).localeCompare(getRecordShift(b));
             });
             keys = [...allSheetKeys];
-            bestTrialKey = findBestTrialKey(keys);
-            gapComparisonKey = bestTrialKey;
             selectedShiftFilter = 'all';
-            chartLabels = getVisibleKeys().map(k => getDisplayTitle(k));
-            chartData = getVisibleKeys().map(k => db[k] ? Number(db[k].prod) || 0 : 0);
+            const visibleKeys = rebuildVisibleChartState();
+            bestTrialKey = findBestTrialKey(visibleKeys.length ? visibleKeys : keys);
+            gapComparisonKey = bestTrialKey;
             syncShiftFilterSelect();
+            refreshTopSummaryCards();
             renderList();
             renderTable();
             calculateExecutiveSummary();
@@ -1256,7 +1300,7 @@
             initCharts();
             initSummaryCharts();
 
-            const defaultKey = getVisibleKeys().slice(-1)[0] || keys[keys.length - 1] || '';
+            const defaultKey = visibleKeys.slice(-1)[0] || keys[keys.length - 1] || '';
             if (defaultKey) selectIteration(defaultKey);
         }
 
@@ -1362,6 +1406,7 @@
             if (!gapComparisonKey || !visibleKeys.includes(gapComparisonKey)) {
                 gapComparisonKey = bestKey;
             }
+            refreshTopSummaryCards();
 
             normalizeExecutiveSummaryCopy(firstKey, bestKey);
             document.getElementById('lbl-summary-prod').textContent = `${getDisplayTitle(firstKey)} vs ${getDisplayTitle(bestKey)}`;
@@ -1459,11 +1504,13 @@
         function selectIteration(key) {
             const data = db[key];
             if(!data) return;
-            selectedDataIndex = keys.indexOf(key);
+            selectedKey = key;
+            if (!currentChartKeys.length) rebuildVisibleChartState();
+            selectedDataIndex = currentChartKeys.indexOf(key);
 
             document.getElementById('selectedIterText').innerText = getDisplayTitle(key);
-            document.getElementById('header-selected-round').innerText = `(${getDisplayTitle(key)})`;
-            document.getElementById('header-man-round').innerText = `(${getDisplayTitle(key)})`;
+            document.getElementById('header-selected-round').innerText = getCardRoundLabel(key);
+            document.getElementById('header-man-round').innerText = getCardRoundLabel(key);
 
             const totalOutput = data.total || 0;
             const totalMan = data.man || 0;
@@ -1573,7 +1620,7 @@
                 ctx.fillStyle = '#f1416c'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(text, textX, textY);
 
-                const currentKey = keys[selectedDataIndex];
+                const currentKey = currentChartKeys[selectedDataIndex];
                 const effValue = db[currentKey] ? db[currentKey].eff : 0;
                 const effText = `Eff: ${effValue.toFixed(2)}%`;
                 ctx.font = 'bold 11px Inter, Sarabun';
@@ -1587,6 +1634,7 @@
         };
 
         function initCharts() {
+            if (!currentChartKeys.length) rebuildVisibleChartState();
             const trendCtx = document.getElementById('trendChart').getContext('2d');
             if (trendChart) trendChart.destroy();
             trendChart = new Chart(trendCtx, {
@@ -1617,7 +1665,7 @@
                                     if (label) label += ': ';
                                     if (context.parsed.y !== null) label += context.parsed.y;
                                     if (context.datasetIndex === 0) {
-                                        const dataKey = keys[context.dataIndex];
+                                        const dataKey = currentChartKeys[context.dataIndex];
                                         const eff = db[dataKey] ? db[dataKey].eff : 0;
                                         return [label, `Efficiency: ${eff.toFixed(2)}%`];
                                     }
@@ -1640,7 +1688,7 @@
                     datasets: [
                         {
                             label: 'เวลารวมทั้งหมด',
-                            data: keys.map(k => {
+                            data: currentChartKeys.map(k => {
                                 const cycle = db[k] ? db[k].cycle_detail : null;
                                 return cycle ? (Number(cycle.prep)||0)+(Number(cycle.arrange)||0)+(Number(cycle.machine)||0)+(Number(cycle.inspec)||0)+(Number(cycle.pack)||0) : 0;
                             }),
@@ -1651,31 +1699,31 @@
                         },
                         {
                             label: '1. เตรียม RM',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.prep) || 0 : 0),
+                            data: currentChartKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.prep) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(0, 158, 247, 0.25)'),
                             stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         },
                         {
                             label: '2. เรียงเนื้อ',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.arrange) || 0 : 0),
+                            data: currentChartKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.arrange) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(139, 92, 246, 0.3)'),
                             stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         },
                         {
                             label: '3. เข้าเครื่อง',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.machine) || 0 : 0),
+                            data: currentChartKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.machine) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(255, 199, 0, 0.3)'),
                             stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         },
                         {
                             label: '4. เช็คสเปค',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.inspec) || 0 : 0),
+                            data: currentChartKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.inspec) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(241, 65, 108, 0.3)'),
                             stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         },
                         {
                             label: '5. PACKING',
-                            data: keys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.pack) || 0 : 0),
+                            data: currentChartKeys.map(k => db[k] && db[k].cycle_detail ? Number(db[k].cycle_detail.pack) || 0 : 0),
                             backgroundColor: new Array(chartLabels.length).fill('rgba(80, 205, 137, 0.3)'),
                             stack: 'Stack 0', yAxisID: 'y', borderRadius: 4
                         }
@@ -1701,10 +1749,14 @@
         // 8. ฟังก์ชันกราฟสำหรับ Executive Summary
         // ==========================================
         function initSummaryCharts() {
-            const t1 = db["1"] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
-            const best = db[bestTrialKey] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
+            const visibleKeys = getVisibleKeys();
+            if (!visibleKeys.length) return;
+            const baseKey = visibleKeys[0];
+            const bestKey = findBestTrialKey(visibleKeys);
+            const t1 = db[baseKey] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
+            const best = db[bestKey] || { prod: 0, eff: 0, cycle_detail: { arrange: 0, inspec: 0 } };
 
-            const summaryLabels = [`${getDisplayTitle("1")} (baseline)`, `${getDisplayTitle(bestTrialKey)} (best process)`, 'Target (goal)'];
+            const summaryLabels = [`${getDisplayTitle(baseKey)} (baseline)`, `${getDisplayTitle(bestKey)} (best process)`, 'Target (goal)'];
 
             const prodJourneyCtx = document.getElementById('prodJourneyChart').getContext('2d');
             if (prodJourneyChart) prodJourneyChart.destroy();
@@ -1715,7 +1767,7 @@
                     datasets: [
                         {
                             label: 'Productivity (sticks/person/hour)',
-                            data: [t1.prod, best.prod, 84],
+                            data: [t1.prod, best.prod, targetProductivity],
                             backgroundColor: ['#323248', '#009ef7', '#f1416c'],
                             borderRadius: 4, barPercentage: 0.5, yAxisID: 'y'
                         },
@@ -1741,7 +1793,7 @@
                     id: 'targetLineSummary',
                     afterDraw: chart => {
                         const ctx = chart.ctx;
-                        const yG1 = chart.scales.y.getPixelForValue(84);
+                        const yG1 = chart.scales.y.getPixelForValue(targetProductivity);
                         const xAxis = chart.scales.x;
 
                         ctx.save();
@@ -1762,7 +1814,7 @@
             bottleneckChart = new Chart(bottleneckChartCtx, {
                 type: 'bar',
                 data: {
-                    labels: [getDisplayTitle("1"), getDisplayTitle(bestTrialKey)],
+                    labels: [getDisplayTitle(baseKey), getDisplayTitle(bestKey)],
                     datasets: [
                         {
                             label: 'เวลาเรียงลงบล็อค (sec)',
