@@ -199,10 +199,8 @@
 
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-8">
                 <div id="freshnessPanel" class="bg-card rounded-xl border border-[#323248] shadow-sm p-5"></div>
-                <div id="alertPanel" class="xl:col-span-2 bg-card rounded-xl border border-[#323248] shadow-sm p-5"></div>
+                <div id="recentChangePanel" class="xl:col-span-2 bg-card rounded-xl border border-[#323248] shadow-sm p-6"></div>
             </div>
-
-            <div id="recentChangePanel" class="bg-card rounded-xl border border-[#323248] shadow-sm p-6 mb-8"></div>
 
             <div class="mb-8">
                 <div class="bg-card rounded-xl border border-[#323248] shadow-sm p-6">
@@ -516,8 +514,7 @@
 
         function renderFreshnessAndAlerts(results) {
             const freshnessPanel = document.getElementById('freshnessPanel');
-            const alertPanel = document.getElementById('alertPanel');
-            if (!freshnessPanel || !alertPanel) return;
+            if (!freshnessPanel) return;
 
             const insights = buildDashboardInsights(results);
             const freshness = getRelativeFreshness(insights.latestRecord?.latest?.recordDate);
@@ -543,60 +540,6 @@
                     <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Feed ที่ใช้งาน</span><span class="text-white font-semibold">${buildProgressEntries(results).filter(item => item.stats).length}</span></div>
                 </div>
             `;
-
-            const alertItems = [
-                insights.targetRisk
-                    ? {
-                        tone: 'text-[#f1416c]',
-                        label: 'Target Risk',
-                        message: `${insights.targetRisk.line} / Shift ${insights.targetRisk.shift} ต่ำกว่าเป้าหมาย ${insights.targetRisk.gapToTarget.toFixed(1)}`
-                    }
-                    : {
-                        tone: 'text-[#50cd89]',
-                        label: 'Target Risk',
-                        message: 'ไม่มีไลน์ที่ต่ำกว่าเป้าหมายในมุมมองปัจจุบัน'
-                    },
-                insights.shiftGap
-                    ? {
-                        tone: insights.shiftGap.gap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]',
-                        label: 'Shift Gap',
-                        message: `${insights.shiftGap.line} มีส่วนต่าง A/B ${Math.abs(insights.shiftGap.gap).toFixed(1)} pts`
-                    }
-                    : {
-                        tone: 'text-[#a1a5b7]',
-                        label: 'Shift Gap',
-                        message: 'ยังไม่มีข้อมูลครบทั้ง Shift A และ Shift B'
-                    },
-                insights.momentumRisk
-                    ? {
-                        tone: (insights.momentumRisk.deltaProd || 0) >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]',
-                        label: 'Latest Change',
-                        message: `${insights.momentumRisk.line} / Shift ${insights.momentumRisk.shift} เปลี่ยน ${insights.momentumRisk.deltaProd >= 0 ? '+' : ''}${(insights.momentumRisk.deltaProd || 0).toFixed(1)} จากรอบก่อน`
-                    }
-                    : {
-                        tone: 'text-[#a1a5b7]',
-                        label: 'Latest Change',
-                        message: 'ยังมีข้อมูลไม่พอสำหรับเทียบรอบก่อน'
-                    }
-            ];
-
-            alertPanel.innerHTML = `
-                <div class="flex items-start justify-between gap-4 mb-4">
-                    <div>
-                        <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Alert Summary</p>
-                        <h3 class="text-lg font-bold text-white">สรุปเหตุการณ์ที่ต้องจับตา</h3>
-                    </div>
-                    <span class="text-[11px] uppercase tracking-[0.2em] text-[#6b7280] font-bold">Latest exceptions</span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    ${alertItems.map(item => `
-                        <div class="rounded-xl border border-[#323248] bg-[#151521] p-4">
-                            <div class="text-[11px] uppercase tracking-[0.18em] ${item.tone} font-bold mb-2">${item.label}</div>
-                            <div class="text-sm text-white leading-relaxed">${item.message}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
         }
 
         function renderRecentChanges(results) {
@@ -613,7 +556,7 @@
                     </div>
                     <span class="text-[11px] uppercase tracking-[0.2em] text-[#6b7280] font-bold">Recent trial-to-trial movement</span>
                 </div>
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto max-h-[320px] pr-1">
                     <table class="w-full text-left whitespace-nowrap text-sm">
                         <thead class="text-[11px] uppercase text-[#6b7280] border-b border-[#2b2b40]">
                             <tr>
