@@ -300,6 +300,7 @@
         let currentShiftFilter = 'all';
         let dashboardReady = false;
         let headerClockTimer = null;
+        let lastDashboardRefreshAt = null;
 
         window.onload = function() {
             ensureDashboardChrome();
@@ -447,6 +448,17 @@
             });
         }
 
+        function formatDateDisplayFromDate(date) {
+            if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '--';
+            return date.toLocaleString('th-TH', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
         function getRelativeFreshness(value) {
             const parsed = parseRecordDateValue(value);
             if (!parsed) {
@@ -499,10 +511,14 @@
                 const freshness = getRelativeFreshness(stats.latest.recordDate);
                 let statusKey = 'ready';
                 let status = 'พร้อมใช้งาน';
+                let detail = `ล่าสุด Trial ${stats.latest.trial} / Shift ${stats.latest.shift || 'A'}`;
+                let tone = freshness.tone;
 
                 if (freshness.badge === 'NO TIMESTAMP') {
-                    statusKey = 'no-timestamp';
-                    status = 'รอตรวจสอบเวลาอัปเดต';
+                    statusKey = 'ready';
+                    status = 'พร้อมใช้งาน';
+                    detail += ' • ไม่มี timestamp จากชีต';
+                    tone = 'text-[#50cd89]';
                 } else if (freshness.badge === 'STALE') {
                     statusKey = 'stale';
                     status = 'อัปเดตล่าช้า';
@@ -514,8 +530,8 @@
                 return {
                     name: getExperimentalDisplayName(label),
                     status,
-                    tone: freshness.tone,
-                    detail: `ล่าสุด Trial ${stats.latest.trial} / Shift ${stats.latest.shift || 'A'}`,
+                    tone,
+                    detail,
                     statusKey
                 };
             });
@@ -615,10 +631,16 @@
             const insights = buildDashboardInsights(results);
             const statusRows = buildSheetStatusRows(results);
             const overallStatus = getOverallSystemStatus(statusRows);
-            const latestTime = formatDateTimeDisplay(insights.latestRecord?.latest?.recordDate);
+            const timestampAvailable = Boolean(parseRecordDateValue(insights.latestRecord?.latest?.recordDate));
+            const latestTime = timestampAvailable
+                ? formatDateTimeDisplay(insights.latestRecord?.latest?.recordDate)
+                : formatDateDisplayFromDate(lastDashboardRefreshAt);
             const latestLine = insights.latestRecord
                 ? getExperimentalDisplayName(insights.latestRecord.line)
                 : '--';
+            const timeNote = timestampAvailable
+                ? 'อ้างอิงเวลาอัปเดตจากชีตล่าสุด'
+                : 'อ้างอิงเวลารีเฟรชข้อมูลล่าสุดของหน้า';
 
             freshnessPanel.innerHTML = `
                 <div class="flex items-start justify-between gap-4 mb-4">
@@ -630,6 +652,7 @@
                 </div>
                 <div class="mb-5">
                     <div class="text-2xl font-bold text-white font-en">${latestTime}</div>
+                    <div class="text-xs text-[#6b7280] mt-1">${timeNote}</div>
                 </div>
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between gap-3">
@@ -1216,6 +1239,8 @@
                     return { ...config, records: [] };
                 }
             }));
+
+            lastDashboardRefreshAt = new Date();
 
             const progressSummary = renderProgressPanel(results);
 
