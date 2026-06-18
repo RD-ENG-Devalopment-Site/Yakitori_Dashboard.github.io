@@ -121,6 +121,10 @@ function isGizzardSheetName_(sheetName) {
   return isGz30gSheetName_(sheetName) || isGz40gSheetName_(sheetName);
 }
 
+function isBreakdownSheetName_(sheetName) {
+  return String(sheetName || "").trim().toUpperCase() === String(BREAKDOWN_LOG_SHEET).trim().toUpperCase();
+}
+
 function resolveGizzardSheetName_(sheetName, shift) {
   if (isGz40gSheetName_(sheetName)) {
     return normalizeShift_(shift) === "B" ? GZ40G_SHIFT_B_SHEET : GZ40G_SOURCE_SHEET;
@@ -394,9 +398,18 @@ function parseGizzardSheet_(sheet, defaultShift, db, records, lineLabel, targetP
 function getJsonStream(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheetName = "GZ30gR15_DataLog";
+  var requestedAction = e && e.parameter && e.parameter.action
+    ? String(e.parameter.action).trim().toLowerCase()
+    : "";
 
   if (e && e.parameter && e.parameter.sheet) {
     sheetName = e.parameter.sheet.toString().trim();
+  }
+
+  if (requestedAction === "read_breakdown" || isBreakdownSheetName_(sheetName)) {
+    var breakdownSheet = ensureBreakdownLogSheet_(ss);
+    return ContentService.createTextOutput(JSON.stringify(buildBreakdownFeed_(breakdownSheet)))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 
   if (isBl23gSheetName_(sheetName)) {
@@ -537,6 +550,106 @@ function getJsonStream(e) {
   db._records = records;
   return ContentService.createTextOutput(JSON.stringify(db))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function buildBreakdownFeed_(sheet) {
+  var data = sheet ? sheet.getDataRange().getValues() : [];
+  if (!data.length) {
+    return {
+      status: "success",
+      source: "sheet",
+      sheet: BREAKDOWN_LOG_SHEET,
+      updatedAt: "",
+      total: 0,
+      _records: []
+    };
+  }
+
+  var headers = data[0].map(function(header) {
+    return String(header || "").trim();
+  });
+  var records = [];
+
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var rowMap = {};
+    var hasValue = false;
+
+    for (var j = 0; j < headers.length; j++) {
+      var header = headers[j];
+      if (!header) continue;
+      rowMap[header] = row[j];
+      if (row[j] !== "" && row[j] !== null && row[j] !== undefined) {
+        hasValue = true;
+      }
+    }
+
+    if (!hasValue) continue;
+
+    var eventId = valueOrEmpty_(rowMap.eventId || rowMap.breakdownId || ("BD-ROW-" + i));
+    var createdAt = valueOrEmpty_(rowMap.createdAt);
+    var breakdownDate = valueOrEmpty_(rowMap.breakdownDate || rowMap.recordDate || rowMap.date);
+    var shift = normalizeShift_(rowMap.shift, "A");
+    var line = normalizeLine_(rowMap.line || rowMap.productLine);
+    var record = {
+      eventId: eventId,
+      breakdownId: eventId,
+      key: eventId,
+      id: eventId,
+      createdAt: createdAt,
+      updatedAt: createdAt,
+      breakdownDate: breakdownDate,
+      recordDate: breakdownDate,
+      line: line,
+      productLine: line,
+      shift: shift,
+      machineVersion: valueOrEmpty_(rowMap.machineVersion),
+      conveyorPosition: valueOrEmpty_(rowMap.conveyorPosition),
+      machineArea: valueOrEmpty_(rowMap.machineArea || rowMap.machine),
+      machine: valueOrEmpty_(rowMap.machineArea || rowMap.machine),
+      station: valueOrEmpty_(rowMap.station),
+      eventType: valueOrEmpty_(rowMap.eventType || rowMap.breakdownType),
+      breakdownType: valueOrEmpty_(rowMap.eventType || rowMap.breakdownType),
+      severity: valueOrEmpty_(rowMap.severity || "Medium"),
+      breakdownStatus: valueOrEmpty_(rowMap.breakdownStatus || rowMap.status || "Open"),
+      status: valueOrEmpty_(rowMap.breakdownStatus || rowMap.status || "Open"),
+      startTime: valueOrEmpty_(rowMap.startTime),
+      endTime: valueOrEmpty_(rowMap.endTime),
+      durationMin: Number(rowMap.durationMin) || 0,
+      lossProxy: Number(rowMap.lossProxy) || 0,
+      impactOutput: Number(rowMap.impactOutput) || 0,
+      affectedTrial: valueOrEmpty_(rowMap.affectedTrial || rowMap.trial),
+      trial: valueOrEmpty_(rowMap.affectedTrial || rowMap.trial),
+      rootCause: valueOrEmpty_(rowMap.rootCause || rowMap.issue),
+      issue: valueOrEmpty_(rowMap.rootCause || rowMap.issue),
+      actionTaken: valueOrEmpty_(rowMap.actionTaken || rowMap.actionNote),
+      actionNote: valueOrEmpty_(rowMap.actionTaken || rowMap.actionNote),
+      owner: valueOrEmpty_(rowMap.owner || rowMap.pic),
+      pic: valueOrEmpty_(rowMap.owner || rowMap.pic),
+      submitter: valueOrEmpty_(rowMap.submitter || rowMap.createdBy),
+      createdBy: valueOrEmpty_(rowMap.submitter || rowMap.createdBy),
+      note: valueOrEmpty_(rowMap.note || rowMap.comment),
+      comment: valueOrEmpty_(rowMap.note || rowMap.comment),
+      recordType: valueOrEmpty_(rowMap.recordType || "record_breakdown")
+    };
+
+    records.push(record);
+  }
+
+  records.sort(function(a, b) {
+    var aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    var bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return bTime - aTime;
+  });
+
+  return {
+    status: "success",
+    source: "sheet",
+    sheet: sheet.getName(),
+    updatedAt: records.length ? records[0].createdAt : "",
+    total: records.length,
+    _records: records
+  };
 }
 
 function saveExternalRecord_(payload) {

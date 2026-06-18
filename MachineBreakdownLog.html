@@ -82,6 +82,12 @@
                     <a href="DataRecordingApproval.html" class="px-4 py-3 rounded-xl bg-[#2b2b40] text-white font-semibold hover:bg-[#323248] transition">
                         Back to Data Recording
                     </a>
+                    <a href="MachineBreakdownEvents.html" class="px-4 py-3 rounded-xl bg-[#009ef7] text-white font-semibold hover:opacity-90 transition">
+                        Event Table
+                    </a>
+                    <a id="latestEventDetailLink" href="MachineBreakdownEventDetail.html" class="px-4 py-3 rounded-xl bg-[#2b2b40] text-white font-semibold hover:bg-[#323248] transition">
+                        Latest Event Detail
+                    </a>
                     <span class="pill text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#ffc700] font-bold">Preview Only</span>
                 </div>
             </div>
@@ -286,6 +292,7 @@
                 <table class="min-w-full text-sm">
                     <thead class="bg-[#1a1a27] text-[#a1a5b7] uppercase tracking-[0.12em] text-xs">
                         <tr>
+                            <th class="px-4 py-3 text-left">ID</th>
                             <th class="px-4 py-3 text-left">Date</th>
                             <th class="px-4 py-3 text-left">Product</th>
                             <th class="px-4 py-3 text-left">Scope</th>
@@ -294,6 +301,7 @@
                             <th class="px-4 py-3 text-left">Downtime</th>
                             <th class="px-4 py-3 text-left">Machine</th>
                             <th class="px-4 py-3 text-left">Submitted by</th>
+                            <th class="px-4 py-3 text-left">Action</th>
                         </tr>
                     </thead>
                     <tbody id="breakdownAllTableBody" class="divide-y divide-[#323248] bg-[#151521]"></tbody>
@@ -335,6 +343,26 @@
             return [machineVersion, conveyorPosition].filter(Boolean).join(' / ') || '--';
         }
 
+        function resolveBreakdownEventId(entry, index = 0) {
+            return entry?.eventId || entry?.breakdownId || `LEGACY-${String(index + 1).padStart(3, '0')}`;
+        }
+
+        function buildBreakdownDetailUrl(entry, index = 0) {
+            return `MachineBreakdownEventDetail.html?id=${encodeURIComponent(resolveBreakdownEventId(entry, index))}`;
+        }
+
+        function buildLatestBreakdownDetailUrl() {
+            const history = loadBreakdownHistory();
+            if (!history.length) return 'MachineBreakdownEventDetail.html';
+            return buildBreakdownDetailUrl(history[0], 0);
+        }
+
+        function generateBreakdownEventId(breakdownDate = '') {
+            const datePart = String(breakdownDate || new Date().toISOString().slice(0, 10)).replace(/-/g, '') || '00000000';
+            const serialPart = String(Date.now()).slice(-4);
+            return `BD-${datePart}-${serialPart}`;
+        }
+
         function pushStatus(message, tone = 'info', targetId = 'breakdownStatusText') {
             const el = document.getElementById(targetId);
             if (!el) return;
@@ -366,12 +394,14 @@
             return (hour * 60) + minute;
         }
 
-        function formatBreakdownHistory(entry) {
+        function formatBreakdownHistory(entry, index) {
+            const detailUrl = buildBreakdownDetailUrl(entry, index);
             return `
                 <div class="rounded-xl border border-[#323248] bg-[#1a1a27] px-4 py-3">
                     <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div>
                             <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-xs uppercase tracking-[0.18em] text-[#ffc700] font-bold">${resolveBreakdownEventId(entry, index)}</span>
                                 <span class="text-white font-semibold">${getLineDisplayName(entry.line || entry.productLine)} / Shift ${entry.shift}</span>
                                 <span class="text-xs uppercase tracking-[0.18em] text-[#6b7280]">${getBreakdownScopeLabel(entry)}</span>
                                 <span class="text-xs uppercase tracking-[0.18em] text-[#6b7280]">${entry.eventType}</span>
@@ -386,6 +416,10 @@
                         </div>
                     </div>
                     <div class="mt-3 text-sm text-[#a1a5b7]">${entry.rootCause || 'No root cause note yet.'}</div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <a href="${detailUrl}" class="px-3 py-2 rounded-lg bg-[#2b2b40] text-white text-xs font-bold hover:bg-[#323248] transition">View Detail</a>
+                        <a href="MachineBreakdownEvents.html" class="px-3 py-2 rounded-lg bg-[#151521] border border-[#323248] text-[#a1a5b7] text-xs font-bold hover:text-white transition">Open Event Table</a>
+                    </div>
                 </div>
             `;
         }
@@ -415,12 +449,14 @@
                 `;
                 return;
             }
-            container.innerHTML = history.map(formatBreakdownHistory).join('');
+            container.innerHTML = history.map((entry, index) => formatBreakdownHistory(entry, index)).join('');
         }
 
-        function formatAllEventRow(entry) {
+        function formatAllEventRow(entry, index) {
+            const detailUrl = buildBreakdownDetailUrl(entry, index);
             return `
                 <tr class="align-top">
+                    <td class="px-4 py-3 text-white font-semibold whitespace-nowrap">${resolveBreakdownEventId(entry, index)}</td>
                     <td class="px-4 py-3 text-[#a1a5b7] whitespace-nowrap">${entry.breakdownDate || '--'}</td>
                     <td class="px-4 py-3 text-white font-semibold">${getLineDisplayName(entry.line || entry.productLine)}</td>
                     <td class="px-4 py-3 text-[#a1a5b7]">${getBreakdownScopeLabel(entry)}</td>
@@ -431,6 +467,7 @@
                     <td class="px-4 py-3 text-[#ffc700] font-bold font-en whitespace-nowrap">${Number(entry.durationMin || 0).toFixed(1)} min</td>
                     <td class="px-4 py-3 text-[#a1a5b7]">${entry.machineArea || '--'}</td>
                     <td class="px-4 py-3 text-[#a1a5b7]">${entry.submitter || '--'}</td>
+                    <td class="px-4 py-3"><a href="${detailUrl}" class="px-3 py-2 rounded-lg bg-[#2b2b40] text-white text-xs font-bold hover:bg-[#323248] transition">Detail</a></td>
                 </tr>
             `;
         }
@@ -464,7 +501,7 @@
             if (!history.length) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="8" class="px-4 py-6 text-center text-[#6b7280]">
+                        <td colspan="10" class="px-4 py-6 text-center text-[#6b7280]">
                             ยังไม่มี breakdown event ใน preview นี้
                         </td>
                     </tr>
@@ -475,7 +512,7 @@
             if (!filteredHistory.length) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="8" class="px-4 py-6 text-center text-[#6b7280]">
+                        <td colspan="10" class="px-4 py-6 text-center text-[#6b7280]">
                             No events match the selected filters.
                         </td>
                     </tr>
@@ -483,7 +520,7 @@
                 return;
             }
 
-            tableBody.innerHTML = filteredHistory.map(formatAllEventRow).join('');
+            tableBody.innerHTML = filteredHistory.map((entry, index) => formatAllEventRow(entry, index)).join('');
         }
 
         function calculateBreakdownMetrics() {
@@ -586,6 +623,7 @@
                     await window.YakitoriRuntime.postToAppsScript('record_breakdown', payload);
                 }
                 saveBreakdownHistory({
+                    eventId: generateBreakdownEventId(payload.breakdownDate),
                     line: payload.line || payload.productLine,
                     productLine: payload.line || payload.productLine,
                     shift: payload.shift,
@@ -601,7 +639,10 @@
                     machineArea: payload.machineArea,
                     station: payload.station,
                     rootCause: payload.rootCause,
-                    submitter: payload.submitter
+                    actionTaken: payload.actionTaken,
+                    submitter: payload.submitter,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
                 });
                 renderBreakdownHistory();
                 renderAllBreakdownEvents();
@@ -639,6 +680,9 @@
             section.classList.toggle('hidden');
             renderAllBreakdownEvents();
             document.getElementById('viewAllEventsBtn').textContent = hidden ? 'Hide All Events' : 'View All Events';
+        });
+        document.getElementById('latestEventDetailLink')?.addEventListener('click', (event) => {
+            event.currentTarget.setAttribute('href', buildLatestBreakdownDetailUrl());
         });
         document.getElementById('breakdownFilterProduct')?.addEventListener('change', renderAllBreakdownEvents);
         document.getElementById('breakdownFilterMachine')?.addEventListener('change', renderAllBreakdownEvents);
