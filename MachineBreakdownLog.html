@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Machine Breakdown Log - Yakitori</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(255, 199, 0, .08), transparent 28%),
+                radial-gradient(circle at top right, rgba(0, 158, 247, .10), transparent 25%),
+                #151521;
+            color: #a1a5b7;
+        }
+        .font-en { font-family: 'Inter', sans-serif; }
+        .card { background: linear-gradient(145deg, #1e1e2d 0%, #151521 100%); }
+        .field {
+            background: #151521;
+            border: 1px solid #323248;
+            color: white;
+        }
+        .field:focus {
+            outline: none;
+            border-color: #ffc700;
+            box-shadow: 0 0 0 1px rgba(255, 199, 0, .22);
+        }
+        .pill {
+            background: rgba(255, 199, 0, .10);
+            border: 1px solid rgba(255, 199, 0, .24);
+        }
+        .login-backdrop {
+            background: linear-gradient(180deg, rgba(21, 21, 33, .96), rgba(21, 21, 33, .88));
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <script src="yakitori-runtime.js?v=20260617-04"></script>
+
+    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center login-backdrop p-4">
+        <div class="w-full max-w-md card rounded-2xl border border-[#323248] shadow-2xl p-6 md:p-8">
+            <div class="mb-6">
+                <p class="text-xs uppercase tracking-[0.28em] text-[#ffc700] font-bold">Access Gate</p>
+                <h1 class="text-2xl md:text-3xl font-bold text-white mt-2">Machine Breakdown Log</h1>
+                <p class="mt-2 text-sm text-[#a1a5b7]">
+                    ปลดล็อกเพื่อบันทึกเหตุการณ์เครื่องจักรหยุดและ downtime event
+                </p>
+            </div>
+
+            <form id="loginForm" class="space-y-4">
+                <label class="block space-y-2">
+                    <span class="text-sm text-white">Password</span>
+                    <input id="recordPass" type="password" class="field w-full rounded-xl px-4 py-3" placeholder="กรอกรหัสผ่าน" required>
+                </label>
+                <div id="loginError" class="hidden rounded-xl border border-[#f1416c]/25 bg-[#f1416c]/10 px-4 py-3 text-sm text-[#f1416c]">
+                    รหัสผ่านไม่ถูกต้อง
+                </div>
+                <button type="submit" class="w-full rounded-xl bg-[#ffc700] px-5 py-3 font-bold text-[#151521] hover:opacity-90 transition">
+                    Unlock Breakdown Log
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <main id="app" class="hidden max-w-[1280px] mx-auto space-y-6">
+        <header class="card rounded-2xl border border-[#323248] p-6 md:p-8 shadow-xl">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.28em] text-[#ffc700] font-bold">Internal Factory Tool</p>
+                    <h1 class="text-3xl md:text-4xl font-bold text-white mt-2">Machine Breakdown Log</h1>
+                    <p class="mt-2 text-sm md:text-base text-[#a1a5b7] max-w-3xl">
+                        หน้าแยกสำหรับบันทึกเหตุการณ์ Break down แบบสั้น กระชับ และกรอกหน้างานได้เร็ว
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <a href="DataRecordingApproval.html" class="px-4 py-3 rounded-xl bg-[#2b2b40] text-white font-semibold hover:bg-[#323248] transition">
+                        Back to Data Recording
+                    </a>
+                    <span class="pill text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#ffc700] font-bold">Preview Only</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="card rounded-2xl border border-[#323248] p-6 shadow-xl">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-[#151521] p-4 rounded-lg border border-[#323248]">
+                    <span class="block text-[11px] font-bold uppercase text-[#a1a5b7]">Downtime (min)</span>
+                    <span id="bd_duration_label" class="text-2xl font-bold text-[#ffc700] font-en">0</span>
+                    <p class="text-xs text-[#6b7280] mt-2">คำนวณจาก Start Time และ End Time อัตโนมัติ</p>
+                </div>
+                <div class="bg-[#151521] p-4 rounded-lg border border-[#323248]">
+                    <span class="block text-[11px] font-bold uppercase text-[#a1a5b7]">Loss Proxy</span>
+                    <span id="bd_loss_label" class="text-2xl font-bold text-[#f1416c] font-en">0.0</span>
+                    <p class="text-xs text-[#6b7280] mt-2">ประมาณจาก target productivity ของไลน์ x เวลาที่หยุด</p>
+                </div>
+                <div class="bg-[#151521] p-4 rounded-lg border border-[#323248]">
+                    <span class="block text-[11px] font-bold uppercase text-[#a1a5b7]">Current Status</span>
+                    <span id="bd_status_label" class="text-2xl font-bold text-[#50cd89]">Open</span>
+                    <p class="text-xs text-[#6b7280] mt-2">ใช้ติดตามเหตุการณ์ที่ยังเปิดอยู่หรือปิดงานแล้ว</p>
+                </div>
+            </div>
+
+            <div class="mb-5 rounded-xl border border-[#323248] bg-[#151521] px-4 py-4">
+                <div class="text-xs uppercase tracking-[0.18em] text-[#ffc700] font-bold mb-2">Quick Record</div>
+                <p class="text-sm text-[#a1a5b7]">
+                    เก็บเฉพาะข้อมูลจำเป็น: สินค้าอ้างอิง, เวลา, เครื่องที่มีปัญหา, ประเภทเหตุ, สถานะ, ผู้บันทึก และแนวทางแก้
+                </p>
+            </div>
+
+            <form id="breakdownForm" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="space-y-2 md:col-span-2">
+                        <span class="text-sm text-white">สินค้า / Target reference</span>
+                        <select name="productLine" class="field w-full rounded-xl px-4 py-3" onchange="calculateBreakdownMetrics()">
+                            <option value="BL23G">BL23G</option>
+                            <option value="GZ40G">Gizzard 40G S18</option>
+                            <option value="GZ30G">Gizzard 30G R15</option>
+                        </select>
+                    </label>
+
+                    <div class="space-y-3 md:col-span-2">
+                        <span class="text-sm text-white block">เวอร์ชันเครื่องจักร</span>
+                        <div class="grid grid-cols-1 gap-3">
+                            <label class="field rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer">
+                                <input type="radio" name="machineVersion" value="CNC Version" class="accent-[#ffc700]" checked>
+                                <span class="text-white">เครื่องเสียบไม้ (CNC Version)</span>
+                            </label>
+                            <label class="field rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer">
+                                <input type="radio" name="machineVersion" value="Conveyor Version" class="accent-[#ffc700]">
+                                <span class="text-white">เครื่องเสียบไม้สายพาน (Conveyor Version)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 md:col-span-2">
+                        <span class="text-sm text-white block">ตำแหน่งเครื่องเสียบไม้</span>
+                        <div class="grid grid-cols-1 gap-3">
+                            <label class="field rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer">
+                                <input type="radio" name="conveyorPosition" value="สายพานที่ 1 (สายพานฝั่งห้องคอนโทรล)" class="accent-[#ffc700]" checked>
+                                <span class="text-white">สายพานที่ 1 (สายพานฝั่งห้องคอนโทรล)</span>
+                            </label>
+                            <label class="field rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer">
+                                <input type="radio" name="conveyorPosition" value="สายพานที่ 2 (สายพานกลาง)" class="accent-[#ffc700]">
+                                <span class="text-white">สายพานที่ 2 (สายพานกลาง)</span>
+                            </label>
+                            <label class="field rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer">
+                                <input type="radio" name="conveyorPosition" value="สายพานที่ 3 (ฝั่งห้อง Yakitori)" class="accent-[#ffc700]">
+                                <span class="text-white">สายพานที่ 3 (ฝั่งห้อง Yakitori)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <label class="space-y-2 md:col-span-2">
+                        <span class="text-sm text-white">Breakdown Date</span>
+                        <input name="breakdownDate" type="date" class="field w-full rounded-xl px-4 py-3" required>
+                    </label>
+
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Start Time</span>
+                        <input name="startTime" type="time" class="field w-full rounded-xl px-4 py-3" onchange="calculateBreakdownMetrics()" required>
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">End Time</span>
+                        <input name="endTime" type="time" class="field w-full rounded-xl px-4 py-3" onchange="calculateBreakdownMetrics()">
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Downtime (min)</span>
+                        <input name="durationMin" id="bd_duration" type="number" step="0.01" readonly class="field w-full rounded-xl px-4 py-3 opacity-80 cursor-not-allowed">
+                    </label>
+
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Machine / Asset</span>
+                        <input name="machineArea" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="เช่น Auto skewer, Conveyor 2, Sensor unit" required>
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Event Type</span>
+                        <select name="eventType" class="field w-full rounded-xl px-4 py-3">
+                            <option value="Machine Breakdown">Machine Breakdown</option>
+                            <option value="Jam / Stuck">Jam / Stuck</option>
+                            <option value="Sensor / Electrical">Sensor / Electrical</option>
+                            <option value="Waiting Material">Waiting Material</option>
+                            <option value="QC Hold">QC Hold</option>
+                            <option value="Changeover / Setup">Changeover / Setup</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </label>
+
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Status</span>
+                        <select name="breakdownStatus" class="field w-full rounded-xl px-4 py-3" onchange="calculateBreakdownMetrics()">
+                            <option value="Open" selected>Open</option>
+                            <option value="Monitoring">Monitoring</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </label>
+                    <input type="hidden" name="shift" value="A">
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Submitted by</span>
+                        <input name="submitter" type="text" class="field w-full rounded-xl px-4 py-3" placeholder="ชื่อผู้บันทึก" required>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Symptom / Cause</span>
+                        <textarea name="rootCause" rows="3" class="field w-full rounded-xl px-4 py-3" placeholder="เช่น เครื่องค้าง, sensor ไม่จับ, รอวัตถุดิบ, ตั้งเครื่องใหม่"></textarea>
+                    </label>
+                    <label class="space-y-2">
+                        <span class="text-sm text-white">Action Taken</span>
+                        <textarea name="actionTaken" rows="3" class="field w-full rounded-xl px-4 py-3" placeholder="เช่น เรียกช่าง, reset เครื่อง, เปลี่ยนอะไหล่, รอ RM"></textarea>
+                    </label>
+                </div>
+
+                <div class="flex flex-wrap gap-3 pt-2">
+                    <button type="submit" id="breakdownSubmitBtn" class="px-5 py-3 rounded-xl bg-[#ffc700] text-[#151521] font-semibold hover:opacity-90 transition">
+                        Save Breakdown Log
+                    </button>
+                    <button type="button" id="breakdownResetBtn" class="px-5 py-3 rounded-xl bg-[#2b2b40] text-white font-semibold hover:bg-[#323248] transition">
+                        Clear Breakdown Form
+                    </button>
+                </div>
+            </form>
+
+            <div id="breakdownStatusText" class="mt-5 text-sm text-[#a1a5b7]"></div>
+        </section>
+
+        <section class="card rounded-2xl border border-[#323248] p-6 shadow-xl">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <div>
+                    <h3 class="text-white font-bold">Recent Breakdown Preview</h3>
+                    <p class="text-xs text-[#a1a5b7]">แสดงรายการล่าสุดใน browser นี้ เพื่อเช็ค flow ก่อนเชื่อม production จริง</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button type="button" id="viewAllEventsBtn" class="px-4 py-2 rounded-lg bg-[#2b2b40] text-white text-xs font-bold hover:bg-[#323248] transition">
+                        View All Events
+                    </button>
+                    <span class="pill text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#50cd89] font-bold">Local Preview</span>
+                </div>
+            </div>
+            <div id="breakdownHistory" class="space-y-3"></div>
+        </section>
+
+        <section id="breakdownAllSection" class="hidden card rounded-2xl border border-[#323248] p-6 shadow-xl">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <div>
+                    <h3 class="text-white font-bold">All Breakdown Events</h3>
+                    <p class="text-xs text-[#a1a5b7]">ตารางนี้แสดงรายการทั้งหมดที่มีอยู่ใน browser preview</p>
+                </div>
+                <span id="allEventsCount" class="text-xs uppercase tracking-[0.2em] text-[#ffc700] font-bold">0 events</span>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
+                <label class="space-y-2">
+                    <span class="text-xs uppercase tracking-[0.18em] text-[#a1a5b7] font-bold">Filter by Product</span>
+                    <select id="breakdownFilterProduct" class="field w-full rounded-xl px-4 py-3 text-sm">
+                        <option value="all">All Products</option>
+                        <option value="BL23G">BL23G</option>
+                        <option value="GZ40G">Gizzard 40G S18</option>
+                        <option value="GZ30G">Gizzard 30G R15</option>
+                    </select>
+                </label>
+                <label class="space-y-2">
+                    <span class="text-xs uppercase tracking-[0.18em] text-[#a1a5b7] font-bold">Filter by Machine Type</span>
+                    <select id="breakdownFilterMachine" class="field w-full rounded-xl px-4 py-3 text-sm">
+                        <option value="all">All Types</option>
+                        <option value="CNC Version">CNC Version</option>
+                        <option value="Conveyor Version">Conveyor Version</option>
+                    </select>
+                </label>
+                <label class="space-y-2">
+                    <span class="text-xs uppercase tracking-[0.18em] text-[#a1a5b7] font-bold">Filter by Status</span>
+                    <select id="breakdownFilterStatus" class="field w-full rounded-xl px-4 py-3 text-sm">
+                        <option value="all">All Status</option>
+                        <option value="Open">Open</option>
+                        <option value="Closed">Closed</option>
+                        <option value="Monitoring">Monitoring</option>
+                    </select>
+                </label>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-[#323248]">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-[#1a1a27] text-[#a1a5b7] uppercase tracking-[0.12em] text-xs">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Date</th>
+                            <th class="px-4 py-3 text-left">Product</th>
+                            <th class="px-4 py-3 text-left">Scope</th>
+                            <th class="px-4 py-3 text-left">Type</th>
+                            <th class="px-4 py-3 text-left">Status</th>
+                            <th class="px-4 py-3 text-left">Downtime</th>
+                            <th class="px-4 py-3 text-left">Machine</th>
+                            <th class="px-4 py-3 text-left">Submitted by</th>
+                        </tr>
+                    </thead>
+                    <tbody id="breakdownAllTableBody" class="divide-y divide-[#323248] bg-[#151521]"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const ACCESS_PASSWORD = 'Apex2026';
+        const BREAKDOWN_PREVIEW_ONLY = false;
+        const BREAKDOWN_SHEET_NAME = 'MachineBreakdownLog';
+        const BREAKDOWN_HISTORY_KEY = 'yakitori-breakdown-history';
+        const lineTargets = {
+            BL23G: 130,
+            GZ40G: 84,
+            GZ30G: 69
+        };
+        const lineDisplayMap = {
+            BL23G: 'สินค้า BL 23G',
+            GZ40G: 'สินค้า Gizzard 40G',
+            GZ30G: 'สินค้า Gizzard 30G'
+        };
+
+        let unlockedPassword = '';
+
+        function getTargetByLine(line) {
+            return lineTargets[String(line || '').trim().toUpperCase()] || 0;
+        }
+
+        function getLineDisplayName(line) {
+            const key = String(line || '').trim().toUpperCase();
+            return lineDisplayMap[key] || key || '--';
+        }
+
+        function getBreakdownScopeLabel(entry) {
+            const machineVersion = String(entry?.machineVersion || '').trim();
+            const conveyorPosition = String(entry?.conveyorPosition || '').trim();
+            return [machineVersion, conveyorPosition].filter(Boolean).join(' / ') || '--';
+        }
+
+        function pushStatus(message, tone = 'info', targetId = 'breakdownStatusText') {
+            const el = document.getElementById(targetId);
+            if (!el) return;
+            const colors = {
+                info: 'text-[#a1a5b7]',
+                success: 'text-[#50cd89]',
+                error: 'text-[#f1416c]',
+                warn: 'text-[#ffc700]'
+            };
+            el.className = `mt-5 text-sm ${colors[tone] || colors.info}`;
+            el.textContent = message;
+        }
+
+        function setDefaultDate() {
+            const today = new Date().toISOString().slice(0, 10);
+            const breakdownDateField = document.querySelector('#breakdownForm input[name="breakdownDate"]');
+            if (breakdownDateField && !breakdownDateField.value) {
+                breakdownDateField.value = today;
+            }
+        }
+
+        function parseTimeToMinutes(value) {
+            const raw = String(value || '').trim();
+            if (!raw || !raw.includes(':')) return null;
+            const [hourText, minuteText] = raw.split(':');
+            const hour = Number(hourText);
+            const minute = Number(minuteText);
+            if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+            return (hour * 60) + minute;
+        }
+
+        function formatBreakdownHistory(entry) {
+            return `
+                <div class="rounded-xl border border-[#323248] bg-[#1a1a27] px-4 py-3">
+                    <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-white font-semibold">${getLineDisplayName(entry.line || entry.productLine)} / Shift ${entry.shift}</span>
+                                <span class="text-xs uppercase tracking-[0.18em] text-[#6b7280]">${getBreakdownScopeLabel(entry)}</span>
+                                <span class="text-xs uppercase tracking-[0.18em] text-[#6b7280]">${entry.eventType}</span>
+                                <span class="text-xs font-bold ${entry.breakdownStatus === 'Closed' ? 'text-[#50cd89]' : entry.breakdownStatus === 'Monitoring' ? 'text-[#ffc700]' : 'text-[#f1416c]'}">${entry.breakdownStatus}</span>
+                            </div>
+                            <div class="text-sm text-[#a1a5b7] mt-1">${entry.machineArea || '--'}</div>
+                            <div class="text-xs text-[#6b7280] mt-1">${entry.breakdownDate} | ${entry.startTime || '--'} - ${entry.endTime || '--'} | ${entry.durationMin} min</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-[#ffc700] font-bold font-en">${entry.lossProxy.toFixed(1)} loss proxy</div>
+                            <div class="text-xs text-[#6b7280] mt-1">${entry.submitter || '--'}</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-sm text-[#a1a5b7]">${entry.rootCause || 'No root cause note yet.'}</div>
+                </div>
+            `;
+        }
+
+        function loadBreakdownHistory() {
+            try {
+                return JSON.parse(localStorage.getItem(BREAKDOWN_HISTORY_KEY) || '[]');
+            } catch (_) {
+                return [];
+            }
+        }
+
+        function saveBreakdownHistory(entry) {
+            const history = loadBreakdownHistory();
+            history.unshift(entry);
+            localStorage.setItem(BREAKDOWN_HISTORY_KEY, JSON.stringify(history));
+        }
+
+        function renderBreakdownHistory() {
+            const container = document.getElementById('breakdownHistory');
+            const history = loadBreakdownHistory();
+            if (!history.length) {
+                container.innerHTML = `
+                    <div class="rounded-xl border border-dashed border-[#323248] bg-[#1a1a27] px-4 py-5 text-sm text-[#6b7280]">
+                        ยังไม่มี breakdown event ใน preview นี้ หลังจากบันทึกครั้งแรก รายการล่าสุดจะขึ้นตรงนี้ทันที
+                    </div>
+                `;
+                return;
+            }
+            container.innerHTML = history.map(formatBreakdownHistory).join('');
+        }
+
+        function formatAllEventRow(entry) {
+            return `
+                <tr class="align-top">
+                    <td class="px-4 py-3 text-[#a1a5b7] whitespace-nowrap">${entry.breakdownDate || '--'}</td>
+                    <td class="px-4 py-3 text-white font-semibold">${getLineDisplayName(entry.line || entry.productLine)}</td>
+                    <td class="px-4 py-3 text-[#a1a5b7]">${getBreakdownScopeLabel(entry)}</td>
+                    <td class="px-4 py-3 text-[#a1a5b7]">${entry.eventType || '--'}</td>
+                    <td class="px-4 py-3">
+                        <span class="text-xs font-bold ${entry.breakdownStatus === 'Closed' ? 'text-[#50cd89]' : entry.breakdownStatus === 'Monitoring' ? 'text-[#ffc700]' : 'text-[#f1416c]'}">${entry.breakdownStatus || '--'}</span>
+                    </td>
+                    <td class="px-4 py-3 text-[#ffc700] font-bold font-en whitespace-nowrap">${Number(entry.durationMin || 0).toFixed(1)} min</td>
+                    <td class="px-4 py-3 text-[#a1a5b7]">${entry.machineArea || '--'}</td>
+                    <td class="px-4 py-3 text-[#a1a5b7]">${entry.submitter || '--'}</td>
+                </tr>
+            `;
+        }
+
+        function getFilteredBreakdownHistory() {
+            const history = loadBreakdownHistory();
+            const productFilter = document.getElementById('breakdownFilterProduct')?.value || 'all';
+            const machineFilter = document.getElementById('breakdownFilterMachine')?.value || 'all';
+            const statusFilter = document.getElementById('breakdownFilterStatus')?.value || 'all';
+
+            return history.filter(entry => {
+                const lineValue = String(entry.line || entry.productLine || '').trim().toUpperCase();
+                const lineMatch = productFilter === 'all' || lineValue === productFilter;
+                const machineMatch = machineFilter === 'all' || entry.machineVersion === machineFilter;
+                const statusMatch = statusFilter === 'all' || entry.breakdownStatus === statusFilter;
+                return lineMatch && machineMatch && statusMatch;
+            });
+        }
+
+        function renderAllBreakdownEvents() {
+            const tableBody = document.getElementById('breakdownAllTableBody');
+            const countLabel = document.getElementById('allEventsCount');
+            if (!tableBody || !countLabel) return;
+
+            const history = loadBreakdownHistory();
+            const filteredHistory = getFilteredBreakdownHistory();
+            countLabel.textContent = history.length === filteredHistory.length
+                ? `${filteredHistory.length} event${filteredHistory.length === 1 ? '' : 's'}`
+                : `${filteredHistory.length} of ${history.length} event${filteredHistory.length === 1 ? '' : 's'}`;
+
+            if (!history.length) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="px-4 py-6 text-center text-[#6b7280]">
+                            ยังไม่มี breakdown event ใน preview นี้
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            if (!filteredHistory.length) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="px-4 py-6 text-center text-[#6b7280]">
+                            No events match the selected filters.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = filteredHistory.map(formatAllEventRow).join('');
+        }
+
+        function calculateBreakdownMetrics() {
+            const form = document.getElementById('breakdownForm');
+            const line = form.querySelector('[name="productLine"]')?.value || '';
+            const status = form.querySelector('[name="breakdownStatus"]')?.value || 'Open';
+            const start = parseTimeToMinutes(form.querySelector('[name="startTime"]')?.value);
+            const end = parseTimeToMinutes(form.querySelector('[name="endTime"]')?.value);
+            let durationMin = 0;
+
+            if (start !== null && end !== null) {
+                durationMin = end >= start ? (end - start) : ((24 * 60) - start + end);
+            }
+
+            const target = getTargetByLine(line);
+            const lossProxy = target > 0 ? (target * (durationMin / 60)) : 0;
+            const durationField = document.getElementById('bd_duration');
+            const durationLabel = document.getElementById('bd_duration_label');
+            const lossLabel = document.getElementById('bd_loss_label');
+            const statusLabel = document.getElementById('bd_status_label');
+
+            if (durationField) durationField.value = durationMin.toFixed(2);
+            if (durationLabel) durationLabel.textContent = durationMin.toFixed(0);
+            if (lossLabel) lossLabel.textContent = lossProxy.toFixed(1);
+            if (statusLabel) {
+                statusLabel.textContent = status;
+                statusLabel.className = `text-2xl font-bold ${
+                    status === 'Closed' ? 'text-[#50cd89]' :
+                    status === 'Monitoring' ? 'text-[#ffc700]' :
+                    'text-[#f1416c]'
+                }`;
+            }
+
+            return {
+                durationMin: Number(durationMin.toFixed(2)),
+                lossProxy: Number(lossProxy.toFixed(1)),
+                target
+            };
+        }
+
+        function unlockAccess(event) {
+            event.preventDefault();
+            const passInput = document.getElementById('recordPass');
+            const loginError = document.getElementById('loginError');
+            const loginScreen = document.getElementById('loginScreen');
+            const app = document.getElementById('app');
+
+            if (passInput.value.trim() !== ACCESS_PASSWORD) {
+                loginError.classList.remove('hidden');
+                passInput.focus();
+                return;
+            }
+
+            unlockedPassword = passInput.value.trim();
+            sessionStorage.setItem('yakitori-breakdown-auth', 'true');
+            loginError.classList.add('hidden');
+            loginScreen.classList.add('hidden');
+            app.classList.remove('hidden');
+            setDefaultDate();
+            calculateBreakdownMetrics();
+            renderBreakdownHistory();
+            prepareBreakdownStorage();
+            document.querySelector('#breakdownForm [name="productLine"]').focus();
+        }
+
+        async function prepareBreakdownStorage() {
+            if (!window.YakitoriRuntime || BREAKDOWN_PREVIEW_ONLY) return;
+            try {
+                await window.YakitoriRuntime.postToAppsScript('create_breakdown_sheet', {
+                    sheetName: BREAKDOWN_SHEET_NAME
+                });
+            } catch (_) {
+                // Best-effort; the actual save path still retries on submit.
+            }
+        }
+
+        async function submitBreakdown(event) {
+            event.preventDefault();
+
+            const form = event.currentTarget;
+            const data = Object.fromEntries(new FormData(form).entries());
+            const metrics = calculateBreakdownMetrics();
+            const payload = {
+                ...data,
+                ...metrics,
+                line: data.productLine || data.line || '',
+                sheetName: BREAKDOWN_SHEET_NAME,
+                shift: data.shift || 'A',
+                type: 'breakdown',
+                accessPassword: unlockedPassword || ''
+            };
+
+            const btn = document.getElementById('breakdownSubmitBtn');
+            const originalLabel = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Saving breakdown log...';
+
+            try {
+                if (!BREAKDOWN_PREVIEW_ONLY) {
+                    await window.YakitoriRuntime.postToAppsScript('record_breakdown', payload);
+                }
+                saveBreakdownHistory({
+                    line: payload.line || payload.productLine,
+                    productLine: payload.line || payload.productLine,
+                    shift: payload.shift,
+                    machineVersion: payload.machineVersion,
+                    conveyorPosition: payload.conveyorPosition,
+                    breakdownDate: payload.breakdownDate,
+                    startTime: payload.startTime,
+                    endTime: payload.endTime,
+                    durationMin: payload.durationMin,
+                    lossProxy: payload.lossProxy,
+                    eventType: payload.eventType,
+                    breakdownStatus: payload.breakdownStatus,
+                    machineArea: payload.machineArea,
+                    station: payload.station,
+                    rootCause: payload.rootCause,
+                    submitter: payload.submitter
+                });
+                renderBreakdownHistory();
+                renderAllBreakdownEvents();
+                pushStatus(
+                    BREAKDOWN_PREVIEW_ONLY
+                        ? 'Build preview mode: breakdown log saved in local preview only. GAS endpoint will be enabled after the next deploy step.'
+                        : 'Breakdown log sent to Apps Script queue successfully.',
+                    BREAKDOWN_PREVIEW_ONLY ? 'warn' : 'success'
+                );
+                form.reset();
+                setDefaultDate();
+                calculateBreakdownMetrics();
+            } catch (error) {
+                pushStatus(`Breakdown log failed: ${error.message || error}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalLabel;
+            }
+        }
+
+        function resetBreakdownForm() {
+            const form = document.getElementById('breakdownForm');
+            form.reset();
+            setDefaultDate();
+            calculateBreakdownMetrics();
+            pushStatus('Breakdown form cleared.', 'info');
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', unlockAccess);
+        document.getElementById('breakdownForm').addEventListener('submit', submitBreakdown);
+        document.getElementById('breakdownResetBtn').addEventListener('click', resetBreakdownForm);
+        document.getElementById('viewAllEventsBtn').addEventListener('click', () => {
+            const section = document.getElementById('breakdownAllSection');
+            const hidden = section.classList.contains('hidden');
+            section.classList.toggle('hidden');
+            renderAllBreakdownEvents();
+            document.getElementById('viewAllEventsBtn').textContent = hidden ? 'Hide All Events' : 'View All Events';
+        });
+        document.getElementById('breakdownFilterProduct')?.addEventListener('change', renderAllBreakdownEvents);
+        document.getElementById('breakdownFilterMachine')?.addEventListener('change', renderAllBreakdownEvents);
+        document.getElementById('breakdownFilterStatus')?.addEventListener('change', renderAllBreakdownEvents);
+
+        setDefaultDate();
+        calculateBreakdownMetrics();
+        renderBreakdownHistory();
+        renderAllBreakdownEvents();
+
+        if (sessionStorage.getItem('yakitori-breakdown-auth') === 'true') {
+            unlockedPassword = ACCESS_PASSWORD;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('recordPass').value = ACCESS_PASSWORD;
+            setDefaultDate();
+            calculateBreakdownMetrics();
+            renderBreakdownHistory();
+            prepareBreakdownStorage();
+            renderAllBreakdownEvents();
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+

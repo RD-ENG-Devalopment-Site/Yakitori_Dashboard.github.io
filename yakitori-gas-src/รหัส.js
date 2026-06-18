@@ -21,6 +21,14 @@ function doPost(e) {
       return jsonOutput_(saveApprovalRecord_(request.payload || {}));
     }
 
+    if (action === "record_breakdown") {
+      return jsonOutput_(saveBreakdownRecord_(request.payload || {}));
+    }
+
+    if (action === "create_breakdown_sheet") {
+      return jsonOutput_(createBreakdownSheet_());
+    }
+
     if (action === "create_bl23_shift_b_sheet") {
       return jsonOutput_(createBl23gShiftBSheet());
     }
@@ -58,6 +66,36 @@ var GZ30G_TARGET_PRODUCTIVITY = 69;
 var GZ40G_SOURCE_SHEET = "GZ40gS18_DataLog";
 var GZ40G_SHIFT_B_SHEET = "GZ40gS18_ShiftB_DataLog";
 var GZ40G_TARGET_PRODUCTIVITY = 84;
+var BREAKDOWN_LOG_SHEET = "MachineBreakdownLog";
+
+function ensureBreakdownLogSheet_(ss) {
+  return ensureSheet_(ss, BREAKDOWN_LOG_SHEET, [
+    "eventId",
+    "createdAt",
+    "breakdownDate",
+    "line",
+    "shift",
+    "machineVersion",
+    "conveyorPosition",
+    "machineArea",
+    "station",
+    "eventType",
+    "severity",
+    "breakdownStatus",
+    "startTime",
+    "endTime",
+    "durationMin",
+    "lossProxy",
+    "impactOutput",
+    "affectedTrial",
+    "rootCause",
+    "actionTaken",
+    "owner",
+    "submitter",
+    "note",
+    "recordType"
+  ]);
+}
 
 function isBl23gSheetName_(sheetName) {
   return String(sheetName || "").trim().toUpperCase().indexOf("BL23G") !== -1;
@@ -154,6 +192,15 @@ function createGz30gShiftBSheet() {
 function createGz40gShiftBSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ensureShiftBSheetCopy_(ss, GZ40G_SOURCE_SHEET, GZ40G_SHIFT_B_SHEET);
+  return {
+    status: "success",
+    sheet: sheet.getName()
+  };
+}
+
+function createBreakdownSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ensureBreakdownLogSheet_(ss);
   return {
     status: "success",
     sheet: sheet.getName()
@@ -632,6 +679,48 @@ function saveApprovalRecord_(payload) {
   return {
     status: "success",
     message: "Approval saved to ApprovalLog"
+  };
+}
+
+function saveBreakdownRecord_(payload) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var now = new Date();
+  var timeZone = Session.getScriptTimeZone() || "Asia/Bangkok";
+  var sheetName = String(payload.sheetName || payload.sheet || BREAKDOWN_LOG_SHEET).trim();
+  var sheet = ensureBreakdownLogSheet_(ss);
+
+  var row = [
+    "BD-" + Utilities.formatDate(now, timeZone, "yyyyMMdd-HHmmss"),
+    now.toISOString(),
+    valueOrEmpty_(payload.breakdownDate || payload.recordDate || payload.date),
+    valueOrEmpty_(payload.line),
+    normalizeShift_(payload.shift),
+    valueOrEmpty_(payload.machineVersion),
+    valueOrEmpty_(payload.conveyorPosition),
+    valueOrEmpty_(payload.machineArea || payload.machine),
+    valueOrEmpty_(payload.station),
+    valueOrEmpty_(payload.eventType || payload.breakdownType),
+    valueOrEmpty_(payload.severity || "Medium"),
+    valueOrEmpty_(payload.breakdownStatus || payload.status || "Open"),
+    valueOrEmpty_(payload.startTime),
+    valueOrEmpty_(payload.endTime),
+    Number(payload.durationMin) || 0,
+    Number(payload.lossProxy) || 0,
+    Number(payload.impactOutput) || 0,
+    valueOrEmpty_(payload.affectedTrial || payload.trial),
+    valueOrEmpty_(payload.rootCause || payload.issue),
+    valueOrEmpty_(payload.actionTaken || payload.actionNote),
+    valueOrEmpty_(payload.owner || payload.pic),
+    valueOrEmpty_(payload.submitter || payload.createdBy),
+    valueOrEmpty_(payload.note || payload.comment),
+    "record_breakdown"
+  ];
+
+  sheet.appendRow(row);
+  return {
+    status: "success",
+    message: "Breakdown saved to " + sheetName,
+    sheet: sheetName
   };
 }
 

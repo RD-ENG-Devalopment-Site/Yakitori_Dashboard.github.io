@@ -87,6 +87,14 @@
                     <span class="font-medium text-sm">Data recording & approval</span>
                 </a>
             </div>
+            <div>
+                <a href="MachineBreakdownLog.html" target="_blank" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#ffc700]" viewBox="0 0 16 16">
+                        <path d="M9.305 1.05a1 1 0 0 0-1.61 0L1.87 9.05A1 1 0 0 0 2.675 10.5h10.65a1 1 0 0 0 .806-1.45L9.305 1.05zM8 4.5c.276 0 .5.224.5.5v2.5a.5.5 0 0 1-1 0V5c0-.276.224-.5.5-.5zm0 5.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5z"/>
+                    </svg>
+                    <span class="font-medium text-sm">Machine Breakdown Log</span>
+                </a>
+            </div>
 
             <div>
                 <button onclick="toggleMenu('menu-bl', 'icon-bl')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
@@ -189,6 +197,13 @@
                     </a>
                 </div>
             </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-8">
+                <div id="freshnessPanel" class="bg-card rounded-xl border border-[#323248] shadow-sm p-5"></div>
+                <div id="alertPanel" class="xl:col-span-2 bg-card rounded-xl border border-[#323248] shadow-sm p-5"></div>
+            </div>
+
+            <div id="recentChangePanel" class="bg-card rounded-xl border border-[#323248] shadow-sm p-6 mb-8"></div>
 
             <div class="mb-8">
                 <div class="bg-card rounded-xl border border-[#323248] shadow-sm p-6">
@@ -373,6 +388,272 @@
             return Number.isFinite(value) ? value.toFixed(digits) : '--';
         }
 
+        function parseRecordDateValue(value) {
+            const raw = String(value || '').trim();
+            if (!raw) return null;
+
+            const slashMatch = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?$/);
+            if (slashMatch) {
+                const day = Number(slashMatch[1]);
+                const month = Number(slashMatch[2]) - 1;
+                const year = Number(slashMatch[3].length === 2 ? `20${slashMatch[3]}` : slashMatch[3]);
+                const hour = Number(slashMatch[4] || 0);
+                const minute = Number(slashMatch[5] || 0);
+                const parsed = new Date(year, month, day, hour, minute);
+                if (!Number.isNaN(parsed.getTime())) return parsed;
+            }
+
+            const parsed = new Date(raw);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function formatDateTimeDisplay(value) {
+            const parsed = parseRecordDateValue(value);
+            if (!parsed) return String(value || '--');
+            return parsed.toLocaleString('th-TH', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getRelativeFreshness(value) {
+            const parsed = parseRecordDateValue(value);
+            if (!parsed) {
+                return {
+                    label: 'รอตรวจสอบเวลาอัปเดต',
+                    tone: 'text-[#a1a5b7]',
+                    badge: 'NO TIMESTAMP'
+                };
+            }
+
+            const diffMs = Date.now() - parsed.getTime();
+            const diffHours = diffMs / (1000 * 60 * 60);
+
+            if (diffHours < 12) {
+                return { label: 'ข้อมูลสดใน 12 ชั่วโมงล่าสุด', tone: 'text-[#50cd89]', badge: 'FRESH' };
+            }
+            if (diffHours < 24) {
+                return { label: 'ข้อมูลยังอัปเดตภายใน 24 ชั่วโมง', tone: 'text-[#ffc700]', badge: 'WATCH' };
+            }
+            return { label: `ข้อมูลช้ากว่า ${Math.floor(diffHours / 24)} วัน`, tone: 'text-[#f1416c]', badge: 'STALE' };
+        }
+
+        function compareRecordRecency(a, b) {
+            const aDate = parseRecordDateValue(a?.latest?.recordDate);
+            const bDate = parseRecordDateValue(b?.latest?.recordDate);
+            const aTime = aDate ? aDate.getTime() : 0;
+            const bTime = bDate ? bDate.getTime() : 0;
+            if (aTime !== bTime) return bTime - aTime;
+            return Number(b?.latest?.trial || 0) - Number(a?.latest?.trial || 0);
+        }
+
+        function buildDashboardInsights(results) {
+            const visibleShifts = currentShiftFilter === 'all' ? ['A', 'B'] : [currentShiftFilter];
+            const streams = results.flatMap(({ label, target, records }) => {
+                return visibleShifts.map(shift => {
+                    const scoped = sortTrials(filterByShift(records, shift));
+                    if (!scoped.length) return null;
+                    const latest = scoped[scoped.length - 1];
+                    const previous = scoped.length > 1 ? scoped[scoped.length - 2] : null;
+                    return {
+                        line: label,
+                        target,
+                        shift,
+                        latest,
+                        previous,
+                        deltaProd: previous ? latest.prod - previous.prod : null,
+                        deltaEff: previous ? latest.eff - previous.eff : null,
+                        deltaTotal: previous ? latest.total - previous.total : null,
+                        deltaMan: previous ? latest.man - previous.man : null
+                    };
+                }).filter(Boolean);
+            });
+
+            const latestRecord = [...streams].sort(compareRecordRecency)[0] || null;
+
+            const targetRisk = streams
+                .map(item => ({
+                    ...item,
+                    gapToTarget: (item.target || 0) - (item.latest?.prod || 0)
+                }))
+                .filter(item => item.gapToTarget > 0)
+                .sort((a, b) => b.gapToTarget - a.gapToTarget)[0] || null;
+
+            const shiftGap = results
+                .map(item => {
+                    const aStats = getStats(filterByShift(item.records, 'A'));
+                    const bStats = getStats(filterByShift(item.records, 'B'));
+                    if (!aStats || !bStats) return null;
+                    return {
+                        line: item.label,
+                        aStats,
+                        bStats,
+                        gap: bStats.latest.prod - aStats.latest.prod
+                    };
+                })
+                .filter(Boolean)
+                .sort((a, b) => Math.abs(b.gap) - Math.abs(a.gap))[0] || null;
+
+            const momentumRisk = streams
+                .filter(item => Number.isFinite(item.deltaProd))
+                .sort((a, b) => (a.deltaProd ?? 0) - (b.deltaProd ?? 0))[0] || null;
+
+            const recentChanges = [...streams]
+                .filter(item => item.previous)
+                .sort(compareRecordRecency)
+                .slice(0, 6);
+
+            return {
+                latestRecord,
+                targetRisk,
+                shiftGap,
+                momentumRisk,
+                recentChanges
+            };
+        }
+
+        function renderFreshnessAndAlerts(results) {
+            const freshnessPanel = document.getElementById('freshnessPanel');
+            const alertPanel = document.getElementById('alertPanel');
+            if (!freshnessPanel || !alertPanel) return;
+
+            const insights = buildDashboardInsights(results);
+            const freshness = getRelativeFreshness(insights.latestRecord?.latest?.recordDate);
+            const latestSource = insights.latestRecord
+                ? `${insights.latestRecord.line} / Shift ${insights.latestRecord.shift} / Trial ${insights.latestRecord.latest.trial}`
+                : '--';
+
+            freshnessPanel.innerHTML = `
+                <div class="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                        <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Data Freshness</p>
+                        <h3 class="text-lg font-bold text-white">อัปเดตล่าสุดของระบบ</h3>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] border border-[#323248] ${freshness.tone}">${freshness.badge}</span>
+                </div>
+                <div class="mb-4">
+                    <div class="text-2xl font-bold text-white font-en">${formatDateTimeDisplay(insights.latestRecord?.latest?.recordDate)}</div>
+                    <div class="text-sm text-[#a1a5b7] mt-1">${latestSource}</div>
+                </div>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">สถานะ</span><span class="${freshness.tone} font-semibold">${freshness.label}</span></div>
+                    <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Filter ปัจจุบัน</span><span class="text-white font-semibold">${currentShiftFilter === 'all' ? 'All Shift' : `Shift ${currentShiftFilter}`}</span></div>
+                    <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Feed ที่ใช้งาน</span><span class="text-white font-semibold">${buildProgressEntries(results).filter(item => item.stats).length}</span></div>
+                </div>
+            `;
+
+            const alertItems = [
+                insights.targetRisk
+                    ? {
+                        tone: 'text-[#f1416c]',
+                        label: 'Target Risk',
+                        message: `${insights.targetRisk.line} / Shift ${insights.targetRisk.shift} ต่ำกว่าเป้าหมาย ${insights.targetRisk.gapToTarget.toFixed(1)}`
+                    }
+                    : {
+                        tone: 'text-[#50cd89]',
+                        label: 'Target Risk',
+                        message: 'ไม่มีไลน์ที่ต่ำกว่าเป้าหมายในมุมมองปัจจุบัน'
+                    },
+                insights.shiftGap
+                    ? {
+                        tone: insights.shiftGap.gap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]',
+                        label: 'Shift Gap',
+                        message: `${insights.shiftGap.line} มีส่วนต่าง A/B ${Math.abs(insights.shiftGap.gap).toFixed(1)} pts`
+                    }
+                    : {
+                        tone: 'text-[#a1a5b7]',
+                        label: 'Shift Gap',
+                        message: 'ยังไม่มีข้อมูลครบทั้ง Shift A และ Shift B'
+                    },
+                insights.momentumRisk
+                    ? {
+                        tone: (insights.momentumRisk.deltaProd || 0) >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]',
+                        label: 'Latest Change',
+                        message: `${insights.momentumRisk.line} / Shift ${insights.momentumRisk.shift} เปลี่ยน ${insights.momentumRisk.deltaProd >= 0 ? '+' : ''}${(insights.momentumRisk.deltaProd || 0).toFixed(1)} จากรอบก่อน`
+                    }
+                    : {
+                        tone: 'text-[#a1a5b7]',
+                        label: 'Latest Change',
+                        message: 'ยังมีข้อมูลไม่พอสำหรับเทียบรอบก่อน'
+                    }
+            ];
+
+            alertPanel.innerHTML = `
+                <div class="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                        <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Alert Summary</p>
+                        <h3 class="text-lg font-bold text-white">สรุปเหตุการณ์ที่ต้องจับตา</h3>
+                    </div>
+                    <span class="text-[11px] uppercase tracking-[0.2em] text-[#6b7280] font-bold">Latest exceptions</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    ${alertItems.map(item => `
+                        <div class="rounded-xl border border-[#323248] bg-[#151521] p-4">
+                            <div class="text-[11px] uppercase tracking-[0.18em] ${item.tone} font-bold mb-2">${item.label}</div>
+                            <div class="text-sm text-white leading-relaxed">${item.message}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderRecentChanges(results) {
+            const container = document.getElementById('recentChangePanel');
+            if (!container) return;
+
+            const { recentChanges } = buildDashboardInsights(results);
+
+            container.innerHTML = `
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
+                    <div>
+                        <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Latest Change Feed</p>
+                        <h3 class="text-lg font-bold text-white">เทียบรอบก่อนเพื่อดูการเปลี่ยนแปลงล่าสุด</h3>
+                    </div>
+                    <span class="text-[11px] uppercase tracking-[0.2em] text-[#6b7280] font-bold">Recent trial-to-trial movement</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left whitespace-nowrap text-sm">
+                        <thead class="text-[11px] uppercase text-[#6b7280] border-b border-[#2b2b40]">
+                            <tr>
+                                <th class="py-2 pr-4">Line / Shift</th>
+                                <th class="py-2 pr-4">Latest</th>
+                                <th class="py-2 pr-4">Previous</th>
+                                <th class="py-2 pr-4">Prod Δ</th>
+                                <th class="py-2 pr-4">Eff Δ</th>
+                                <th class="py-2 pr-4">Total Output Δ</th>
+                                <th class="py-2 pr-4">Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#2b2b40]">
+                            ${recentChanges.length ? recentChanges.map(item => {
+                                const prodClass = (item.deltaProd || 0) >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
+                                const effClass = (item.deltaEff || 0) >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
+                                const totalClass = (item.deltaTotal || 0) >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
+                                return `
+                                    <tr>
+                                        <td class="py-3 pr-4 text-white font-semibold">${item.line} <span class="text-[#6b7280] font-normal">/ Shift ${item.shift}</span></td>
+                                        <td class="py-3 pr-4 text-white">T${item.latest.trial} <span class="text-[#7dd3fc] font-semibold">${item.latest.prod.toFixed(1)}</span></td>
+                                        <td class="py-3 pr-4 text-[#a1a5b7]">T${item.previous.trial} <span class="font-semibold">${item.previous.prod.toFixed(1)}</span></td>
+                                        <td class="py-3 pr-4 ${prodClass} font-semibold">${item.deltaProd >= 0 ? '+' : ''}${item.deltaProd.toFixed(1)}</td>
+                                        <td class="py-3 pr-4 ${effClass} font-semibold">${item.deltaEff >= 0 ? '+' : ''}${item.deltaEff.toFixed(2)}%</td>
+                                        <td class="py-3 pr-4 ${totalClass} font-semibold">${item.deltaTotal >= 0 ? '+' : ''}${item.deltaTotal.toLocaleString()}</td>
+                                        <td class="py-3 pr-4 text-[#a1a5b7]">${formatDateTimeDisplay(item.latest.recordDate)}</td>
+                                    </tr>
+                                `;
+                            }).join('') : `
+                                <tr>
+                                    <td colspan="7" class="py-6 text-center text-[#6b7280]">ยังมีข้อมูลไม่พอสำหรับสร้าง recent change feed</td>
+                                </tr>
+                            `}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
         function buildOverviewData(results) {
             const lines = results.map(({ prefix, label, target, records }) => {
                 const currentStats = getStats(filterByShift(records, currentShiftFilter));
@@ -528,6 +809,133 @@
                         <div class="flex items-start gap-2"><span class="mt-1 w-2 h-2 rounded-full bg-[#50cd89]"></span><span class="text-[#a1a5b7]">ตรวจ line ที่ตก target มากสุดก่อน</span></div>
                         <div class="flex items-start gap-2"><span class="mt-1 w-2 h-2 rounded-full bg-[#009ef7]"></span><span class="text-[#a1a5b7]">เปิด Compare A/B เพื่อดูความต่างของกะ</span></div>
                         <div class="flex items-start gap-2"><span class="mt-1 w-2 h-2 rounded-full bg-[#ffc700]"></span><span class="text-[#a1a5b7]">ถ้ามี breakdown ให้โยนเข้า log แยกทันที</span></div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="DataRecordingApproval.html" target="_blank" class="px-3 py-2 rounded-lg bg-[#009ef7] text-white text-xs font-bold hover:opacity-90 transition">Open Data Entry</a>
+                        <a href="BL23g_All new Idel Prodution time.html" target="_blank" class="px-3 py-2 rounded-lg bg-[#2b2b40] text-white text-xs font-bold hover:bg-[#323248] transition">Breakdown Detail</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderOverviewCards(results) {
+            const container = document.getElementById('overviewCards');
+            if (!container) return;
+
+            const summary = buildOverviewData(results);
+            const insights = buildDashboardInsights(results);
+            const shiftLabel = summary.currentShiftFilter === 'all' ? 'All Shift' : `Shift ${summary.currentShiftFilter}`;
+            const avgColor = summary.avgLatest === null ? 'text-[#a1a5b7]' : 'text-white';
+            const strongestLine = summary.strongest
+                ? `${summary.strongest.label} / ${formatMetricValue(summary.strongest.currentStats.latest.prod)}`
+                : '--';
+            const weakestLine = summary.weakest
+                ? `${summary.weakest.label} / ${formatMetricValue(summary.weakest.currentStats.latest.prod)}`
+                : '--';
+            const shiftGap = (summary.avgA !== null && summary.avgB !== null) ? (summary.avgB - summary.avgA) : null;
+            const shiftLeader = shiftGap === null ? '--' : (shiftGap >= 0 ? 'Shift B lead' : 'Shift A lead');
+            const shiftGapText = shiftGap === null ? '--' : `${Math.abs(shiftGap).toFixed(1)} pts`;
+            const breakdownSource = summary.weakest;
+            const breakdownGap = breakdownSource
+                ? Math.max((breakdownSource.target || 0) - breakdownSource.currentStats.latest.prod, 0)
+                : null;
+            const breakdownPct = breakdownSource && breakdownSource.target > 0
+                ? ((breakdownGap || 0) / breakdownSource.target) * 100
+                : null;
+            const ownerSuggestion = breakdownSource
+                ? `${breakdownSource.label} line owner + R&D`
+                : 'Pending assignment';
+            const dueHint = insights.latestRecord
+                ? `Follow-up in Shift ${insights.latestRecord.shift}`
+                : 'Await latest update';
+            const actionList = [
+                breakdownSource
+                    ? `ตรวจ ${breakdownSource.label} ก่อน เพราะต่ำกว่าเป้าหมายมากที่สุด`
+                    : 'รอข้อมูลเพื่อระบุไลน์เสี่ยง',
+                insights.shiftGap
+                    ? `เปิด Compare A/B ของ ${insights.shiftGap.line} เพราะมี gap สูงสุด ${Math.abs(insights.shiftGap.gap).toFixed(1)}`
+                    : 'เทียบ Shift A/B เมื่อมีข้อมูลครบทั้งสองกะ',
+                insights.momentumRisk && (insights.momentumRisk.deltaProd || 0) < 0
+                    ? `เช็กสาเหตุ Trial ล่าสุดของ ${insights.momentumRisk.line} / Shift ${insights.momentumRisk.shift}`
+                    : 'ยังไม่พบการตกแรงจากรอบล่าสุด'
+            ];
+
+            container.innerHTML = `
+                <div class="bg-card-gradient border border-[#323248] rounded-2xl p-5 shadow-lg border-t-4 border-t-[#009ef7] min-h-[220px]">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-[rgba(0,158,247,0.1)] text-[#009ef7] flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.5 1a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-.8.4l-3.2-2.4-3.2 2.4a.5.5 0 0 1-.8-.4v-13A.5.5 0 0 1 6.5 1h7zM7 2v11l2.7-2.025a.5.5 0 0 1 .6 0L13 13V2H7z"/></svg>
+                        </div>
+                        <span class="text-[11px] uppercase tracking-[0.22em] text-[#6b7280] font-bold">${shiftLabel}</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-white mb-1">Production Snapshot</h3>
+                    <div class="flex items-end gap-2 mb-4">
+                        <span class="${avgColor} text-3xl font-bold font-en">${formatMetricValue(summary.avgLatest)}</span>
+                        <span class="text-[#6b7280] text-sm">sticks/person/hour</span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Lines active</span><span class="text-white font-semibold">${summary.activeLines.length}/3</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Best line</span><span class="text-[#50cd89] font-semibold">${strongestLine}</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Weakest line</span><span class="text-[#f1416c] font-semibold">${weakestLine}</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-card-gradient border border-[#323248] rounded-2xl p-5 shadow-lg border-t-4 border-t-[#8b5cf6] min-h-[220px]">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-[rgba(139,92,246,0.1)] text-[#8b5cf6] flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M6 10.117 4.117 8.23l-.707.707L6 11.53 12.59 4.94l-.707-.707L6 10.117z"/><path d="M8 1a7 7 0 1 0 7 7A7 7 0 0 0 8 1z"/></svg>
+                        </div>
+                        <span class="text-[11px] uppercase tracking-[0.22em] text-[#6b7280] font-bold">A vs B</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-white mb-1">Shift Comparison</h3>
+                    <div class="flex items-end gap-2 mb-4">
+                        <span class="${shiftGap === null ? 'text-[#a1a5b7]' : (shiftGap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]')} text-3xl font-bold font-en">${shiftGap === null ? '--' : (shiftGap >= 0 ? '+' : '-') + shiftGapText}</span>
+                        <span class="text-[#6b7280] text-sm">avg gap</span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Shift A avg</span><span class="text-[#c4b5fd] font-semibold">${formatMetricValue(summary.avgA)}</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Shift B avg</span><span class="text-[#7dd3fc] font-semibold">${formatMetricValue(summary.avgB)}</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Lead status</span><span class="text-white font-semibold">${shiftLeader}</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-card-gradient border border-[#323248] rounded-2xl p-5 shadow-lg border-t-4 border-t-[#ffc700] min-h-[220px]">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-[rgba(255,199,0,0.1)] text-[#ffc700] flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 1a1 1 0 0 1 .894.553l5.5 11A1 1 0 0 1 13.5 14H2.5a1 1 0 0 1-.894-1.447l5.5-11A1 1 0 0 1 8 1zm0 4a.5.5 0 0 0-.5.5V9a.5.5 0 0 0 1 0V5.5A.5.5 0 0 0 8 5zm0 7.25a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5z"/></svg>
+                        </div>
+                        <span class="text-[11px] uppercase tracking-[0.22em] text-[#6b7280] font-bold">Snapshot</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-white mb-1">Breakdown Snapshot</h3>
+                    <div class="flex items-end gap-2 mb-4">
+                        <span class="text-[#ffc700] text-3xl font-bold font-en">${breakdownGap === null ? '--' : formatMetricValue(breakdownGap)}</span>
+                        <span class="text-[#6b7280] text-sm">gap to target</span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">At-risk line</span><span class="text-white font-semibold">${breakdownSource ? breakdownSource.label : '--'}</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Loss proxy</span><span class="text-[#ffc700] font-semibold">${breakdownPct === null ? '--' : `${breakdownPct.toFixed(1)}%`}</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Latest source</span><span class="text-white font-semibold">${insights.latestRecord ? `${insights.latestRecord.line} / Shift ${insights.latestRecord.shift}` : '--'}</span></div>
+                        <div class="text-[12px] text-[#a1a5b7] leading-relaxed">ใช้เป็นสัญญาณเตือนเบื้องต้นจาก productivity gap จนกว่าจะเชื่อม downtime log แบบแยกเหตุการณ์จริง</div>
+                    </div>
+                </div>
+
+                <div class="bg-card-gradient border border-[#323248] rounded-2xl p-5 shadow-lg border-t-4 border-t-[#50cd89] min-h-[220px]">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-[rgba(80,205,137,0.1)] text-[#50cd89] flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm1 8.5H4.5v-1H9V4.5h1v4z"/></svg>
+                        </div>
+                        <span class="text-[11px] uppercase tracking-[0.22em] text-[#6b7280] font-bold">Next step</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-white mb-1">Action Needed</h3>
+                    <div class="space-y-2 text-sm mb-4">
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Suggested owner</span><span class="text-white font-semibold text-right">${ownerSuggestion}</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Due</span><span class="text-[#50cd89] font-semibold">${dueHint}</span></div>
+                        ${actionList.map((item, index) => `
+                            <div class="flex items-start gap-2">
+                                <span class="mt-1 w-2 h-2 rounded-full ${index === 0 ? 'bg-[#50cd89]' : index === 1 ? 'bg-[#009ef7]' : 'bg-[#ffc700]'}"></span>
+                                <span class="text-[#a1a5b7]">${item}</span>
+                            </div>
+                        `).join('')}
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <a href="DataRecordingApproval.html" target="_blank" class="px-3 py-2 rounded-lg bg-[#009ef7] text-white text-xs font-bold hover:opacity-90 transition">Open Data Entry</a>
@@ -747,6 +1155,8 @@
 
             const progressSummary = renderProgressPanel(results);
 
+            renderFreshnessAndAlerts(results);
+            renderRecentChanges(results);
             renderOverviewCards(results);
             renderComparePanel(results);
 
