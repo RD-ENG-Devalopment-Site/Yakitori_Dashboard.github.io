@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Breakdown Event Detail - APEX Flow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="yakitori-runtime.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Sarabun', sans-serif; background: #151521; color: #a1a5b7; }
+        .font-en { font-family: 'Inter', sans-serif; }
+        .card { background: linear-gradient(145deg, #1e1e2d 0%, #151521 100%); }
+        .metric { background: #151521; border: 1px solid #323248; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <main class="max-w-[1280px] mx-auto space-y-6">
+        <header class="card rounded-2xl border border-[#323248] p-6 md:p-8 shadow-xl">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.28em] text-[#ffc700] font-bold">Machine Breakdown</p>
+                    <h1 class="text-3xl md:text-4xl font-bold text-white mt-2">รายละเอียด 1 Event / 1 ใบงาน</h1>
+                    <p class="mt-2 text-sm text-[#a1a5b7] max-w-3xl">
+                        หน้าใบงานนี้อ่านข้อมูลจาก local preview ชุดเดียวกับ Machine Breakdown Log เพื่อใช้ตรวจ event รายครั้งแบบเจาะลึก
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <a href="MachineBreakdownEvents.html" class="px-4 py-3 rounded-xl bg-[#2b2b40] text-white font-semibold hover:bg-[#323248] transition">Back to Event Table</a>
+                    <a href="MachineBreakdownLog.html" class="px-4 py-3 rounded-xl bg-[#009ef7] text-white font-semibold hover:opacity-90 transition">Back to Breakdown Form</a>
+                </div>
+            </div>
+        </header>
+
+        <div id="emptyState" class="hidden card rounded-2xl border border-[#323248] p-8 shadow-xl text-center">
+            <h2 class="text-2xl font-bold text-white mb-3">ยังไม่มี Event ให้แสดง</h2>
+            <p class="text-[#a1a5b7] mb-5">ให้บันทึกข้อมูลจากหน้า Machine Breakdown Log ก่อน แล้วค่อยเปิดหน้า detail นี้อีกครั้ง</p>
+            <a href="MachineBreakdownLog.html" class="px-4 py-3 rounded-xl bg-[#009ef7] text-white font-semibold hover:opacity-90 transition">Open Breakdown Form</a>
+        </div>
+
+        <div id="detailApp" class="space-y-6">
+            <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="metric rounded-2xl p-5">
+                    <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Breakdown ID</p>
+                    <div id="metricId" class="text-2xl font-bold text-white font-en">--</div>
+                </div>
+                <div class="metric rounded-2xl p-5">
+                    <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Downtime</p>
+                    <div id="metricDowntime" class="text-2xl font-bold text-[#ffc700] font-en">0 min</div>
+                </div>
+                <div class="metric rounded-2xl p-5">
+                    <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Loss Proxy</p>
+                    <div id="metricLoss" class="text-2xl font-bold text-[#f1416c] font-en">0.0</div>
+                </div>
+                <div class="metric rounded-2xl p-5">
+                    <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Owner</p>
+                    <div id="metricOwner" class="text-2xl font-bold text-[#50cd89]">--</div>
+                </div>
+            </section>
+
+            <section class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div class="xl:col-span-2 space-y-6">
+                    <div class="card rounded-2xl border border-[#323248] p-6 shadow-xl">
+                        <h2 class="text-xl font-bold text-white mb-5">Incident Detail</h2>
+                        <div id="incidentDetailGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm"></div>
+                    </div>
+
+                    <div class="card rounded-2xl border border-[#323248] p-6 shadow-xl">
+                        <h2 class="text-xl font-bold text-white mb-5">Action & Recovery</h2>
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <span class="text-[#6b7280] block mb-1">Symptom / Cause</span>
+                                <div id="detailRootCause" class="text-white font-semibold">--</div>
+                            </div>
+                            <div>
+                                <span class="text-[#6b7280] block mb-1">Action Taken</span>
+                                <div id="detailActionTaken" class="text-white font-semibold">--</div>
+                            </div>
+                            <div>
+                                <span class="text-[#6b7280] block mb-1">Recovery Note</span>
+                                <div id="detailRecoveryNote" class="text-white font-semibold">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="card rounded-2xl border border-[#323248] p-6 shadow-xl">
+                        <h2 class="text-lg font-bold text-white mb-4">Event Status</h2>
+                        <div id="detailStatusBlock" class="space-y-3 text-sm"></div>
+                    </div>
+
+                    <div class="card rounded-2xl border border-[#323248] p-6 shadow-xl">
+                        <h2 class="text-lg font-bold text-white mb-4">Timeline</h2>
+                        <div id="detailTimeline" class="space-y-4 text-sm"></div>
+                    </div>
+
+                    <div class="card rounded-2xl border border-[#323248] p-6 shadow-xl">
+                        <h2 class="text-lg font-bold text-white mb-4">Evidence / Notes</h2>
+                        <div id="detailNotes" class="rounded-xl border border-dashed border-[#323248] bg-[#151521] p-5 text-sm text-[#6b7280]"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const BREAKDOWN_SHEET_NAME = 'MachineBreakdownLog';
+        const BREAKDOWN_HISTORY_KEY = 'yakitori-breakdown-history';
+        const lineDisplayMap = {
+            BL23G: 'BL23G',
+            GZ40G: 'Gizzard 40G S18',
+            GZ30G: 'Gizzard 30G R15'
+        };
+        let breakdownHistoryCache = null;
+
+        function loadBreakdownHistoryLocal() {
+            try {
+                const raw = JSON.parse(localStorage.getItem(BREAKDOWN_HISTORY_KEY) || '[]');
+                return Array.isArray(raw) ? raw : [];
+            } catch (_) {
+                return [];
+            }
+        }
+
+        async function fetchBreakdownHistoryFromApi() {
+            if (!window.YakitoriRuntime?.buildApiUrl) {
+                return { ok: false, records: [] };
+            }
+
+            try {
+                const response = await fetch(
+                    window.YakitoriRuntime.buildApiUrl(BREAKDOWN_SHEET_NAME, { action: 'read_breakdown' }),
+                    { cache: 'no-store' }
+                );
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const payload = await response.json();
+                return {
+                    ok: true,
+                    records: Array.isArray(payload?._records) ? payload._records : []
+                };
+            } catch (error) {
+                console.warn('Failed to read breakdown detail feed from GAS:', error);
+                return { ok: false, records: [] };
+            }
+        }
+
+        async function loadBreakdownHistory() {
+            if (Array.isArray(breakdownHistoryCache)) {
+                return breakdownHistoryCache;
+            }
+
+            const remote = await fetchBreakdownHistoryFromApi();
+            if (remote.ok) {
+                breakdownHistoryCache = remote.records;
+                return breakdownHistoryCache;
+            }
+
+            breakdownHistoryCache = loadBreakdownHistoryLocal();
+            return breakdownHistoryCache;
+        }
+
+        function resolveBreakdownEventId(entry, index = 0) {
+            return entry?.eventId || entry?.breakdownId || `LEGACY-${String(index + 1).padStart(3, '0')}`;
+        }
+
+        function getLineDisplayName(line) {
+            const key = String(line || '').trim().toUpperCase();
+            return lineDisplayMap[key] || key || '--';
+        }
+
+        function getBreakdownScopeLabel(entry) {
+            const machineVersion = String(entry?.machineVersion || '').trim();
+            const conveyorPosition = String(entry?.conveyorPosition || '').trim();
+            return [machineVersion, conveyorPosition].filter(Boolean).join(' / ') || '--';
+        }
+
+        function getStatusClass(status) {
+            if (status === 'Closed') return 'text-[#50cd89]';
+            if (status === 'Monitoring') return 'text-[#ffc700]';
+            return 'text-[#f1416c]';
+        }
+
+        async function getEventById() {
+            const history = await loadBreakdownHistory();
+            if (!history.length) return null;
+            const params = new URLSearchParams(window.location.search);
+            const requestedId = params.get('id');
+            if (!requestedId) return { entry: history[0], index: 0 };
+            const index = history.findIndex((entry, i) => resolveBreakdownEventId(entry, i) === requestedId);
+            return index >= 0 ? { entry: history[index], index } : { entry: history[0], index: 0 };
+        }
+
+        function formatCombinedDate(entry) {
+            const dateText = String(entry?.breakdownDate || '').trim() || '--';
+            const start = String(entry?.startTime || '').trim();
+            const end = String(entry?.endTime || '').trim();
+            return `${dateText}${start ? ` ${start}` : ''}${end ? ` - ${end}` : ''}`;
+        }
+
+        function renderEmptyState() {
+            document.getElementById('detailApp').classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+        }
+
+        async function renderDetail() {
+            const selected = await getEventById();
+            if (!selected?.entry) {
+                renderEmptyState();
+                return;
+            }
+
+            const { entry, index } = selected;
+            const eventId = resolveBreakdownEventId(entry, index);
+            document.getElementById('metricId').textContent = eventId;
+            document.getElementById('metricDowntime').textContent = `${Number(entry.durationMin || 0).toFixed(1)} min`;
+            document.getElementById('metricLoss').textContent = Number(entry.lossProxy || 0).toFixed(1);
+            document.getElementById('metricOwner').textContent = entry.submitter || 'Unassigned';
+
+            document.getElementById('incidentDetailGrid').innerHTML = `
+                <div><span class="text-[#6b7280] block mb-1">Product / Line</span><span class="text-white font-semibold">${getLineDisplayName(entry.line || entry.productLine)} / Shift ${entry.shift || 'A'}</span></div>
+                <div><span class="text-[#6b7280] block mb-1">Event Type</span><span class="text-white font-semibold">${entry.eventType || '--'}</span></div>
+                <div><span class="text-[#6b7280] block mb-1">Machine Version</span><span class="text-white font-semibold">${entry.machineVersion || '--'}</span></div>
+                <div><span class="text-[#6b7280] block mb-1">Location Scope</span><span class="text-white font-semibold">${getBreakdownScopeLabel(entry)}</span></div>
+                <div><span class="text-[#6b7280] block mb-1">Machine / Asset</span><span class="text-white font-semibold">${entry.machineArea || '--'}</span></div>
+                <div><span class="text-[#6b7280] block mb-1">Reported Window</span><span class="text-white font-semibold">${formatCombinedDate(entry)}</span></div>
+                <div class="md:col-span-2"><span class="text-[#6b7280] block mb-1">Production Impact</span><span class="text-white font-semibold">Downtime ${Number(entry.durationMin || 0).toFixed(1)} นาที / Loss proxy ${Number(entry.lossProxy || 0).toFixed(1)}</span></div>
+            `;
+
+            document.getElementById('detailRootCause').textContent = entry.rootCause || 'ยังไม่มีการบันทึกสาเหตุ';
+            document.getElementById('detailActionTaken').textContent = entry.actionTaken || 'ยังไม่มีการบันทึก action';
+            document.getElementById('detailRecoveryNote').textContent = entry.breakdownStatus === 'Closed'
+                ? 'รายการนี้ถูกปิดงานแล้ว'
+                : entry.breakdownStatus === 'Monitoring'
+                    ? 'รายการนี้อยู่ในช่วงเฝ้าระวังหลังแก้ไข'
+                    : 'รายการนี้ยังเปิดอยู่และต้องติดตามต่อ';
+
+            document.getElementById('detailStatusBlock').innerHTML = `
+                <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Current Status</span><span class="${getStatusClass(entry.breakdownStatus)} font-semibold">${entry.breakdownStatus || '--'}</span></div>
+                <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Reported By</span><span class="text-white font-semibold">${entry.submitter || '--'}</span></div>
+                <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Created At</span><span class="text-white font-semibold">${entry.createdAt ? new Date(entry.createdAt).toLocaleString('th-TH') : formatCombinedDate(entry)}</span></div>
+                <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Updated At</span><span class="text-white font-semibold">${entry.updatedAt ? new Date(entry.updatedAt).toLocaleString('th-TH') : '--'}</span></div>
+            `;
+
+            document.getElementById('detailTimeline').innerHTML = `
+                <div class="border-l-2 border-[#009ef7] pl-4">
+                    <div class="text-white font-semibold">${entry.startTime || '--'} Reported</div>
+                    <div class="text-[#6b7280] mt-1">${entry.breakdownDate || '--'} / ${getLineDisplayName(entry.line || entry.productLine)}</div>
+                </div>
+                <div class="border-l-2 border-[#ffc700] pl-4">
+                    <div class="text-white font-semibold">Investigation</div>
+                    <div class="text-[#6b7280] mt-1">${entry.rootCause || 'รอระบุสาเหตุเพิ่มเติม'}</div>
+                </div>
+                <div class="border-l-2 ${entry.breakdownStatus === 'Closed' ? 'border-[#50cd89]' : entry.breakdownStatus === 'Monitoring' ? 'border-[#ffc700]' : 'border-[#f1416c]'} pl-4">
+                    <div class="text-white font-semibold">${entry.breakdownStatus || 'Open'}</div>
+                    <div class="text-[#6b7280] mt-1">${entry.endTime ? `สิ้นสุดเวลา ${entry.endTime}` : 'ยังไม่มีเวลาปิดงาน'}</div>
+                </div>
+            `;
+
+            document.getElementById('detailNotes').innerHTML = `
+                <div class="mb-2"><span class="text-white font-semibold">Event ID:</span> ${eventId}</div>
+                <div class="mb-2"><span class="text-white font-semibold">Machine:</span> ${entry.machineArea || '--'}</div>
+                <div class="mb-2"><span class="text-white font-semibold">Scope:</span> ${getBreakdownScopeLabel(entry)}</div>
+                <div><span class="text-white font-semibold">Note:</span> หน้านี้อ่านจาก local preview เดียวกับ Machine Breakdown Log จึงเหมาะสำหรับการตรวจ flow ก่อนต่อ read API จาก GAS เพิ่ม</div>
+            `;
+        }
+
+        renderDetail();
+    </script>
+</body>
+</html>

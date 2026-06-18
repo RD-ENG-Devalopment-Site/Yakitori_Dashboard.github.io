@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Breakdown Events - APEX Flow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="yakitori-runtime.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Sarabun', sans-serif; background: #151521; color: #a1a5b7; }
+        .font-en { font-family: 'Inter', sans-serif; }
+        .card { background: linear-gradient(145deg, #1e1e2d 0%, #151521 100%); }
+        .field { background: #151521; border: 1px solid #323248; color: white; }
+        .field:focus { outline: none; border-color: #009ef7; box-shadow: 0 0 0 1px rgba(0,158,247,.24); }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <main class="max-w-[1440px] mx-auto space-y-6">
+        <header class="card rounded-2xl border border-[#323248] p-6 md:p-8 shadow-xl">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.28em] text-[#ffc700] font-bold">Machine Breakdown</p>
+                    <h1 class="text-3xl md:text-4xl font-bold text-white mt-2">ตารางสรุปทุก Event</h1>
+                    <p class="mt-2 text-sm text-[#a1a5b7] max-w-3xl">
+                        หน้านี้ดึงข้อมูลจาก local preview ชุดเดียวกับ Machine Breakdown Log เพื่อใช้ดู event ทั้งหมด, filter, และเปิดรายละเอียดราย event ได้ทันที
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <a href="MachineBreakdownLog.html" class="px-4 py-3 rounded-xl bg-[#2b2b40] text-white font-semibold hover:bg-[#323248] transition">Back to Breakdown Form</a>
+                    <a id="latestDetailLink" href="MachineBreakdownEventDetail.html" class="px-4 py-3 rounded-xl bg-[#009ef7] text-white font-semibold hover:opacity-90 transition">Open Latest Detail</a>
+                </div>
+            </div>
+        </header>
+
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="card rounded-2xl border border-[#323248] p-5">
+                <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Total Events</p>
+                <div id="metricTotalEvents" class="text-3xl font-bold text-white font-en">0</div>
+                <p class="text-xs text-[#6b7280] mt-2">จำนวน event ทั้งหมดใน browser นี้</p>
+            </div>
+            <div class="card rounded-2xl border border-[#323248] p-5">
+                <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Open Cases</p>
+                <div id="metricOpenCases" class="text-3xl font-bold text-[#f1416c] font-en">0</div>
+                <p class="text-xs text-[#6b7280] mt-2">รายการที่ยังไม่ปิดงาน</p>
+            </div>
+            <div class="card rounded-2xl border border-[#323248] p-5">
+                <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Total Downtime</p>
+                <div id="metricDowntime" class="text-3xl font-bold text-[#ffc700] font-en">0</div>
+                <p class="text-xs text-[#6b7280] mt-2">นาทีรวมของทุก event</p>
+            </div>
+            <div class="card rounded-2xl border border-[#323248] p-5">
+                <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Loss Proxy</p>
+                <div id="metricLossProxy" class="text-3xl font-bold text-[#50cd89] font-en">0.0</div>
+                <p class="text-xs text-[#6b7280] mt-2">ผลกระทบโดยประมาณจาก downtime</p>
+            </div>
+        </section>
+
+        <section class="card rounded-2xl border border-[#323248] p-6 shadow-xl space-y-5">
+            <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Breakdown Event Filters</h2>
+                    <p class="text-sm text-[#a1a5b7] mt-1">กรองตามสินค้า, เวอร์ชันเครื่อง, สถานะ และคำค้น</p>
+                </div>
+                <div id="eventFeedState" class="text-xs text-[#6b7280] uppercase tracking-[0.2em] font-bold">Local Preview Feed</div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                <label class="space-y-2">
+                    <span class="text-xs uppercase tracking-[0.18em] text-[#a1a5b7] font-bold">Product</span>
+                    <select id="filterProduct" class="field w-full rounded-xl px-4 py-3">
+                        <option value="all">All Products</option>
+                        <option value="BL23G">BL23G</option>
+                        <option value="GZ40G">Gizzard 40G S18</option>
+                        <option value="GZ30G">Gizzard 30G R15</option>
+                    </select>
+                </label>
+                <label class="space-y-2">
+                    <span class="text-xs uppercase tracking-[0.18em] text-[#a1a5b7] font-bold">Machine Version</span>
+                    <select id="filterMachine" class="field w-full rounded-xl px-4 py-3">
+                        <option value="all">All Versions</option>
+                        <option value="CNC Version">CNC Version</option>
+                        <option value="Conveyor Version">Conveyor Version</option>
+                    </select>
+                </label>
+                <label class="space-y-2">
+                    <span class="text-xs uppercase tracking-[0.18em] text-[#a1a5b7] font-bold">Status</span>
+                    <select id="filterStatus" class="field w-full rounded-xl px-4 py-3">
+                        <option value="all">All Status</option>
+                        <option value="Open">Open</option>
+                        <option value="Monitoring">Monitoring</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </label>
+                <label class="space-y-2">
+                    <span class="text-xs uppercase tracking-[0.18em] text-[#a1a5b7] font-bold">Search</span>
+                    <input id="filterSearch" class="field w-full rounded-xl px-4 py-3" placeholder="ค้นหา ID, เครื่อง, อาการเสีย">
+                </label>
+            </div>
+        </section>
+
+        <section class="card rounded-2xl border border-[#323248] p-6 shadow-xl">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Breakdown Event Table</h2>
+                    <p class="text-sm text-[#a1a5b7] mt-1">คลิกดูรายละเอียดราย event ได้จากคอลัมน์ Action</p>
+                </div>
+                <span id="eventsCountLabel" class="text-xs uppercase tracking-[0.2em] text-[#ffc700] font-bold">0 events</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-[#323248]">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-[#1a1a27] text-[#a1a5b7] uppercase tracking-[0.12em] text-xs">
+                        <tr>
+                            <th class="px-4 py-3 text-left">ID</th>
+                            <th class="px-4 py-3 text-left">Date</th>
+                            <th class="px-4 py-3 text-left">Product</th>
+                            <th class="px-4 py-3 text-left">Scope</th>
+                            <th class="px-4 py-3 text-left">Type</th>
+                            <th class="px-4 py-3 text-left">Status</th>
+                            <th class="px-4 py-3 text-left">Downtime</th>
+                            <th class="px-4 py-3 text-left">Loss</th>
+                            <th class="px-4 py-3 text-left">Machine</th>
+                            <th class="px-4 py-3 text-left">Submitted by</th>
+                            <th class="px-4 py-3 text-left">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eventsTableBody" class="divide-y divide-[#323248] bg-[#151521]"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const BREAKDOWN_SHEET_NAME = 'MachineBreakdownLog';
+        const BREAKDOWN_HISTORY_KEY = 'yakitori-breakdown-history';
+        const lineDisplayMap = {
+            BL23G: 'BL23G',
+            GZ40G: 'Gizzard 40G S18',
+            GZ30G: 'Gizzard 30G R15'
+        };
+        let breakdownHistoryCache = null;
+        let breakdownFeedMeta = {
+            source: 'local',
+            updatedAt: '',
+            total: 0
+        };
+
+        function loadBreakdownHistoryLocal() {
+            try {
+                const raw = JSON.parse(localStorage.getItem(BREAKDOWN_HISTORY_KEY) || '[]');
+                return Array.isArray(raw) ? raw : [];
+            } catch (_) {
+                return [];
+            }
+        }
+
+        async function fetchBreakdownHistoryFromApi() {
+            if (!window.YakitoriRuntime?.buildApiUrl) {
+                return { ok: false, records: [], meta: null };
+            }
+
+            try {
+                const response = await fetch(
+                    window.YakitoriRuntime.buildApiUrl(BREAKDOWN_SHEET_NAME, { action: 'read_breakdown' }),
+                    { cache: 'no-store' }
+                );
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const payload = await response.json();
+                const records = Array.isArray(payload?._records) ? payload._records : [];
+                return {
+                    ok: true,
+                    records,
+                    meta: {
+                        source: 'gas',
+                        updatedAt: payload?.updatedAt || '',
+                        total: Number(payload?.total) || records.length
+                    }
+                };
+            } catch (error) {
+                console.warn('Failed to read breakdown feed from GAS:', error);
+                return { ok: false, records: [], meta: null };
+            }
+        }
+
+        async function loadBreakdownHistory() {
+            if (Array.isArray(breakdownHistoryCache)) {
+                return breakdownHistoryCache;
+            }
+
+            const remote = await fetchBreakdownHistoryFromApi();
+            if (remote.ok) {
+                breakdownFeedMeta = remote.meta || breakdownFeedMeta;
+                breakdownHistoryCache = Array.isArray(remote.records) ? remote.records : [];
+                return breakdownHistoryCache;
+            }
+
+            breakdownFeedMeta = {
+                source: 'local',
+                updatedAt: '',
+                total: 0
+            };
+            breakdownHistoryCache = loadBreakdownHistoryLocal();
+            return breakdownHistoryCache;
+        }
+
+        function resolveBreakdownEventId(entry, index = 0) {
+            return entry?.eventId || entry?.breakdownId || `LEGACY-${String(index + 1).padStart(3, '0')}`;
+        }
+
+        function getLineDisplayName(line) {
+            const key = String(line || '').trim().toUpperCase();
+            return lineDisplayMap[key] || key || '--';
+        }
+
+        function getBreakdownScopeLabel(entry) {
+            const machineVersion = String(entry?.machineVersion || '').trim();
+            const conveyorPosition = String(entry?.conveyorPosition || '').trim();
+            return [machineVersion, conveyorPosition].filter(Boolean).join(' / ') || '--';
+        }
+
+        function getComparableTime(entry, index) {
+            const created = entry?.createdAt ? new Date(entry.createdAt) : null;
+            if (created && !Number.isNaN(created.getTime())) return created.getTime();
+            const dateText = String(entry?.breakdownDate || '').trim();
+            const timeText = String(entry?.startTime || '00:00').trim();
+            const parsed = new Date(`${dateText}T${timeText}`);
+            if (!Number.isNaN(parsed.getTime())) return parsed.getTime();
+            return Date.now() - index;
+        }
+
+        function sortHistory(history) {
+            return [...history].sort((a, b) => getComparableTime(b, 0) - getComparableTime(a, 0));
+        }
+
+        function formatEventDate(entry, index) {
+            const created = entry?.createdAt ? new Date(entry.createdAt) : null;
+            if (created && !Number.isNaN(created.getTime())) {
+                return created.toLocaleString('th-TH', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+            const dateText = String(entry?.breakdownDate || '').trim() || '--';
+            const timeText = String(entry?.startTime || '').trim();
+            return `${dateText}${timeText ? ` ${timeText}` : ''}`;
+        }
+
+        function getStatusClass(status) {
+            if (status === 'Closed') return 'text-[#50cd89]';
+            if (status === 'Monitoring') return 'text-[#ffc700]';
+            return 'text-[#f1416c]';
+        }
+
+        function buildDetailUrl(entry, index) {
+            return `MachineBreakdownEventDetail.html?id=${encodeURIComponent(resolveBreakdownEventId(entry, index))}`;
+        }
+
+        async function getFilteredHistory() {
+            const product = document.getElementById('filterProduct')?.value || 'all';
+            const machine = document.getElementById('filterMachine')?.value || 'all';
+            const status = document.getElementById('filterStatus')?.value || 'all';
+            const search = String(document.getElementById('filterSearch')?.value || '').trim().toLowerCase();
+
+            return sortHistory(await loadBreakdownHistory()).filter((entry, index) => {
+                const eventId = resolveBreakdownEventId(entry, index).toLowerCase();
+                const lineValue = String(entry.line || entry.productLine || '').trim().toUpperCase();
+                const machineArea = String(entry.machineArea || '').toLowerCase();
+                const rootCause = String(entry.rootCause || '').toLowerCase();
+                const lineMatch = product === 'all' || lineValue === product;
+                const machineMatch = machine === 'all' || entry.machineVersion === machine;
+                const statusMatch = status === 'all' || entry.breakdownStatus === status;
+                const searchMatch = !search || [eventId, machineArea, rootCause, lineValue.toLowerCase()].some(item => item.includes(search));
+                return lineMatch && machineMatch && statusMatch && searchMatch;
+            });
+        }
+
+        function renderSummary(history) {
+            const totalEvents = history.length;
+            const openCases = history.filter(item => item.breakdownStatus === 'Open').length;
+            const totalDowntime = history.reduce((sum, item) => sum + (Number(item.durationMin) || 0), 0);
+            const totalLoss = history.reduce((sum, item) => sum + (Number(item.lossProxy) || 0), 0);
+            document.getElementById('metricTotalEvents').textContent = totalEvents.toLocaleString();
+            document.getElementById('metricOpenCases').textContent = openCases.toLocaleString();
+            document.getElementById('metricDowntime').textContent = totalDowntime.toFixed(1);
+            document.getElementById('metricLossProxy').textContent = totalLoss.toFixed(1);
+            document.getElementById('eventsCountLabel').textContent = `${totalEvents} events`;
+
+            const latestLink = document.getElementById('latestDetailLink');
+            latestLink.setAttribute('href', history.length ? buildDetailUrl(history[0], 0) : 'MachineBreakdownEventDetail.html');
+
+            const feedState = document.getElementById('eventFeedState');
+            if (feedState) {
+                const sourceLabel = breakdownFeedMeta.source === 'gas'
+                    ? 'Google Sheet Feed'
+                    : 'Local Preview Feed (Fallback)';
+                feedState.textContent = breakdownFeedMeta.updatedAt
+                    ? `${sourceLabel} | ${breakdownFeedMeta.updatedAt}`
+                    : sourceLabel;
+            }
+        }
+
+        async function renderTable() {
+            const history = await getFilteredHistory();
+            const allHistory = sortHistory(await loadBreakdownHistory());
+            const body = document.getElementById('eventsTableBody');
+            const countLabel = document.getElementById('eventsCountLabel');
+
+            renderSummary(allHistory);
+            countLabel.textContent = history.length === allHistory.length
+                ? `${history.length} events`
+                : `${history.length} of ${allHistory.length} events`;
+
+            if (!allHistory.length) {
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="11" class="px-4 py-8 text-center text-[#6b7280]">
+                            ยังไม่มี breakdown event ใน browser นี้ ให้บันทึกจากหน้า Machine Breakdown Log ก่อน
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            if (!history.length) {
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="11" class="px-4 py-8 text-center text-[#6b7280]">
+                            ไม่พบ event ที่ตรงกับ filter ที่เลือก
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            body.innerHTML = history.map((entry, index) => `
+                <tr class="align-top">
+                    <td class="px-4 py-3 text-white font-semibold whitespace-nowrap">${resolveBreakdownEventId(entry, index)}</td>
+                    <td class="px-4 py-3 text-[#a1a5b7] whitespace-nowrap">${formatEventDate(entry, index)}</td>
+                    <td class="px-4 py-3 text-white font-semibold">${getLineDisplayName(entry.line || entry.productLine)} / Shift ${entry.shift || 'A'}</td>
+                    <td class="px-4 py-3 text-[#a1a5b7]">${getBreakdownScopeLabel(entry)}</td>
+                    <td class="px-4 py-3 text-[#a1a5b7]">${entry.eventType || '--'}</td>
+                    <td class="px-4 py-3"><span class="text-xs font-bold ${getStatusClass(entry.breakdownStatus)}">${entry.breakdownStatus || '--'}</span></td>
+                    <td class="px-4 py-3 text-[#ffc700] font-bold font-en whitespace-nowrap">${Number(entry.durationMin || 0).toFixed(1)} min</td>
+                    <td class="px-4 py-3 font-bold font-en ${Number(entry.lossProxy || 0) > 0 ? 'text-[#f1416c]' : 'text-[#50cd89]'}">${Number(entry.lossProxy || 0).toFixed(1)}</td>
+                    <td class="px-4 py-3 text-[#a1a5b7]">${entry.machineArea || '--'}</td>
+                    <td class="px-4 py-3 text-[#a1a5b7]">${entry.submitter || '--'}</td>
+                    <td class="px-4 py-3"><a href="${buildDetailUrl(entry, index)}" class="px-3 py-2 rounded-lg bg-[#2b2b40] text-white text-xs font-bold hover:bg-[#323248] transition">View Detail</a></td>
+                </tr>
+            `).join('');
+        }
+
+        ['filterProduct', 'filterMachine', 'filterStatus', 'filterSearch'].forEach(id => {
+            document.getElementById(id)?.addEventListener('input', renderTable);
+            document.getElementById(id)?.addEventListener('change', renderTable);
+        });
+
+        renderTable();
+    </script>
+</body>
+</html>
