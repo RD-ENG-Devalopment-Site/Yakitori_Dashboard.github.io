@@ -469,6 +469,71 @@
             return { label: `ข้อมูลช้ากว่า ${Math.floor(diffHours / 24)} วัน`, tone: 'text-[#f1416c]', badge: 'STALE' };
         }
 
+        function getExperimentalDisplayName(label) {
+            const map = {
+                'BL 23G': 'BL23G Experimental',
+                'Gizzard 40G S18': 'Gz40g Experimental',
+                'Gz 30G R15': 'Gz30g Experimental',
+                'BB SKIN': 'BB Skin Experimental'
+            };
+            return map[label] || `${label} Experimental`;
+        }
+
+        function buildSheetStatusRows(results) {
+            return results.map(({ label, records }) => {
+                const scoped = currentShiftFilter === 'all'
+                    ? sortTrials(records)
+                    : sortTrials(filterByShift(records, currentShiftFilter));
+                const stats = getStats(scoped);
+
+                if (!stats) {
+                    return {
+                        name: getExperimentalDisplayName(label),
+                        status: 'ยังไม่มีข้อมูล',
+                        tone: 'text-[#6b7280]',
+                        detail: currentShiftFilter === 'all' ? 'ยังไม่พบข้อมูลทั้ง Shift A / B' : `ยังไม่พบข้อมูล Shift ${currentShiftFilter}`,
+                        statusKey: 'no-data'
+                    };
+                }
+
+                const freshness = getRelativeFreshness(stats.latest.recordDate);
+                let statusKey = 'ready';
+                let status = 'พร้อมใช้งาน';
+
+                if (freshness.badge === 'NO TIMESTAMP') {
+                    statusKey = 'no-timestamp';
+                    status = 'รอตรวจสอบเวลาอัปเดต';
+                } else if (freshness.badge === 'STALE') {
+                    statusKey = 'stale';
+                    status = 'อัปเดตล่าช้า';
+                } else if (freshness.badge === 'WATCH') {
+                    statusKey = 'watch';
+                    status = 'พร้อมใช้งาน';
+                }
+
+                return {
+                    name: getExperimentalDisplayName(label),
+                    status,
+                    tone: freshness.tone,
+                    detail: `ล่าสุด Trial ${stats.latest.trial} / Shift ${stats.latest.shift || 'A'}`,
+                    statusKey
+                };
+            });
+        }
+
+        function getOverallSystemStatus(statusRows) {
+            if (!statusRows.length) {
+                return { label: 'รอตรวจสอบ', badge: 'CHECK', tone: 'text-[#a1a5b7]' };
+            }
+            if (statusRows.every(item => item.statusKey === 'ready' || item.statusKey === 'watch')) {
+                return { label: 'พร้อมใช้งาน', badge: 'LIVE', tone: 'text-[#50cd89]' };
+            }
+            if (statusRows.some(item => item.statusKey === 'ready' || item.statusKey === 'watch')) {
+                return { label: 'พร้อมใช้งานบางส่วน', badge: 'PARTIAL', tone: 'text-[#ffc700]' };
+            }
+            return { label: 'รอตรวจสอบ', badge: 'CHECK', tone: 'text-[#f1416c]' };
+        }
+
         function compareRecordRecency(a, b) {
             const aDate = parseRecordDateValue(a?.latest?.recordDate);
             const bDate = parseRecordDateValue(b?.latest?.recordDate);
@@ -548,9 +613,11 @@
             if (!freshnessPanel) return;
 
             const insights = buildDashboardInsights(results);
-            const freshness = getRelativeFreshness(insights.latestRecord?.latest?.recordDate);
-            const latestSource = insights.latestRecord
-                ? `${insights.latestRecord.line} / Shift ${insights.latestRecord.shift} / Trial ${insights.latestRecord.latest.trial}`
+            const statusRows = buildSheetStatusRows(results);
+            const overallStatus = getOverallSystemStatus(statusRows);
+            const latestTime = formatDateTimeDisplay(insights.latestRecord?.latest?.recordDate);
+            const latestLine = insights.latestRecord
+                ? getExperimentalDisplayName(insights.latestRecord.line)
                 : '--';
 
             freshnessPanel.innerHTML = `
@@ -559,16 +626,40 @@
                         <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Data Freshness</p>
                         <h3 class="text-lg font-bold text-white">อัปเดตล่าสุดของระบบ</h3>
                     </div>
-                    <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] border border-[#323248] ${freshness.tone}">${freshness.badge}</span>
+                    <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] border border-[#323248] ${overallStatus.tone}">${overallStatus.badge}</span>
                 </div>
-                <div class="mb-4">
-                    <div class="text-2xl font-bold text-white font-en">${formatDateTimeDisplay(insights.latestRecord?.latest?.recordDate)}</div>
-                    <div class="text-sm text-[#a1a5b7] mt-1">${latestSource}</div>
+                <div class="mb-5">
+                    <div class="text-2xl font-bold text-white font-en">${latestTime}</div>
                 </div>
-                <div class="space-y-2 text-sm">
-                    <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">สถานะ</span><span class="${freshness.tone} font-semibold">${freshness.label}</span></div>
-                    <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Filter ปัจจุบัน</span><span class="text-white font-semibold">${currentShiftFilter === 'all' ? 'All Shift' : `Shift ${currentShiftFilter}`}</span></div>
-                    <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Feed ที่ใช้งาน</span><span class="text-white font-semibold">${buildProgressEntries(results).filter(item => item.stats).length}</span></div>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between gap-3">
+                        <span class="text-[#a1a5b7]">อัปเดตล่าสุด</span>
+                        <span class="text-white font-semibold text-right">${latestLine}</span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <span class="text-[#a1a5b7]">สถานะรวมระบบ</span>
+                        <span class="${overallStatus.tone} font-semibold text-right">${overallStatus.label}</span>
+                    </div>
+                    <details class="group rounded-xl border border-[#323248] bg-[#1a1d27] overflow-hidden">
+                        <summary class="list-none cursor-pointer px-4 py-3 flex items-center justify-between gap-3">
+                            <div>
+                                <div class="text-[#a1a5b7] text-xs uppercase tracking-[0.2em] font-bold mb-1">แหล่งข้อมูล</div>
+                                <div class="text-white font-semibold">ดูสถานะแต่ละแผ่น</div>
+                            </div>
+                            <span class="text-[#a1a5b7] transition group-open:rotate-180">⌄</span>
+                        </summary>
+                        <div class="px-4 pb-4 space-y-3 border-t border-[#2b2b40]">
+                            ${statusRows.map(item => `
+                                <div class="pt-3 flex items-start justify-between gap-3">
+                                    <div>
+                                        <div class="text-white font-semibold">${item.name}</div>
+                                        <div class="text-xs text-[#6b7280] mt-1">${item.detail}</div>
+                                    </div>
+                                    <div class="${item.tone} font-semibold text-right whitespace-nowrap">${item.status}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </details>
                 </div>
             `;
         }
