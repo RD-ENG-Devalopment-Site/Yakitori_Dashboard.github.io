@@ -146,6 +146,9 @@
             </div>
             
             <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <div id="headerDateTime" class="text-sm text-[#e4e6ef] font-semibold whitespace-nowrap">--</div>
+                </div>
                 <div class="w-10 h-10 rounded-full bg-[#2b2b40] border-2 border-[#323248] overflow-hidden flex items-center justify-center text-[#a1a5b7]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
@@ -296,13 +299,42 @@
 
         let currentShiftFilter = 'all';
         let dashboardReady = false;
+        let headerClockTimer = null;
 
         window.onload = function() {
             ensureDashboardChrome();
+            startHeaderClock();
             setActiveShiftFilter('all');
             renderDashboardData();
             setInterval(renderDashboardData, 5000);
         };
+
+        function formatHeaderDateTime(date = new Date()) {
+            const weekdayMap = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์'];
+            const monthMap = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            const bangkokDate = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' }));
+            const weekday = weekdayMap[bangkokDate.getDay()];
+            const day = bangkokDate.getDate();
+            const month = monthMap[bangkokDate.getMonth()];
+            const year = bangkokDate.getFullYear() + 543;
+            const hours = String(bangkokDate.getHours()).padStart(2, '0');
+            const minutes = String(bangkokDate.getMinutes()).padStart(2, '0');
+            return `${weekday} ${day} ${month} ${year} ${hours}:${minutes}`;
+        }
+
+        function renderHeaderDateTime() {
+            const el = document.getElementById('headerDateTime');
+            if (!el) return;
+            const formatted = formatHeaderDateTime();
+            el.textContent = formatted;
+            el.title = formatted;
+        }
+
+        function startHeaderClock() {
+            renderHeaderDateTime();
+            if (headerClockTimer) clearInterval(headerClockTimer);
+            headerClockTimer = setInterval(renderHeaderDateTime, 1000 * 30);
+        }
 
         function ensureDashboardChrome() {
             if (dashboardReady) return;
