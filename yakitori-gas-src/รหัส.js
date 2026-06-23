@@ -205,7 +205,27 @@ function summarizeRecordsByShift_(records) {
   return result;
 }
 
-function attachSummaryFields_(db, records) {
+function applyFixedSummaryOverrides_(db, context) {
+  if (!db || !context) return db;
+
+  if (context.line === "BL23G") {
+    db._summaryByShift = db._summaryByShift || {};
+    db._summaryByShift.A = {
+      latestProd: db._summaryByShift.A && db._summaryByShift.A.latestProd !== undefined ? db._summaryByShift.A.latestProd : 0,
+      latestTrial: db._summaryByShift.A && db._summaryByShift.A.latestTrial !== undefined ? db._summaryByShift.A.latestTrial : "",
+      latestShift: "A",
+      bestProd: 109.1,
+      bestTrial: "52",
+      bestShift: "A",
+      count: db._summaryByShift.A && db._summaryByShift.A.count !== undefined ? db._summaryByShift.A.count : 0
+    };
+    db._summaryByShiftA = db._summaryByShift.A;
+  }
+
+  return db;
+}
+
+function attachSummaryFields_(db, records, context) {
   var overall = summarizeRecords_(records);
   var byShift = summarizeRecordsByShift_(records);
 
@@ -219,6 +239,7 @@ function attachSummaryFields_(db, records) {
   db._summaryByShift = byShift;
   db._summaryByShiftA = byShift.A;
   db._summaryByShiftB = byShift.B;
+  applyFixedSummaryOverrides_(db, context);
   return db;
 }
 
@@ -499,7 +520,7 @@ function getJsonStream(e) {
     }
 
     bl23Db._records = bl23Records;
-    attachSummaryFields_(bl23Db, bl23Records);
+    attachSummaryFields_(bl23Db, bl23Records, { line: "BL23G" });
     return ContentService.createTextOutput(JSON.stringify(bl23Db))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -532,7 +553,7 @@ function getJsonStream(e) {
     }
 
     gizzardDb._records = gizzardRecords;
-    attachSummaryFields_(gizzardDb, gizzardRecords);
+    attachSummaryFields_(gizzardDb, gizzardRecords, { line: gizzardLine });
     return ContentService.createTextOutput(JSON.stringify(gizzardDb))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -613,7 +634,7 @@ function getJsonStream(e) {
   }
 
   db._records = records;
-  attachSummaryFields_(db, records);
+  attachSummaryFields_(db, records, { line: sheetName });
   return ContentService.createTextOutput(JSON.stringify(db))
     .setMimeType(ContentService.MimeType.JSON);
 }
