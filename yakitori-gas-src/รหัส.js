@@ -159,6 +159,69 @@ function clearSheetDataRows_(sheet) {
   return lastRow - 1;
 }
 
+function summarizeRecords_(records) {
+  var sorted = (records || []).slice().sort(function(a, b) {
+    return Number(a.trial) - Number(b.trial);
+  });
+  if (!sorted.length) {
+    return {
+      latestProd: 0,
+      latestTrial: "",
+      latestShift: "",
+      bestProd: 0,
+      bestTrial: "",
+      bestShift: "",
+      count: 0
+    };
+  }
+
+  var latest = sorted[sorted.length - 1];
+  var best = sorted[0];
+  for (var i = 1; i < sorted.length; i++) {
+    if (Number(sorted[i].prod) > Number(best.prod)) {
+      best = sorted[i];
+    }
+  }
+
+  return {
+    latestProd: Number(latest.prod) || 0,
+    latestTrial: String(latest.trial || ""),
+    latestShift: String(latest.shift || ""),
+    bestProd: Number(best.prod) || 0,
+    bestTrial: String(best.trial || ""),
+    bestShift: String(best.shift || ""),
+    count: sorted.length
+  };
+}
+
+function summarizeRecordsByShift_(records) {
+  var source = records || [];
+  var result = {};
+  ["A", "B"].forEach(function(shift) {
+    result[shift] = summarizeRecords_(source.filter(function(item) {
+      return normalizeShift_(item.shift) === shift;
+    }));
+  });
+  return result;
+}
+
+function attachSummaryFields_(db, records) {
+  var overall = summarizeRecords_(records);
+  var byShift = summarizeRecordsByShift_(records);
+
+  db.latestProd = overall.latestProd;
+  db.latestTrial = overall.latestTrial;
+  db.latestShift = overall.latestShift;
+  db.bestProd = overall.bestProd;
+  db.bestTrial = overall.bestTrial;
+  db.bestShift = overall.bestShift;
+  db._summary = overall;
+  db._summaryByShift = byShift;
+  db._summaryByShiftA = byShift.A;
+  db._summaryByShiftB = byShift.B;
+  return db;
+}
+
 function ensureBl23ShiftBSheet_(ss) {
   var sheet = ss.getSheetByName(BL23G_SHIFT_B_SHEET);
   if (sheet) return sheet;
@@ -436,6 +499,7 @@ function getJsonStream(e) {
     }
 
     bl23Db._records = bl23Records;
+    attachSummaryFields_(bl23Db, bl23Records);
     return ContentService.createTextOutput(JSON.stringify(bl23Db))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -468,6 +532,7 @@ function getJsonStream(e) {
     }
 
     gizzardDb._records = gizzardRecords;
+    attachSummaryFields_(gizzardDb, gizzardRecords);
     return ContentService.createTextOutput(JSON.stringify(gizzardDb))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -548,6 +613,7 @@ function getJsonStream(e) {
   }
 
   db._records = records;
+  attachSummaryFields_(db, records);
   return ContentService.createTextOutput(JSON.stringify(db))
     .setMimeType(ContentService.MimeType.JSON);
 }
