@@ -742,10 +742,13 @@
         }
 
         function buildOverviewData(results) {
-            const lines = results.map(({ prefix, label, target, records }) => {
-                const currentStats = getStats(filterByShift(records, currentShiftFilter));
-                const aStats = getStats(filterByShift(records, 'A'));
-                const bStats = getStats(filterByShift(records, 'B'));
+            const lines = results.map(({ prefix, label, target, records, summary }) => {
+                const currentSummary = currentShiftFilter === 'all'
+                    ? summary?.overall
+                    : summary?.byShift?.[currentShiftFilter];
+                const currentStats = getStats(filterByShift(records, currentShiftFilter), currentSummary);
+                const aStats = getStats(filterByShift(records, 'A'), summary?.byShift?.A);
+                const bStats = getStats(filterByShift(records, 'B'), summary?.byShift?.B);
 
                 return {
                     prefix,
@@ -1052,6 +1055,32 @@
                 .filter(item => isNumericTrial(item.trial));
         }
 
+        function normalizeSheetSummary(db) {
+            const source = db?._summary || db?.summary || db || {};
+            const byShiftSource = db?._summaryByShift || db?.summaryByShift || {};
+
+            const normalizeOne = (summary) => {
+                if (!summary) return null;
+                return {
+                    latestProd: Number(summary.latestProd) || 0,
+                    latestTrial: String(summary.latestTrial ?? '').trim(),
+                    latestShift: String(summary.latestShift ?? '').trim().toUpperCase(),
+                    bestProd: Number(summary.bestProd) || 0,
+                    bestTrial: String(summary.bestTrial ?? '').trim(),
+                    bestShift: String(summary.bestShift ?? '').trim().toUpperCase(),
+                    count: Number(summary.count) || 0
+                };
+            };
+
+            return {
+                overall: normalizeOne(source.latestProd !== undefined || source.bestProd !== undefined ? source : null),
+                byShift: {
+                    A: normalizeOne(byShiftSource.A || byShiftSource.a || null),
+                    B: normalizeOne(byShiftSource.B || byShiftSource.b || null)
+                }
+            };
+        }
+
         function isNumericTrial(trial) {
             const trimmed = String(trial || '').trim();
             return trimmed !== '' && Number.isFinite(Number(trimmed));
@@ -1066,19 +1095,54 @@
             return records.filter(item => (item.shift || 'A').toUpperCase() === shift);
         }
 
-        function getStats(records) {
+        function getStats(records, summary = null) {
+            if (summary && (
+                summary.latestProd !== undefined ||
+                summary.bestProd !== undefined ||
+                summary.latestTrial !== undefined ||
+                summary.bestTrial !== undefined
+            )) {
+                const latestProd = Number(summary.latestProd) || 0;
+                const bestProd = Number(summary.bestProd) || 0;
+                const latestTrial = String(summary.latestTrial ?? '').trim();
+                const bestTrial = String(summary.bestTrial ?? '').trim();
+                const latestShift = String(summary.latestShift ?? '').trim().toUpperCase();
+                const bestShift = String(summary.bestShift ?? '').trim().toUpperCase();
+                return {
+                    latest: { trial: latestTrial, shift: latestShift, prod: latestProd },
+                    best: { trial: bestTrial, shift: bestShift, prod: bestProd },
+                    latestProd,
+                    latestTrial,
+                    latestShift,
+                    bestProd,
+                    bestTrial,
+                    bestShift,
+                    count: Number(summary.count) || 0
+                };
+            }
+
             const sorted = sortTrials(records);
             if (!sorted.length) return null;
             const latest = sorted[sorted.length - 1];
             const best = sorted.reduce((acc, item) => (!acc || item.prod > acc.prod ? item : acc), null);
-            return { latest, best };
+            return {
+                latest,
+                best,
+                latestProd: Number(latest.prod) || 0,
+                latestTrial: String(latest.trial || ''),
+                latestShift: String(latest.shift || '').toUpperCase(),
+                bestProd: Number(best.prod) || 0,
+                bestTrial: String(best.trial || ''),
+                bestShift: String(best.shift || '').toUpperCase(),
+                count: sorted.length
+            };
         }
 
         function buildProgressEntries(results) {
-            return results.flatMap(({ label, target, color, records }) => {
+            return results.flatMap(({ label, target, color, records, summary }) => {
                 const shifts = currentShiftFilter === 'all' ? ['A', 'B'] : [currentShiftFilter];
                 return shifts.map(shift => {
-                    const stats = getStats(filterByShift(records, shift));
+                    const stats = getStats(filterByShift(records, shift), summary?.byShift?.[shift]);
                     return { label, target, color, shift, stats };
                 });
             });
@@ -1137,8 +1201,8 @@
                     `;
                 }
 
-                const latestPercent = entry.target > 0 ? (entry.stats.latest.prod / entry.target) * 100 : 0;
-                const bestPercent = entry.target > 0 ? (entry.stats.best.prod / entry.target) * 100 : 0;
+                const latestPercent = entry.target > 0 ? (entry.stats.latestProd / entry.target) * 100 : 0;
+                const bestPercent = entry.target > 0 ? (entry.stats.bestProd / entry.target) * 100 : 0;
                 const accent = getShiftAccent(entry.color, entry.shift);
                 avgEffTotal += latestPercent;
                 activeProjectsCount++;
@@ -1148,10 +1212,10 @@
                         <div class="flex justify-between items-end mb-2">
                             <div class="flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full" style="background:${accent.dot}"></span>
-                                <span class="text-sm font-bold text-white">${entry.label} <span class="text-xs text-[#a1a5b7] ml-1 font-normal">(Trial ${entry.stats.latest.trial} / Shift ${entry.shift})</span></span>
+                                <span class="text-sm font-bold text-white">${entry.label} <span class="text-xs text-[#a1a5b7] ml-1 font-normal">(Trial ${entry.stats.latestTrial || entry.stats.latest.trial} / Shift ${entry.shift})</span></span>
                             </div>
                             <div class="text-right flex items-baseline justify-end gap-2">
-                                <span class="font-bold font-en text-lg" style="color:${accent.text}">${entry.stats.latest.prod.toFixed(1)}</span>
+                                <span class="font-bold font-en text-lg" style="color:${accent.text}">${entry.stats.latestProd.toFixed(1)}</span>
                                 <span class="text-[11px] text-[#6b7280] uppercase tracking-wide bg-[#2b2b40] px-2 py-0.5 rounded">${targetLabel}</span>
                             </div>
                         </div>
@@ -1165,7 +1229,7 @@
                         </div>
                         <div class="flex justify-between items-center mt-1">
                             <p class="text-[11px] text-[#a1a5b7]">Efficiency Rate (%): ${latestPercent.toFixed(2)}%</p>
-                            <p class="text-[11px] text-[#ffc700] font-medium">Best Record: ${entry.stats.best.prod.toFixed(1)} (${bestPercent.toFixed(2)}%) - Trial ${entry.stats.best.trial}</p>
+                            <p class="text-[11px] text-[#ffc700] font-medium">Best Record: ${entry.stats.bestProd.toFixed(1)} (${bestPercent.toFixed(2)}%) - Trial ${entry.stats.bestTrial}</p>
                         </div>
                     </div>
                 `;
@@ -1186,11 +1250,11 @@
             const tbody = document.getElementById('compareBody');
             if (!tbody) return;
 
-            tbody.innerHTML = results.map(({ label, records }) => {
-                const aStats = getStats(filterByShift(records, 'A'));
-                const bStats = getStats(filterByShift(records, 'B'));
-                const aLatest = aStats ? aStats.latest.prod : null;
-                const bLatest = bStats ? bStats.latest.prod : null;
+            tbody.innerHTML = results.map(({ label, records, summary }) => {
+                const aStats = getStats(filterByShift(records, 'A'), summary?.byShift?.A);
+                const bStats = getStats(filterByShift(records, 'B'), summary?.byShift?.B);
+                const aLatest = aStats ? aStats.latestProd : null;
+                const bLatest = bStats ? bStats.latestProd : null;
                 const gap = (aLatest !== null && bLatest !== null) ? (bLatest - aLatest) : null;
                 const gapClass = gap === null ? 'text-[#a1a5b7]' : (gap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]');
 
@@ -1208,8 +1272,8 @@
                         <div class="flex flex-col gap-1">
                             ${renderShiftBadge(shift)}
                             <div class="flex items-center gap-2">
-                                <span class="${accentClass} font-semibold">${stats.latest.prod.toFixed(1)}</span>
-                                <span class="text-[11px] text-[#6b7280]">T${stats.latest.trial}</span>
+                                <span class="${accentClass} font-semibold">${stats.latestProd.toFixed(1)}</span>
+                                <span class="text-[11px] text-[#6b7280]">T${stats.latestTrial || stats.latest.trial}</span>
                             </div>
                         </div>
                     `;
@@ -1221,8 +1285,8 @@
                         <td class="py-3 pr-4 align-top">${renderMetric(aStats, 'A', 'text-[#c4b5fd]')}</td>
                         <td class="py-3 pr-4 align-top">${renderMetric(bStats, 'B', 'text-[#7dd3fc]')}</td>
                         <td class="py-3 pr-4 font-semibold ${gapClass}">${gap === null ? '--' : gap.toFixed(1)}</td>
-                        <td class="py-3 pr-4 text-[#c4b5fd]">${aStats ? `${aStats.best.prod.toFixed(1)} (T${aStats.best.trial})` : '--'}</td>
-                        <td class="py-3 pr-4 text-[#7dd3fc]">${bStats ? `${bStats.best.prod.toFixed(1)} (T${bStats.best.trial})` : '--'}</td>
+                        <td class="py-3 pr-4 text-[#c4b5fd]">${aStats ? `${aStats.bestProd.toFixed(1)} (T${aStats.bestTrial})` : '--'}</td>
+                        <td class="py-3 pr-4 text-[#7dd3fc]">${bStats ? `${bStats.bestProd.toFixed(1)} (T${bStats.bestTrial})` : '--'}</td>
                     </tr>
                 `;
             }).join('');
@@ -1231,12 +1295,21 @@
         async function renderDashboardData() {
             const results = await Promise.all(lineConfigs.map(async (config) => {
                 try {
-                    const response = await fetch(window.YakitoriRuntime.buildApiUrl(config.sheet));
+                    const response = await fetch(window.YakitoriRuntime.buildApiUrl(config.sheet), { cache: 'no-store' });
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    return { ...config, records: normalizeSheetData(await response.json()) };
+                    const payload = await response.json();
+                    return {
+                        ...config,
+                        records: normalizeSheetData(payload),
+                        summary: normalizeSheetSummary(payload)
+                    };
                 } catch (error) {
                     console.error(`Failed to load ${config.sheet}`, error);
-                    return { ...config, records: [] };
+                    return {
+                        ...config,
+                        records: [],
+                        summary: normalizeSheetSummary({})
+                    };
                 }
             }));
 
@@ -1257,4 +1330,5 @@
     </script>
 </body>
 </html>
+
 
