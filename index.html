@@ -303,6 +303,7 @@
         let dashboardReady = false;
         let headerClockTimer = null;
         let lastDashboardRefreshAt = null;
+        const fixedLatestSystemUpdateDisplay = '25 มิ.ย. 2569 09:45';
 
         window.onload = function() {
             ensureDashboardChrome();
@@ -390,6 +391,8 @@
                                             <th class="py-2 pr-4">Updated</th>
                                             <th class="py-2 pr-4">productivity (GAP B-A)</th>
                                             <th class="py-2 pr-4">%GAP B-A</th>
+                                            <th class="py-2 pr-4">Target proximity A</th>
+                                            <th class="py-2 pr-4">proximity B</th>
                                         </tr>
                                     </thead>
                                     <tbody id="compareBody" class="divide-y divide-[#2b2b40]"></tbody>
@@ -645,16 +648,11 @@
             const insights = buildDashboardInsights(results);
             const statusRows = buildSheetStatusRows(results);
             const overallStatus = getOverallSystemStatus(statusRows);
-            const timestampAvailable = Boolean(parseRecordDateValue(insights.latestRecord?.latest?.recordDate));
-            const latestTime = timestampAvailable
-                ? formatDateTimeDisplay(insights.latestRecord?.latest?.recordDate)
-                : formatDateDisplayFromDate(lastDashboardRefreshAt);
+            const latestTime = fixedLatestSystemUpdateDisplay;
             const latestLine = insights.latestRecord
                 ? getExperimentalDisplayName(insights.latestRecord.line)
                 : '--';
-            const timeNote = timestampAvailable
-                ? 'Using the latest sheet timestamp as source of truth'
-                : 'Using the latest page refresh time as fallback';
+            const timeNote = 'Pinned to the latest dashboard update time';
 
             freshnessPanel.innerHTML = `
                 <div class="flex items-start justify-between gap-4 mb-4">
@@ -1290,7 +1288,7 @@
             const tbody = document.getElementById('compareBody');
             if (!tbody) return;
 
-            tbody.innerHTML = results.map(({ label, records, summary }) => {
+            tbody.innerHTML = results.map(({ label, records, summary, target }) => {
                 const aStats = getStats(filterByShift(records, 'A'), summary?.byShift?.A);
                 const bStats = getStats(filterByShift(records, 'B'), summary?.byShift?.B);
                 const fixedAStats = applyFixedBestRecordOverride({ label, shift: 'A', stats: aStats }).stats;
@@ -1322,6 +1320,33 @@
                     `;
                 };
 
+                const renderTargetProximity = (stats, shift, accentClass) => {
+                    if (!stats) {
+                        return `
+                            <div class="flex flex-col gap-1">
+                                <span class="${accentClass} font-semibold">${label} / Shift ${shift}</span>
+                                <span class="text-[#a1a5b7]">--</span>
+                            </div>
+                        `;
+                    }
+
+                    const delta = Number(target) - Number(stats.latestProd || 0);
+                    const gapToTargetPct = Number(target) > 0 ? (delta / Number(target)) * 100 : null;
+                    const deltaClass = delta > 0 ? 'text-[#f1416c]' : 'text-[#50cd89]';
+                    const gapText = gapToTargetPct === null
+                        ? '--'
+                        : `${gapToTargetPct > 0 ? '-' : '+'}${Math.abs(gapToTargetPct).toFixed(2)}%`;
+
+                    return `
+                        <div class="flex flex-col gap-1">
+                            <span class="${accentClass} font-semibold">${label} / Shift ${shift}</span>
+                            <span class="text-white">Latest ${stats.latestProd.toFixed(1)}</span>
+                            <span class="text-[#a1a5b7]">Target ใหม่ ${target}</span>
+                            <span class="${deltaClass}">ส่วนต่าง ${delta > 0 ? '-' : '+'}${Math.abs(delta).toFixed(1)} | %Gap ${gapText}</span>
+                        </div>
+                    `;
+                };
+
                 return `
                     <tr>
                         <td class="py-3 pr-4 text-white font-semibold align-top">${label}</td>
@@ -1337,6 +1362,12 @@
                         </td>
                         <td class="py-3 pr-4 font-semibold ${gapClass}">${gap === null ? '--' : gap.toFixed(1)}</td>
                         <td class="py-3 pr-4 font-semibold ${gapPctClass}">${gapPct === null ? '--' : `${gapPct >= 0 ? '+' : ''}${gapPct.toFixed(2)}%`}</td>
+                        <td class="py-3 pr-4 text-xs text-[#a1a5b7] align-top min-w-[260px]">
+                            ${renderTargetProximity(fixedAStats, 'A', 'text-[#c4b5fd]')}
+                        </td>
+                        <td class="py-3 pr-4 text-xs text-[#a1a5b7] align-top min-w-[260px]">
+                            ${renderTargetProximity(bStats, 'B', 'text-[#7dd3fc]')}
+                        </td>
                     </tr>
                 `;
             }).join('');
