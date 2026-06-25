@@ -385,9 +385,11 @@
                                             <th class="py-2 pr-4">Line</th>
                                             <th class="py-2 pr-4">A Latest</th>
                                             <th class="py-2 pr-4">B Latest</th>
-                                            <th class="py-2 pr-4">Gap B-A</th>
                                             <th class="py-2 pr-4">A Best</th>
                                             <th class="py-2 pr-4">B Best</th>
+                                            <th class="py-2 pr-4">Updated</th>
+                                            <th class="py-2 pr-4">productivity (GAP B-A)</th>
+                                            <th class="py-2 pr-4">%GAP B-A</th>
                                         </tr>
                                     </thead>
                                     <tbody id="compareBody" class="divide-y divide-[#2b2b40]"></tbody>
@@ -447,6 +449,16 @@
                 day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit'
+            });
+        }
+
+        function formatDateOnlyDisplay(value) {
+            const parsed = parseRecordDateValue(value);
+            if (!parsed) return '--';
+            return parsed.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
             });
         }
 
@@ -1098,6 +1110,12 @@
         }
 
         function getStats(records, summary = null) {
+            const sorted = sortTrials(records);
+            const latestRecord = sorted.length ? sorted[sorted.length - 1] : null;
+            const bestRecord = sorted.length
+                ? sorted.reduce((acc, item) => (!acc || item.prod > acc.prod ? item : acc), null)
+                : null;
+
             if (summary && (
                 summary.latestProd !== undefined ||
                 summary.bestProd !== undefined ||
@@ -1111,31 +1129,34 @@
                 const latestShift = String(summary.latestShift ?? '').trim().toUpperCase();
                 const bestShift = String(summary.bestShift ?? '').trim().toUpperCase();
                 return {
-                    latest: { trial: latestTrial, shift: latestShift, prod: latestProd },
-                    best: { trial: bestTrial, shift: bestShift, prod: bestProd },
+                    latest: { trial: latestTrial, shift: latestShift, prod: latestProd, recordDate: String(latestRecord?.recordDate || '') },
+                    best: { trial: bestTrial, shift: bestShift, prod: bestProd, recordDate: String(bestRecord?.recordDate || '') },
                     latestProd,
                     latestTrial,
                     latestShift,
                     bestProd,
                     bestTrial,
                     bestShift,
+                    latestRecordDate: String(latestRecord?.recordDate || ''),
+                    bestRecordDate: String(bestRecord?.recordDate || ''),
                     count: Number(summary.count) || 0
                 };
             }
 
-            const sorted = sortTrials(records);
             if (!sorted.length) return null;
-            const latest = sorted[sorted.length - 1];
-            const best = sorted.reduce((acc, item) => (!acc || item.prod > acc.prod ? item : acc), null);
+            const latest = latestRecord;
+            const best = bestRecord;
             return {
-                latest,
-                best,
+                latest: { ...latest, recordDate: String(latest?.recordDate || '') },
+                best: { ...best, recordDate: String(best?.recordDate || '') },
                 latestProd: Number(latest.prod) || 0,
                 latestTrial: String(latest.trial || ''),
                 latestShift: String(latest.shift || '').toUpperCase(),
                 bestProd: Number(best.prod) || 0,
                 bestTrial: String(best.trial || ''),
                 bestShift: String(best.shift || '').toUpperCase(),
+                latestRecordDate: String(latest?.recordDate || ''),
+                bestRecordDate: String(best?.recordDate || ''),
                 count: sorted.length
             };
         }
@@ -1277,6 +1298,8 @@
                 const bLatest = bStats ? bStats.latestProd : null;
                 const gap = (aLatest !== null && bLatest !== null) ? (bLatest - aLatest) : null;
                 const gapClass = gap === null ? 'text-[#a1a5b7]' : (gap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]');
+                const gapPct = (aLatest !== null && bLatest !== null && aLatest !== 0) ? ((bLatest - aLatest) / aLatest) * 100 : null;
+                const gapPctClass = gapPct === null ? 'text-[#a1a5b7]' : (gapPct >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]');
 
                 const renderMetric = (stats, shift, accentClass) => {
                     if (!stats) {
@@ -1304,9 +1327,16 @@
                         <td class="py-3 pr-4 text-white font-semibold align-top">${label}</td>
                         <td class="py-3 pr-4 align-top">${renderMetric(fixedAStats, 'A', 'text-[#c4b5fd]')}</td>
                         <td class="py-3 pr-4 align-top">${renderMetric(bStats, 'B', 'text-[#7dd3fc]')}</td>
-                        <td class="py-3 pr-4 font-semibold ${gapClass}">${gap === null ? '--' : gap.toFixed(1)}</td>
                         <td class="py-3 pr-4 text-[#c4b5fd]">${fixedAStats ? `${fixedAStats.bestProd.toFixed(1)} (T${fixedAStats.bestTrial})` : '--'}</td>
                         <td class="py-3 pr-4 text-[#7dd3fc]">${bStats ? `${bStats.bestProd.toFixed(1)} (T${bStats.bestTrial})` : '--'}</td>
+                        <td class="py-3 pr-4 text-[#a1a5b7] text-xs">
+                            <div class="flex flex-col gap-1">
+                                <div><span class="text-[#c4b5fd] font-semibold">${label} / Shift A</span><br><span>${formatDateOnlyDisplay(fixedAStats?.latestRecordDate)}</span></div>
+                                <div><span class="text-[#7dd3fc] font-semibold">${label} / Shift B</span><br><span>${formatDateOnlyDisplay(bStats?.latestRecordDate)}</span></div>
+                            </div>
+                        </td>
+                        <td class="py-3 pr-4 font-semibold ${gapClass}">${gap === null ? '--' : gap.toFixed(1)}</td>
+                        <td class="py-3 pr-4 font-semibold ${gapPctClass}">${gapPct === null ? '--' : `${gapPct >= 0 ? '+' : ''}${gapPct.toFixed(2)}%`}</td>
                     </tr>
                 `;
             }).join('');
