@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -80,16 +80,24 @@
                 </a>
             </div>
             <div>
-                <button onclick="toggleMenu('menu-data-recording', 'icon-data-recording')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
+                <a href="#" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group" title="Placeholder link for Yakitori Machine 3D Viewer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#50cd89]" viewBox="0 0 16 16">
+                        <path d="M8.186.113a.5.5 0 0 0-.372 0l-6.5 2.5A.5.5 0 0 0 1 3.08v9.84a.5.5 0 0 0 .314.467l6.5 2.5a.5.5 0 0 0 .372 0l6.5-2.5a.5.5 0 0 0 .314-.466V3.08a.5.5 0 0 0-.314-.466zM8 1.118 13.24 3.13 8 5.145 2.76 3.13zM2 3.845l5.5 2.115v8.727L2 12.573zm6.5 10.842V5.96L14 3.845v8.728z"/>
+                    </svg>
+                    <span class="font-medium text-sm">Yakitori Machine 3D Viewer</span>
+                </a>
+            </div>
+            <div>
+                <button onclick="toggleMenu('menu-data-recording', 'icon-data-recording')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[#ffc700] hover:bg-[#2b2b40] hover:text-[#ffd84d] transition group">
                     <div class="flex items-center gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#50cd89]" viewBox="0 0 16 16">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#ffc700]" viewBox="0 0 16 16">
                             <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/>
                         </svg>
                         <span class="font-medium text-sm">Data recording</span>
                     </div>
-                    <svg id="icon-data-recording" class="w-4 h-4 transition-transform duration-300 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg id="icon-data-recording" class="w-4 h-4 transition-transform duration-300 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="menu-data-recording" class="sidebar-dropdown open pl-9 pr-2 py-1 space-y-1">
+                <div id="menu-data-recording" class="sidebar-dropdown pl-9 pr-2 py-1 space-y-1">
                     <a href="DataRecordingApproval.html" target="_blank" class="block px-3 py-2 rounded-md text-[13px] text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white hover:translate-x-1 transition-all border-l-2 border-transparent hover:border-[#50cd89]">Improvement records</a>
                     <a href="MachineBreakdownLog.html" target="_blank" class="block px-3 py-2 rounded-md text-[13px] text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white hover:translate-x-1 transition-all border-l-2 border-transparent hover:border-[#ffc700]">Machine Breakdown Records</a>
                 </div>
@@ -103,9 +111,9 @@
                         </svg>
                         <span class="font-medium text-sm">BL Experimental</span>
                     </div>
-                    <svg id="icon-bl" class="w-4 h-4 transition-transform duration-300 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg id="icon-bl" class="w-4 h-4 transition-transform duration-300 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="menu-bl" class="sidebar-dropdown open pl-9 pr-2 py-1 space-y-1">
+                <div id="menu-bl" class="sidebar-dropdown pl-9 pr-2 py-1 space-y-1">
                     <a href="BL23g Dashboard/BL23g_Main Dashboard_Yakitori.html" target="_blank" class="block px-3 py-2 rounded-md text-[13px] text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white hover:translate-x-1 transition-all border-l-2 border-transparent hover:border-[#8b5cf6]">BL 23G R15 Dashboard</a>
                 </div>
             </div>
@@ -118,9 +126,9 @@
                         </svg>
                         <span class="font-medium text-sm">Gizzard Experimental</span>
                     </div>
-                    <svg id="icon-gizzard" class="w-4 h-4 transition-transform duration-300 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg id="icon-gizzard" class="w-4 h-4 transition-transform duration-300 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="menu-gizzard" class="sidebar-dropdown open pl-9 pr-2 py-1 space-y-1">
+                <div id="menu-gizzard" class="sidebar-dropdown pl-9 pr-2 py-1 space-y-1">
                     <a href="Gizzard Main Dashboard/GizzardS18_Main DashBoard_Yakitori.html" target="_blank" class="block px-3 py-2 rounded-md text-[13px] text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white hover:translate-x-1 transition-all border-l-2 border-transparent hover:border-[#009ef7]">Gizzard 40G S18 Dashboard</a>
                     <a href="GizzardR15 Main Dashboard/GizzardR15_Main DashBoard_Yakitori.html" target="_blank" class="block px-3 py-2 rounded-md text-[13px] text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white hover:translate-x-1 transition-all border-l-2 border-transparent hover:border-[#009ef7]">Gizzard 30G R15 Dashboard</a>
                 </div>
@@ -171,7 +179,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/></svg>
                     </div>
                     <h3 class="text-white font-bold text-lg mb-1">BL Experimental</h3>
-                    <p class="text-xs text-[#a1a5b7] mb-4">การปรับปรุงกระปรุงกระบวนการเสียบไม้สินค้า BL</p>
+                    <p class="text-xs text-[#a1a5b7] mb-4">การปรับปรุงกระบวนการเสียบไม้สินค้า BL</p>
                     <a href="BL23g Dashboard/BL23g_Main Dashboard_Yakitori.html" target="_blank" class="text-[#8b5cf6] text-sm font-bold hover:text-white transition flex items-center gap-1">
                         ไปที่ Dashboard <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
                     </a>
@@ -259,19 +267,6 @@
                 </div>
             </div>
 
-            <div class="bg-card rounded-xl border border-[#323248] shadow-sm p-6 mb-8">
-                <div class="mb-6 flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold text-white font-en">Executive Project Summary</h2>
-                        <p class="text-sm text-[#a1a5b7]">สรุปภาพรวมสถานะและความคืบหน้าของโครงการทั้งหมด (อัปเดตอัตโนมัติ)</p>
-                    </div>
-                    <span class="bg-[rgba(80,205,137,0.1)] text-[#50cd89] border border-[#50cd89]/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-[#50cd89] animate-pulse"></span> Live Status
-                    </span>
-                </div>
-
-                <div id="overviewCards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"></div>
-            </div>
 
         </div>
     </main>
@@ -517,7 +512,7 @@
                 if (freshness.badge === 'NO TIMESTAMP') {
                     statusKey = 'ready';
                     status = 'พร้อมใช้งาน';
-                    detail += ' • ไม่มี timestamp จากชีต';
+                    detail += ' โดยไม่มี timestamp จากชีต';
                     tone = 'text-[#50cd89]';
                 } else if (freshness.badge === 'STALE') {
                     statusKey = 'stale';
@@ -669,7 +664,7 @@
                                 <div class="text-[#a1a5b7] text-xs uppercase tracking-[0.2em] font-bold mb-1">แหล่งข้อมูล</div>
                                 <div class="text-white font-semibold">ดูสถานะแต่ละแผ่น</div>
                             </div>
-                            <span class="text-[#a1a5b7] transition group-open:rotate-180">⌄</span>
+                            <span class="text-[#a1a5b7] transition group-open:rotate-180">&#8964;</span>
                         </summary>
                         <div class="px-4 pb-4 space-y-3 border-t border-[#2b2b40]">
                             ${statusRows.map(item => `
@@ -813,10 +808,10 @@
             const shiftLabel = summary.currentShiftFilter === 'all' ? 'All Shift' : `Shift ${summary.currentShiftFilter}`;
             const avgColor = summary.avgLatest === null ? 'text-[#a1a5b7]' : 'text-white';
             const strongestLine = summary.strongest
-                ? `${summary.strongest.label} · ${formatMetricValue(summary.strongest.currentStats.latest.prod)}`
+                ? `${summary.strongest.label} / ${formatMetricValue(summary.strongest.currentStats.latest.prod)}`
                 : '--';
             const weakestLine = summary.weakest
-                ? `${summary.weakest.label} · ${formatMetricValue(summary.weakest.currentStats.latest.prod)}`
+                ? `${summary.weakest.label} / ${formatMetricValue(summary.weakest.currentStats.latest.prod)}`
                 : '--';
             const shiftGap = (summary.avgA !== null && summary.avgB !== null) ? (summary.avgB - summary.avgA) : null;
             const shiftLeader = shiftGap === null ? '--' : (shiftGap >= 0 ? 'Shift B lead' : 'Shift A lead');
