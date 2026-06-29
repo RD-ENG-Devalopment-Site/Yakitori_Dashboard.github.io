@@ -1,0 +1,137 @@
+[
+  {
+    "machine_id": "YK-001",
+    "machine_name": "Yaki Conveyor Part 16.4m 2",
+    "model_node_name": "Yaki Conveyor_Part 16.4m-2",
+    "product_name": "ไก่เสียบไม้ยากิโทริ",
+    "product_type": "สายพานลำเลียง",
+    "description": "ส่วนลำเลียงชิ้นงานเข้าสู่ขั้นตอนการจัดเรียงและเตรียมการผลิต",
+    "remark": "ใช้สื่อสารภาพรวมเส้นทางการไหลของชิ้นงานก่อนเข้ากระบวนการหลัก"
+  },
+  {
+    "machine_id": "YK-002",
+    "machine_name": "Skewer Yakitori Machine 1",
+    "model_node_name": "Skewer Yakitori Machine.STEP-1",
+    "product_name": "ไก่เสียบไม้ยากิโทริ",
+    "product_type": "เครื่องเสียบไม้",
+    "description": "เครื่องสำหรับกระบวนการจัดวางหรือเสียบชิ้นเนื้อบนไม้ตามรูปแบบของสินค้า",
+    "remark": "เหมาะใช้บรรยายขั้นตอนผลิตสินค้าเมนูเสียบไม้"
+  },
+  {
+    "machine_id": "YK-003",
+    "machine_name": "Conveyor Skewer Yakitori Assembly 1",
+    "model_node_name": "Conveyor Skewer Yakitori Assembly-1",
+    "product_name": "ไก่เสียบไม้ยากิโทริ",
+    "product_type": "ชุดลำเลียงหลัก",
+    "description": "ชุดลำเลียงหลักสำหรับเคลื่อนย้ายสินค้าระหว่างเครื่องเสียบไม้และสถานีถัดไป",
+    "remark": "สามารถปรับข้อมูลสินค้าเป็นหมูเสียบไม้หรือเนื้อเสียบไม้ได้"
+  },
+  {
+    "machine_id": "YK-004",
+    "machine_name": "Yaki Conveyor Part 16.4m 3",
+    "model_node_name": "Yaki Conveyor_Part 16.4m-3",
+    "product_name": "ไก่เสียบไม้ยากิโทริ",
+    "product_type": "สายพานลำเลียง",
+    "description": "สายพานลำเลียงต่อเนื่องสำหรับย้ายชิ้นงานไปยังโซนจัดเรียง",
+    "remark": "ใช้เป็นจุดอธิบายการส่งต่อระหว่างสองสถานี"
+  },
+  {
+    "machine_id": "YK-005",
+    "machine_name": "Layout Zone Marker",
+    "model_node_name": "Layout Zone SC4 Yakitori (12-2025)-1",
+    "product_name": "ภาพรวมไลน์ผลิตยากิโทริ",
+    "product_type": "จุดอ้างอิงพื้นที่",
+    "description": "ชิ้นส่วนอ้างอิงตำแหน่งของพื้นที่ใน layout เพื่อใช้อธิบายภาพรวมไลน์",
+    "remark": "ไม่ใช่เครื่องจักรโดยตรง แต่มีประโยชน์สำหรับเล่า flow ของไลน์"
+  },
+  {
+    "machine_id": "YK-006",
+    "machine_name": "Yaki Conveyor Part 16.4m 1",
+    "model_node_name": "Yaki Conveyor_Part 16.4m-1",
+    "product_name": "ไก่เสียบไม้ยากิโทริ",
+    "product_type": "สายพานลำเลียง",
+    "description": "จุดลำเลียงเริ่มต้นของสินค้าในไลน์นี้",
+    "remark": "แก้ข้อความให้ตรงกับวัตถุดิบหรือครึ่งสำเร็จรูปที่ต้องการอธิบายได้"
+  },
+  {
+    "machine_id": "YK-007",
+    "machine_name": "Skewer Machine Base 1",
+    "model_node_name": "Skewer Machine Base-1",
+    "product_name": "ฐานเครื่องผลิตยากิโทริ",
+    "product_type": "ฐานรองเครื่อง",
+    "description": "ฐานโครงสร้างสำหรับรองรับเครื่องจักรในสถานีเสียบไม้",
+    "remark": "ใช้ประกอบการอธิบายส่วนประกอบสำคัญของสถานี"
+  },
+  {
+    "machine_id": "YK-008",
+    "machine_name": "Free Roller 38mm 1200 1",
+    "model_node_name": "Free Roller 38mm 1200-1",
+    "product_name": "ไก่เสียบไม้ยากิโทริ",
+    "product_type": "ลูกกลิ้งลำเลียง",
+    "description": "ลูกกลิ้งช่วยพยุงและเคลื่อนชิ้นงานในจุดเปลี่ยนผ่านของสายการผลิต",
+    "remark": "เหมาะกับการอธิบายการไหลของสินค้าในไลน์"
+  },
+  {
+    "machine_id": "YK-009",
+    "machine_name": "Skewer Yakitori Machine 2",
+    "model_node_name": "Skewer Yakitori Machine.STEP-2",
+    "product_name": "หมูเสียบไม้ยากิโทริ",
+    "product_type": "เครื่องเสียบไม้",
+    "description": "เครื่องสถานีที่สองสำหรับรองรับการผลิตสินค้าประเภทเสียบไม้",
+    "remark": "แก้ชื่อสินค้าเพื่อแยกสูตรหรือ SKU ได้"
+  },
+  {
+    "machine_id": "YK-010",
+    "machine_name": "Conveyor Skewer Yakitori Assembly 2",
+    "model_node_name": "Conveyor Skewer Yakitori Assembly-2",
+    "product_name": "หมูเสียบไม้ยากิโทริ",
+    "product_type": "ชุดลำเลียงหลัก",
+    "description": "ชุดลำเลียงสำหรับสถานีที่สองในไลน์การผลิต",
+    "remark": "เหมาะกับกรณีที่ต้องอธิบายไลน์หลายสูตรในพื้นที่เดียวกัน"
+  },
+  {
+    "machine_id": "YK-011",
+    "machine_name": "Free Roller 38mm 1200 3",
+    "model_node_name": "Free Roller 38mm 1200-3",
+    "product_name": "หมูเสียบไม้ยากิโทริ",
+    "product_type": "ลูกกลิ้งลำเลียง",
+    "description": "ชุดลูกกลิ้งลำเลียงรองรับการส่งต่อสินค้าจากสถานีรอง",
+    "remark": "ใช้กับงานนำเสนอ flow แบบ step by step ได้ดี"
+  },
+  {
+    "machine_id": "YK-012",
+    "machine_name": "Free Roller 38mm 1200 2",
+    "model_node_name": "Free Roller 38mm 1200-2",
+    "product_name": "หมูเสียบไม้ยากิโทริ",
+    "product_type": "ลูกกลิ้งลำเลียง",
+    "description": "ลูกกลิ้งลำเลียงอีกชุดหนึ่งภายในไลน์เดียวกัน",
+    "remark": "เปลี่ยนชื่อสินค้าได้ตาม SKU ที่ต้องการนำเสนอ"
+  },
+  {
+    "machine_id": "YK-013",
+    "machine_name": "Skewer Yakitori Machine 3",
+    "model_node_name": "Skewer Yakitori Machine.STEP-3",
+    "product_name": "เนื้อเสียบไม้ยากิโทริ",
+    "product_type": "เครื่องเสียบไม้",
+    "description": "เครื่องสถานีที่สามสำหรับสาธิตการผลิตสินค้าอีกชนิดหนึ่ง",
+    "remark": "ช่วยเปรียบเทียบการใช้งานเครื่องเดียวกันกับสินค้าคนละชนิด"
+  },
+  {
+    "machine_id": "YK-014",
+    "machine_name": "Conveyor Skewer Yakitori Assembly 3",
+    "model_node_name": "Conveyor Skewer Yakitori Assembly-3",
+    "product_name": "เนื้อเสียบไม้ยากิโทริ",
+    "product_type": "ชุดลำเลียงหลัก",
+    "description": "ชุดลำเลียงของสถานีที่สาม ใช้แสดงเส้นทางสินค้าในไลน์แบบต่อเนื่อง",
+    "remark": "ใช้ร่วมกับ detail editor เพื่ออธิบายสินค้าที่เหมาะกับเครื่องนี้"
+  },
+  {
+    "machine_id": "YK-015",
+    "machine_name": "Skewer Machine Base 2",
+    "model_node_name": "Skewer Machine Base-2",
+    "product_name": "ฐานเครื่องผลิตยากิโทริ",
+    "product_type": "ฐานรองเครื่อง",
+    "description": "โครงฐานของเครื่องในตำแหน่งท้ายไลน์",
+    "remark": "ใช้เติมรายละเอียดเชิงกายภาพของสถานีได้"
+  }
+]
