@@ -132,7 +132,7 @@
                 <div class="flex items-end gap-3 mt-1">
                     <h2 class="text-4xl font-bold text-white font-en" id="kpi-prod">--</h2>
                 </div>
-                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2" id="kpi-target-label">เป้าหมาย Target: 130</p>
+                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2" id="kpi-target-label">เป้าหมาย Target: 130 ไม้/คน/ชั่วโมง</p>
             </div>
 
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#50cd89] shadow-lg">
@@ -436,7 +436,7 @@
                 <div class="bg-card rounded-xl p-6 border border-[#323248] shadow-lg flex flex-col">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-white font-bold text-sm">Productivity & Efficiency Journey (Focus: เดิม vs Best vs Target)</h3>
-                        <span class="text-xs text-[#f1416c] bg-[rgba(241,65,108,0.1)] px-2 py-1 rounded border border-[rgba(241,65,108,0.2)]" id="chart-target-badge">Target: 130</span>
+                        <span class="text-xs text-[#f1416c] bg-[rgba(241,65,108,0.1)] px-2 py-1 rounded border border-[rgba(241,65,108,0.2)]" id="chart-target-badge">Target: 130 ไม้/คน/ชั่วโมง</span>
                     </div>
                     <div class="h-[250px] w-full relative flex-1">
                         <canvas id="prodJourneyChart"></canvas>
@@ -498,9 +498,9 @@
         let db = {}; 
         let keys = [];
         
-        // 🌟 แก้ไขจุดที่ 1: ปรับเปลี่ยนตัวแปรเป้าหมายหลักวิศวกรรมกระบวนการจาก 106 เป็น 130
+        // 🌟 แก้ไขจุดที่ 1: ปรับเปลี่ยนตัวแปรเป้าหมายหลักวิศวกรรมกระบวนการเป็น 130
         const targetProductivity = 130; 
-        const actualBaseline = { prep: 0.00, arrange: 22.30, machine: 1.25, inspec: 5.00, pack: 5.40 };
+        const actualBaseline = { prep: 0.00, arrange: 18.45, machine: 1.25, inspec: 4.00, pack: 4.00 };
 
         const popup = document.getElementById('iterDropdown');
         const icon = document.getElementById('dropdownIcon');
@@ -559,6 +559,7 @@
                     }
                 });
                 
+                recalculateEfficiencyForAllRecords();
                 initializeDashboardFromSheets();
             } catch (error) {
                 console.warn("ไม่สามารถดึงข้อมูลจาก Google Sheets ได้สำเร็จ ระบบเปิดใช้งาน Fallback Mock Data สำรอง:", error);
@@ -654,6 +655,14 @@
 
         function formatVal(val) {
             return Number(val).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}); 
+        }
+
+        function recalculateEfficiencyForAllRecords() {
+            Object.keys(db).forEach(k => {
+                if (db[k] && db[k].prod !== undefined) {
+                    db[k].eff = (Number(db[k].prod) / targetProductivity) * 100;
+                }
+            });
         }
 
         function getCycleTotal(record) {
@@ -1329,7 +1338,7 @@
                             fill: true, tension: 0.2
                         },
                         {
-                            // 🌟 แก้ไขจุดที่ 2: ปรับเส้นประเป้าหมายสีแดง (Target Line) ของกราฟหลักจาก 106 เป็น 130
+                            // 🌟 แก้ไขจุดที่ 2: ปรับเส้นประเป้าหมายสีแดง (Target Line) ของกราฟหลักเป็น 130
                             label: 'เป้าหมาย', data: Array(chartLabels.length).fill(targetProductivity),
                             borderColor: '#f1416c', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, fill: false
                         }
@@ -1355,7 +1364,7 @@
                             }
                         }
                     },
-                    // 🌟 แก้ไขจุดที่ 3: ขยายสเกลค่าสูงสุดของแกน Y (Max Value) จากเดิม 120 ไปเป็น 150 เพื่อให้สอดคล้องกับเส้นเป้าหมาย 130
+                    // 🌟 แก้ไขจุดที่ 3: ขยายสเกลค่าสูงสุดของแกน Y (Max Value) จากเดิม 120 ไปให้สอดคล้องกับเส้นเป้าหมาย 130
                     scales: { y: { beginAtZero: true, max: 150, grid: { color: '#2b2b40' } }, x: { grid: { display: false } } }
                 },
                 plugins: [gapLabelPlugin]
