@@ -229,13 +229,31 @@
                 <table class="w-full text-left text-sm whitespace-nowrap">
                     <thead class="bg-[#151521] text-[#a1a5b7] text-xs uppercase sticky top-0 z-10 shadow-sm">
                         <tr>
-                            <th class="p-3 font-semibold pl-6 w-[15%]">Month</th>
-                            <th class="p-3 font-semibold text-right w-[25%]">Total Vol. (kg)</th>
-                            <th class="p-3 font-semibold pl-10 w-[40%]">Top Product in Month</th>
-                            <th class="p-3 font-semibold text-center w-[20%]">Machine-capable SKUs</th>
+                            <th class="p-3 font-semibold pl-6 w-[16%]">Month</th>
+                            <th class="p-3 font-semibold text-right w-[24%]">Total Vol. (kg)</th>
+                            <th class="p-3 font-semibold pl-10 w-[38%]">Top Product in Month</th>
+                            <th class="p-3 font-semibold text-center w-[22%]">Machine-capable SKUs</th>
                         </tr>
                     </thead>
                     <tbody id="monthlyTableBody" class="divide-y divide-[#2b2b40]">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden flex flex-col mb-8">
+            <div class="p-4 border-b border-[#323248] bg-[#1a1d27]">
+                <h3 class="text-white font-bold text-sm">By Type Summary <span class="text-[#a1a5b7] font-normal">(เธขเธญเธ”เธฃเธงเธกเธฃเธฒเธขเน€เธ”เธทเธญเธเธ•เธฒเธกเธเธฅเธธเนเธกเธชเธดเธเธเนเธฒ)</span></h3>
+            </div>
+            <div class="overflow-x-auto flex-1">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-[#151521] text-[#a1a5b7] text-xs uppercase sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="p-3 font-semibold pl-6 w-[14%]">Month</th>
+                            <th class="p-3 font-semibold w-[86%]">Type Breakdown</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyTypeSummaryBody" class="divide-y divide-[#2b2b40]">
                         </tbody>
                 </table>
             </div>
@@ -341,6 +359,10 @@
         ];
 
         // --- ข้อมูลรายละเอียดรายเดือนสำหรับการทำ Dropdown ---
+        const productTypeLookup = new Map(
+            typeData.flatMap(typeObj => typeObj.details.map(item => [item.name, typeObj.type]))
+        );
+
         const monthlyData = [
             {
                 month: 'FEB', total: 15218.10, topProduct: 'BL 30 G R15', topVol: 6642,
@@ -526,6 +548,44 @@
         }
 
         // --- 1. ฟังก์ชันสร้างตาราง BY TYPE แบบมี Dropdown (คำนวณจาก SKU) ---
+        function formatCompactVolume(value) {
+            if (value >= 1000) {
+                const compactValue = value >= 10000 ? (value / 1000).toFixed(0) : (value / 1000).toFixed(1);
+                return `${compactValue}k`;
+            }
+
+            return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
+        }
+
+        function getProductType(name) {
+            if (productTypeLookup.has(name)) {
+                return productTypeLookup.get(name);
+            }
+
+            const matchedType = typeData.find(typeObj =>
+                typeObj.details.some(item => item.name.includes(name) || name.includes(item.name))
+            );
+
+            return matchedType ? matchedType.type : 'OTHER';
+        }
+
+        function getMonthlyTypeBreakdown(data) {
+            const groupedVolumes = new Map();
+
+            data.details.forEach(item => {
+                const typeName = getProductType(item.name);
+                groupedVolumes.set(typeName, (groupedVolumes.get(typeName) || 0) + item.vol);
+            });
+
+            return [...groupedVolumes.entries()]
+                .map(([type, vol]) => ({
+                    type,
+                    vol,
+                    sharePct: data.total > 0 ? (vol / data.total) * 100 : 0
+                }))
+                .sort((a, b) => b.vol - a.vol);
+        }
+
         function renderTypeTable() {
             const tbody = document.getElementById('typeTableBody');
             let html = '';
@@ -674,6 +734,51 @@
                     </tr>
                 `;
             });
+            tbody.innerHTML = html;
+        }
+
+        function renderMonthlyTypeSummaryTable() {
+            const tbody = document.getElementById('monthlyTypeSummaryBody');
+            let html = '';
+            const peakMonth = monthlyData.reduce((maxMonth, currentMonth) => {
+                return currentMonth.total > maxMonth.total ? currentMonth : maxMonth;
+            }, monthlyData[0]);
+
+            monthlyData.forEach(data => {
+                const typeBreakdown = getMonthlyTypeBreakdown(data);
+                const visibleTypeBreakdown = typeBreakdown.slice(0, 4);
+                const hiddenTypeCount = Math.max(typeBreakdown.length - visibleTypeBreakdown.length, 0);
+                const isTopMonth = data.month === peakMonth.month;
+                const rowBg = isTopMonth ? 'bg-[rgba(0,158,247,0.05)] border-l-2 border-[#009ef7]' : 'hover:bg-[#2b2b40]';
+                const textClass = isTopMonth ? 'text-white font-bold' : 'text-white';
+
+                let typeSummaryHtml = visibleTypeBreakdown.map(typeItem => `
+                    <span class="inline-flex items-center gap-1 rounded-md border border-[rgba(0,158,247,0.18)] bg-[rgba(0,158,247,0.08)] px-2 py-1 text-[10px] font-bold text-[#e8eaf0]">
+                        <span class="text-[#009ef7]">${typeItem.type}</span>
+                        <span class="font-en text-[#50cd89]">${formatCompactVolume(typeItem.vol)}</span>
+                    </span>
+                `).join('');
+
+                if (hiddenTypeCount > 0) {
+                    typeSummaryHtml += `
+                        <span class="inline-flex items-center rounded-md border border-[rgba(161,165,183,0.18)] bg-[rgba(161,165,183,0.08)] px-2 py-1 text-[10px] font-bold text-[#a1a5b7]">
+                            +${hiddenTypeCount} more
+                        </span>
+                    `;
+                }
+
+                html += `
+                    <tr class="${rowBg} transition border-b border-[#2b2b40]">
+                        <td class="p-4 ${textClass} font-en pl-6">${data.month}</td>
+                        <td class="p-4">
+                            <div class="flex flex-wrap gap-1.5 max-w-full">
+                                ${typeSummaryHtml}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
             tbody.innerHTML = html;
         }
 
@@ -922,8 +1027,9 @@
         window.onload = function() {
             renderTypeTable();
             renderMonthlyTable();
+            renderMonthlyTypeSummaryTable();
             renderMachineAnalysis();
-            
+
             // เรียกสร้างกราฟหลังจาก Container (machineAnalysisContainer) ถูกสร้างใน DOM แล้ว
             renderMachineCapabilityChart();
         };
