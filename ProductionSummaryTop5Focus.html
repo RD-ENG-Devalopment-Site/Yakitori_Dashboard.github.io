@@ -76,6 +76,10 @@
             background-color: rgba(0, 158, 247, 0.08);
             border-left: 2px solid #009ef7;
         }
+        .type-summary-row.is-open {
+            background-color: rgba(0, 158, 247, 0.08);
+            border-left: 2px solid #009ef7;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-4 md:p-8">
@@ -94,6 +98,10 @@
         <header class="mb-6 border-b border-[#323248] pb-4">
             <h1 class="text-2xl md:text-3xl font-bold text-white mb-2 tracking-wide font-en">Production Summary & Top 5 Focus</h1>
             <p class="text-sm text-[#009ef7]">วิเคราะห์ยอดการผลิตรายเดือน และกำหนดทิศทางสินค้า Focus ในปี 2026</p>
+            <div class="mt-3 flex flex-wrap gap-2 text-xs">
+                <span id="lastUpdatedBadge" class="inline-flex items-center rounded-md border border-[rgba(0,158,247,0.22)] bg-[rgba(0,158,247,0.08)] px-3 py-1 text-[#8ad6ff]"></span>
+                <span id="dataSourceBadge" class="inline-flex items-center rounded-md border border-[rgba(80,205,137,0.22)] bg-[rgba(80,205,137,0.08)] px-3 py-1 text-[#7ee7b8]"></span>
+            </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -231,8 +239,9 @@
                         <tr>
                             <th class="p-3 font-semibold pl-6 w-[16%]">Month</th>
                             <th class="p-3 font-semibold text-right w-[24%]">Total Vol. (kg)</th>
-                            <th class="p-3 font-semibold pl-10 w-[38%]">Top Product in Month</th>
-                            <th class="p-3 font-semibold text-center w-[22%]">Machine-capable SKUs</th>
+                            <th class="p-3 font-semibold text-right w-[22%]">MoM Change</th>
+                            <th class="p-3 font-semibold pl-10 w-[28%]">Top Product in Month</th>
+                            <th class="p-3 font-semibold text-center w-[20%]">Machine-capable SKUs</th>
                         </tr>
                     </thead>
                     <tbody id="monthlyTableBody" class="divide-y divide-[#2b2b40]">
@@ -258,6 +267,18 @@
                 </table>
             </div>
         </div>
+
+        <div class="bg-card rounded-xl shadow-lg border border-[#323248] p-4 md:p-5 mb-6">
+            <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+                <div>
+                    <h3 class="text-white font-bold text-sm">Filter Machine/Manual/Type</h3>
+                    <p class="text-[11px] text-[#7e8299] mt-1">ทดลองกรองข้อมูลรายเดือนตามความสามารถเครื่องและกลุ่มสินค้า</p>
+                </div>
+                <div id="filterControls" class="flex flex-col md:flex-row md:items-center gap-3 md:gap-4"></div>
+            </div>
+        </div>
+
+        <div id="filterSummaryCards" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
 
         <div id="machineAnalysisContainer" class="mt-8">
             </div>
@@ -500,6 +521,16 @@
         ];
 
         // ฟังก์ชันตรวจสอบความสามารถในการใช้เครื่อง (อ้างอิงจากรายชื่อสินค้าที่ไม่สามารถเสียบได้)
+        const dashboardMeta = {
+            updatedAt: '2026-07-03',
+            source: 'Monthly production dataset + product type mapping'
+        };
+
+        const filterState = {
+            capability: 'all',
+            type: 'ALL'
+        };
+
         function checkMachineCapability(name) {
             const manualKeywords = ['TW18', 'NECK MEAT', 'BB+YAGEN', 'MEMBRANE'];
             return !manualKeywords.some(kw => name.includes(kw));
@@ -584,6 +615,178 @@
                     sharePct: data.total > 0 ? (vol / data.total) * 100 : 0
                 }))
                 .sort((a, b) => b.vol - a.vol);
+        }
+
+        function matchesFilter(item) {
+            const isMachine = isMachineItem(item);
+            const matchesCapability = filterState.capability === 'all'
+                || (filterState.capability === 'machine' && isMachine)
+                || (filterState.capability === 'manual' && !isMachine);
+            const matchesType = filterState.type === 'ALL' || getProductType(item.name) === filterState.type;
+
+            return matchesCapability && matchesType;
+        }
+
+        function getFilteredMonthlyData() {
+            return monthlyData.map(month => {
+                const details = month.details.filter(matchesFilter);
+                const total = +details.reduce((sum, item) => sum + item.vol, 0).toFixed(2);
+                const topItem = details.slice().sort((a, b) => b.vol - a.vol)[0];
+
+                return {
+                    month: month.month,
+                    total,
+                    topProduct: topItem ? topItem.name : '-',
+                    topVol: topItem ? topItem.vol : 0,
+                    details
+                };
+            });
+        }
+
+        function getAggregatedTypeTotals(dataSet) {
+            const grouped = new Map();
+
+            dataSet.forEach(month => {
+                month.details.forEach(item => {
+                    const typeName = getProductType(item.name);
+                    grouped.set(typeName, (grouped.get(typeName) || 0) + item.vol);
+                });
+            });
+
+            const total = [...grouped.values()].reduce((sum, vol) => sum + vol, 0);
+
+            return [...grouped.entries()]
+                .map(([type, vol]) => ({
+                    type,
+                    vol,
+                    sharePct: total > 0 ? (vol / total) * 100 : 0
+                }))
+                .sort((a, b) => b.vol - a.vol);
+        }
+
+        function getFilterOptionTypes() {
+            return [...new Set(typeData.map(type => type.type))];
+        }
+
+        function formatMoM(currentValue, previousValue) {
+            if (previousValue === null) {
+                return { kgText: '-', pctText: '-', colorClass: 'text-[#7e8299]' };
+            }
+
+            const diff = currentValue - previousValue;
+            const pct = previousValue === 0 ? null : (diff / previousValue) * 100;
+            const sign = diff > 0 ? '+' : '';
+            const colorClass = diff > 0 ? 'text-[#50cd89]' : (diff < 0 ? 'text-[#f1416c]' : 'text-[#a1a5b7]');
+
+            return {
+                kgText: `${sign}${diff.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                pctText: pct === null ? '-' : `${sign}${pct.toFixed(1)}%`,
+                colorClass
+            };
+        }
+
+        function renderDashboardMeta() {
+            document.getElementById('lastUpdatedBadge').textContent = `Last updated: ${dashboardMeta.updatedAt}`;
+            document.getElementById('dataSourceBadge').textContent = `Source: ${dashboardMeta.source}`;
+        }
+
+        function setCapabilityFilter(capability) {
+            filterState.capability = capability;
+            rerenderFilteredSections();
+        }
+
+        function setTypeFilter(type) {
+            filterState.type = type;
+            rerenderFilteredSections();
+        }
+
+        function renderFilterControls() {
+            const container = document.getElementById('filterControls');
+            const capabilityOptions = [
+                { id: 'all', label: 'All' },
+                { id: 'machine', label: 'Machine' },
+                { id: 'manual', label: 'Manual' }
+            ];
+
+            const buttonsHtml = capabilityOptions.map(option => {
+                const isActive = filterState.capability === option.id;
+                const className = isActive
+                    ? 'border-[#009ef7] bg-[#009ef7] text-white'
+                    : 'border-[#323248] bg-[#1a1d27] text-[#a1a5b7] hover:text-white';
+
+                return `<button type="button" onclick="setCapabilityFilter('${option.id}')" class="rounded-md border px-3 py-2 text-xs font-semibold transition ${className}">${option.label}</button>`;
+            }).join('');
+
+            const typeOptionsHtml = ['ALL', ...getFilterOptionTypes()].map(type => {
+                const selected = filterState.type === type ? 'selected' : '';
+                const label = type === 'ALL' ? 'All Types' : type;
+                return `<option value="${type}" ${selected}>${label}</option>`;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="flex flex-wrap gap-2">${buttonsHtml}</div>
+                <label class="flex items-center gap-2 text-xs text-[#a1a5b7]">
+                    <span>Type</span>
+                    <select onchange="setTypeFilter(this.value)" class="rounded-md border border-[#323248] bg-[#1a1d27] px-3 py-2 text-xs text-white outline-none">
+                        ${typeOptionsHtml}
+                    </select>
+                </label>
+            `;
+        }
+
+        function renderFilterSummaryCards() {
+            const container = document.getElementById('filterSummaryCards');
+            const filteredData = getFilteredMonthlyData();
+            const aggregatedTypes = getAggregatedTypeTotals(filteredData);
+            const filteredTotal = filteredData.reduce((sum, month) => sum + month.total, 0);
+            let machineVol = 0;
+            let manualVol = 0;
+
+            filteredData.forEach(month => {
+                month.details.forEach(item => {
+                    if (isMachineItem(item)) machineVol += item.vol;
+                    else manualVol += item.vol;
+                });
+            });
+
+            const leadType = aggregatedTypes[0];
+            const machinePct = filteredTotal > 0 ? (machineVol / filteredTotal) * 100 : 0;
+            const manualPct = filteredTotal > 0 ? (manualVol / filteredTotal) * 100 : 0;
+
+            container.innerHTML = `
+                <div class="bg-card rounded-xl p-5 border-t-4 border-[#009ef7] shadow-lg">
+                    <p class="text-xs font-semibold mb-1 text-[#a1a5b7] uppercase tracking-wider">Summary Card: By Type</p>
+                    <div class="mt-2">
+                        <h3 class="text-lg font-bold text-white font-en">${leadType ? leadType.type : 'No Data'}</h3>
+                        <p class="text-sm text-[#50cd89] font-en mt-1">${leadType ? leadType.vol.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} kg</p>
+                        <p class="text-[11px] text-[#7e8299] mt-2">${leadType ? `${formatPct(leadType.sharePct)} ของผลรวมภายใต้ filter` : 'ไม่พบข้อมูลตามเงื่อนไขที่เลือก'}</p>
+                    </div>
+                </div>
+                <div class="bg-card rounded-xl p-5 border-t-4 border-[#50cd89] shadow-lg">
+                    <p class="text-xs font-semibold mb-1 text-[#a1a5b7] uppercase tracking-wider">Summary Card: Machine vs Manual</p>
+                    <div class="mt-2 grid grid-cols-2 gap-3">
+                        <div>
+                            <p class="text-[11px] text-[#7e8299] uppercase">Machine</p>
+                            <p class="text-lg font-bold text-[#50cd89] font-en">${machineVol.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            <p class="text-[11px] text-[#7e8299]">${formatPct(machinePct)}</p>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-[#7e8299] uppercase">Manual</p>
+                            <p class="text-lg font-bold text-[#f1416c] font-en">${manualVol.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            <p class="text-[11px] text-[#7e8299]">${formatPct(manualPct)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function rerenderFilteredSections() {
+            renderFilterControls();
+            renderFilterSummaryCards();
+            renderMonthlyTable();
+            renderMonthlyTypeSummaryTable();
+            renderMachineAnalysis();
+            renderMachineCapabilityChart();
         }
 
         function renderTypeTable() {
@@ -672,20 +875,18 @@
         function renderMonthlyTable() {
             const tbody = document.getElementById('monthlyTableBody');
             let html = '';
-            const peakMonth = monthlyData.reduce((maxMonth, currentMonth) => {
-                return currentMonth.total > maxMonth.total ? currentMonth : maxMonth;
-            }, monthlyData[0]);
-            
-            monthlyData.forEach((data, index) => {
+            const filteredData = getFilteredMonthlyData();
+            filteredData.forEach((data, index) => {
                 const stats = getMonthlyCapabilityStats(data);
+                const previousMonthTotal = index === 0 ? null : filteredData[index - 1].total;
+                const mom = formatMoM(data.total, previousMonthTotal);
                 let machinePct = Math.round(stats.machineSkuPct);
                 let pctColor = machinePct >= 80 ? 'text-[#50cd89]' : (machinePct >= 50 ? 'text-[#eab308]' : 'text-[#f1416c]');
                 let displayPct = `${stats.machineItems}/${stats.totalItems} SKU (${machinePct}%)`;
 
-                let isTopMonth = data.month === peakMonth.month;
-                let rowBg = isTopMonth ? 'bg-[rgba(0,158,247,0.05)] border-l-2 border-[#009ef7]' : 'hover:bg-[#2b2b40]';
-                let textClass = isTopMonth ? 'text-white font-bold' : 'text-white';
-                let volClass = isTopMonth ? 'text-[#009ef7] font-bold' : 'text-[#50cd89]';
+                let rowBg = 'hover:bg-[#2b2b40]';
+                let textClass = 'text-white';
+                let volClass = 'text-[#50cd89]';
                 
                 html += `
                     <tr id="month-row-${index}" class="month-row ${rowBg} transition cursor-pointer border-b border-[#2b2b40]" onclick="toggleRow(${index})" aria-expanded="false">
@@ -696,14 +897,18 @@
                             ${data.month}
                         </td>
                         <td class="p-4 text-right ${volClass} font-en">${data.total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
-                        <td class="p-4 text-xs text-[#a1a5b7] pl-10">${data.topProduct} <span class="text-[#f59e0b]">(${data.topVol.toLocaleString()})</span></td>
+                        <td class="p-4 text-right">
+                            <div class="font-en font-bold ${mom.colorClass}">${mom.kgText}</div>
+                            <div class="text-[11px] text-[#7e8299]">${mom.pctText}</div>
+                        </td>
+                        <td class="p-4 text-xs text-[#a1a5b7] pl-10">${data.details.length ? `${data.topProduct} <span class="text-[#f59e0b]">(${data.topVol.toLocaleString(undefined, { maximumFractionDigits: 0 })})</span>` : `<span class="text-[#7e8299]">No matching product</span>`}</td>
                         <td class="p-4 text-center font-en font-bold ${pctColor}">${displayPct}</td>
                     </tr>
                 `;
                 
                 const sortedDetails = [...data.details].sort((a, b) => b.vol - a.vol);
 
-                let detailsHtml = sortedDetails.map((item, i) => {
+                let detailsHtml = sortedDetails.length ? sortedDetails.map((item, i) => {
                     let isMachine = isMachineItem(item);
                     let badge = isMachine 
                         ? `<span class="bg-[rgba(80,205,137,0.1)] text-[#50cd89] px-2 py-0.5 rounded text-[10px] font-bold border border-[rgba(80,205,137,0.2)] ml-2">เสียบเครื่อง (Machine)</span>`
@@ -717,11 +922,15 @@
                             <td class="py-2.5 text-right text-white font-en w-[30%]">${item.vol.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} kg.</td>
                         </tr>
                     `;
-                }).join('');
+                }).join('') : `
+                    <tr>
+                        <td colspan="2" class="py-4 text-center text-[#7e8299]">No matching product under current filter</td>
+                    </tr>
+                `;
 
                 html += `
                     <tr id="child-${index}" class="child-row bg-[#1a1d27] border-b border-[#323248]">
-                        <td colspan="4" class="p-0">
+                        <td colspan="5" class="p-0">
                             <div class="px-14 lg:px-24">
                                 <p class="text-[11px] text-[#009ef7] font-bold mb-3 uppercase tracking-wider">รายละเอียดการผลิต (แยกตามความสามารถเครื่องจักร)</p>
                                 <table class="w-full text-left text-xs mb-2">
@@ -740,17 +949,13 @@
         function renderMonthlyTypeSummaryTable() {
             const tbody = document.getElementById('monthlyTypeSummaryBody');
             let html = '';
-            const peakMonth = monthlyData.reduce((maxMonth, currentMonth) => {
-                return currentMonth.total > maxMonth.total ? currentMonth : maxMonth;
-            }, monthlyData[0]);
-
-            monthlyData.forEach(data => {
+            const filteredData = getFilteredMonthlyData();
+            filteredData.forEach((data, index) => {
                 const typeBreakdown = getMonthlyTypeBreakdown(data);
                 const visibleTypeBreakdown = typeBreakdown.slice(0, 4);
                 const hiddenTypeCount = Math.max(typeBreakdown.length - visibleTypeBreakdown.length, 0);
-                const isTopMonth = data.month === peakMonth.month;
-                const rowBg = isTopMonth ? 'bg-[rgba(0,158,247,0.05)] border-l-2 border-[#009ef7]' : 'hover:bg-[#2b2b40]';
-                const textClass = isTopMonth ? 'text-white font-bold' : 'text-white';
+                const rowBg = 'hover:bg-[#2b2b40]';
+                const textClass = 'text-white';
 
                 let typeSummaryHtml = visibleTypeBreakdown.map(typeItem => `
                     <span class="inline-flex items-center gap-1 rounded-md border border-[rgba(0,158,247,0.18)] bg-[rgba(0,158,247,0.08)] px-2 py-1 text-[10px] font-bold text-[#e8eaf0]">
@@ -758,6 +963,10 @@
                         <span class="font-en text-[#50cd89]">${formatCompactVolume(typeItem.vol)}</span>
                     </span>
                 `).join('');
+
+                if (!typeSummaryHtml) {
+                    typeSummaryHtml = `<span class="text-[11px] text-[#7e8299]">No matching type</span>`;
+                }
 
                 if (hiddenTypeCount > 0) {
                     typeSummaryHtml += `
@@ -767,12 +976,53 @@
                     `;
                 }
 
+                const detailRowsHtml = typeBreakdown.length ? typeBreakdown.map((typeItem, typeIndex) => `
+                    <tr class="border-b border-[rgba(255,255,255,0.05)] last:border-0 hover:bg-[#222535] transition">
+                        <td class="py-2.5 text-[#e8eaf0] w-[55%]">
+                            <span class="text-[#a1a5b7] mr-2">${typeIndex + 1}.</span>
+                            <span class="font-semibold text-[#009ef7]">${typeItem.type}</span>
+                        </td>
+                        <td class="py-2.5 text-right text-white font-en w-[25%]">${typeItem.vol.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} kg.</td>
+                        <td class="py-2.5 text-right text-[#50cd89] font-en font-bold w-[20%]">${formatPct(typeItem.sharePct)}</td>
+                    </tr>
+                `).join('') : `
+                    <tr>
+                        <td colspan="3" class="py-4 text-center text-[#7e8299]">No matching type under current filter</td>
+                    </tr>
+                `;
+
                 html += `
-                    <tr class="${rowBg} transition border-b border-[#2b2b40]">
-                        <td class="p-4 ${textClass} font-en pl-6">${data.month}</td>
+                    <tr id="type-summary-row-${index}" class="type-summary-row ${rowBg} transition cursor-pointer border-b border-[#2b2b40]" onclick="toggleTypeSummaryRow(${index})" aria-expanded="false">
+                        <td class="p-4 ${textClass} font-en pl-6">
+                            <div class="flex items-center gap-3">
+                                <svg id="type-summary-icon-${index}" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#a1a5b7" class="transition-transform duration-300 transform -rotate-90" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                                </svg>
+                                ${data.month}
+                            </div>
+                        </td>
                         <td class="p-4">
                             <div class="flex flex-wrap gap-1.5 max-w-full">
                                 ${typeSummaryHtml}
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="type-summary-child-${index}" class="child-row bg-[#1a1d27] border-b border-[#323248]">
+                        <td colspan="2" class="p-0">
+                            <div class="px-10 lg:px-14">
+                                <p class="text-[11px] text-[#009ef7] font-bold mb-3 uppercase tracking-wider">Type Breakdown Detail</p>
+                                <table class="w-full text-left text-xs mb-2">
+                                    <thead class="text-[#7e8299] uppercase">
+                                        <tr>
+                                            <th class="py-2 font-semibold">Type</th>
+                                            <th class="py-2 font-semibold text-right">Volume</th>
+                                            <th class="py-2 font-semibold text-right">Share</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${detailRowsHtml}
+                                    </tbody>
+                                </table>
                             </div>
                         </td>
                     </tr>
@@ -780,6 +1030,36 @@
             });
 
             tbody.innerHTML = html;
+        }
+
+        function toggleTypeSummaryRow(index) {
+            const childRow = document.getElementById(`type-summary-child-${index}`);
+            const icon = document.getElementById(`type-summary-icon-${index}`);
+            const parentRow = document.getElementById(`type-summary-row-${index}`);
+            const shouldClose = childRow.classList.contains('open');
+
+            document.querySelectorAll('tr[id^="type-summary-child-"]').forEach(row => {
+                row.classList.remove('open');
+            });
+            document.querySelectorAll('.type-summary-row').forEach(row => {
+                row.classList.remove('is-open');
+                row.setAttribute('aria-expanded', 'false');
+            });
+            document.querySelectorAll('svg[id^="type-summary-icon-"]').forEach(ic => {
+                ic.classList.remove('rotate-0');
+                ic.classList.add('-rotate-90');
+                ic.setAttribute('fill', '#a1a5b7');
+            });
+
+            if (!shouldClose) {
+                childRow.classList.add('open');
+                parentRow.classList.add('is-open');
+                parentRow.setAttribute('aria-expanded', 'true');
+                icon.classList.remove('-rotate-90');
+                icon.classList.add('rotate-0');
+                icon.setAttribute('fill', '#009ef7');
+                parentRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
 
         function toggleRow(index) {
@@ -818,8 +1098,9 @@
         function renderMachineAnalysis() {
             const container = document.getElementById('machineAnalysisContainer');
             let monthlyAnalysisHtml = '';
+            const filteredData = getFilteredMonthlyData();
 
-            monthlyData.forEach(data => {
+            filteredData.forEach(data => {
                 const stats = getMonthlyCapabilityStats(data);
                 
                 monthlyAnalysisHtml += `
@@ -842,20 +1123,37 @@
 
             // สร้างสรุปข้อมูลตามกลุ่มสินค้าแบบไดนามิก แทนการฮาร์ดโค้ด
             let typeStatsHtml = '';
-            typeData.forEach(typeObj => {
-                let tTotal = typeObj.details.length;
-                let tMach = typeObj.details.filter(i => isMachineItem(i)).length;
-                let tMan = tTotal - tMach;
-                let tMachPct = tTotal > 0 ? Math.round((tMach / tTotal) * 100) : 0;
-                let tManPct = tTotal > 0 ? Math.round((tMan / tTotal) * 100) : 0;
-                
+            const typeStatsMap = new Map();
+
+            filteredData.forEach(month => {
+                month.details.forEach(item => {
+                    const typeName = getProductType(item.name);
+                    if (!typeStatsMap.has(typeName)) {
+                        typeStatsMap.set(typeName, { products: new Map(), machine: 0, manual: 0 });
+                    }
+
+                    const bucket = typeStatsMap.get(typeName);
+                    if (!bucket.products.has(item.name)) {
+                        bucket.products.set(item.name, isMachineItem(item));
+                        if (isMachineItem(item)) bucket.machine++;
+                        else bucket.manual++;
+                    }
+                });
+            });
+
+            getAggregatedTypeTotals(filteredData).forEach((typeObj, index) => {
+                const bucket = typeStatsMap.get(typeObj.type) || { machine: 0, manual: 0, products: new Map() };
+                const tTotal = bucket.machine + bucket.manual;
+                const tMachPct = tTotal > 0 ? Math.round((bucket.machine / tTotal) * 100) : 0;
+                const tManPct = tTotal > 0 ? Math.round((bucket.manual / tTotal) * 100) : 0;
+
                 typeStatsHtml += `
                     <div class="flex justify-between items-center border-b border-[rgba(255,255,255,0.05)] pb-2">
-                        <span class="text-white font-medium text-sm">${typeObj.rank}. ${typeObj.type}</span>
+                        <span class="text-white font-medium text-sm">${index + 1}. ${typeObj.type}</span>
                         <div class="text-xs font-en">
-                            <span class="text-[#50cd89]">${tMach}/${tTotal} (${tMachPct}%) Can</span> 
+                            <span class="text-[#50cd89]">${bucket.machine}/${tTotal} (${tMachPct}%) Can</span> 
                             <span class="text-[#323248] mx-1">|</span> 
-                            <span class="text-[#f1416c]">${tMan}/${tTotal} (${tManPct}%) Cannot</span>
+                            <span class="text-[#f1416c]">${bucket.manual}/${tTotal} (${tManPct}%) Cannot</span>
                         </div>
                     </div>
                 `;
@@ -920,10 +1218,11 @@
         // --- ฟังก์ชัน Render กราฟแท่งเปรียบเทียบในหัวข้อ Machine Capability ---
         function renderMachineCapabilityChart() {
             const ctx = document.getElementById('machineCapabilityChart').getContext('2d');
-            const labels = monthlyData.map(d => d.month);
+            const filteredData = getFilteredMonthlyData();
+            const labels = filteredData.map(d => d.month);
             
-            const totalProducts = monthlyData.map(d => d.details.length);
-            const machineProducts = monthlyData.map(d => {
+            const totalProducts = filteredData.map(d => d.details.length);
+            const machineProducts = filteredData.map(d => {
                 return d.details.filter(item => isMachineItem(item)).length;
             });
 
@@ -1025,14 +1324,11 @@
 
         // โหลดข้อมูลและตารางตอนเปิดหน้า
         window.onload = function() {
+            renderDashboardMeta();
             renderTypeTable();
-            renderMonthlyTable();
-            renderMonthlyTypeSummaryTable();
-            renderMachineAnalysis();
-
-            // เรียกสร้างกราฟหลังจาก Container (machineAnalysisContainer) ถูกสร้างใน DOM แล้ว
-            renderMachineCapabilityChart();
+            rerenderFilteredSections();
         };
     </script>
 </body>
 </html>
+
