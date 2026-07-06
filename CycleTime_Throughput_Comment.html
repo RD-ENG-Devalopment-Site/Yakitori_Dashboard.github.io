@@ -1253,10 +1253,10 @@
     }
     function stationStackColor(stationKey, group) {
       const palettes = {
-        arrange: { old: '#1d6fb8', new: '#38a8ff' },
-        machine: { old: '#b88400', new: '#ffd447' },
-        inspect: { old: '#bd3b3b', new: '#ff6666' },
-        pack: { old: '#6d4a3d', new: '#b98772' }
+        arrange: { old: '#4d3d87', new: '#8c63f6' },
+        machine: { old: '#8f7220', new: '#ffd655' },
+        inspect: { old: '#6f3148', new: '#ff626f' },
+        pack: { old: '#2f6159', new: '#59c7a7' }
       };
       const tone = group === 'บล็อคใหม่' ? 'new' : 'old';
       return palettes[stationKey]?.[tone] || stationByKey(stationKey).color;
