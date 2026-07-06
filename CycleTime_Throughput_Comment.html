@@ -1192,6 +1192,26 @@
         </tr>
       `;
     }
+    function perStickOverallGap(rows) {
+      const componentDefs = [
+        { key: 'arrange', divisor: 14 },
+        { key: 'machine', divisor: 14 },
+        { key: 'inspect', divisor: 14 },
+        { key: 'pack', divisor: 18 }
+      ];
+      const totals = componentDefs.reduce((acc, component) => {
+        const row = rows.find(item => item.station.key === component.key);
+        if (!row) return acc;
+        acc.oldPerStick += row.oldGroup.cycle / component.divisor;
+        acc.newPerStick += row.newGroup.cycle / component.divisor;
+        return acc;
+      }, { oldPerStick: 0, newPerStick: 0 });
+      const diffPerStick = Math.abs(totals.oldPerStick - totals.newPerStick);
+      const newVsOld = totals.oldPerStick > 0
+        ? ((totals.oldPerStick - totals.newPerStick) / totals.oldPerStick) * 100
+        : 0;
+      return { ...totals, diffPerStick, newVsOld };
+    }
     function renderKpis(rows) {
       const allGaps = rows.flatMap(row => row.groups.map(group => group.gap));
       const maxGap = Math.max(...allGaps);
@@ -1202,7 +1222,7 @@
           station: row.station,
           fasterPct: ((row.oldGroup.cycle - row.newGroup.cycle) / row.oldGroup.cycle) * 100
         }));
-      const overallNewVsOld = oldVsNewRows.reduce((sum, row) => sum + row.fasterPct, 0) / oldVsNewRows.length;
+      const overallNewVsOld = perStickOverallGap(rows).newVsOld;
       const winsOverOld = oldVsNewRows.filter(row => row.fasterPct > 0).length;
       const selected = records.find(record => record.date === dateSelect.value);
       const bottleneck = stations.map(station => ({ station, value: selected.metrics[station.key].value })).sort((a, b) => a.value - b.value)[0];
@@ -1325,7 +1345,8 @@
           const newVsOld = ((row.oldGroup.cycle - row.newGroup.cycle) / row.oldGroup.cycle) * 100;
           return { row, newVsOld };
         });
-      const overallNewVsOld = compareRows.reduce((sum, item) => sum + item.newVsOld, 0) / compareRows.length;
+      const perStickOverall = perStickOverallGap(rows);
+      const overallNewVsOld = perStickOverall.newVsOld;
       const winCount = compareRows.filter(item => item.newVsOld > 0).length;
       presentationCompare.innerHTML = compareRows.map(({ row, newVsOld }) => `
         <div class="presentation-card ${newVsOld > 0 ? 'best' : ''}">
@@ -1391,9 +1412,7 @@
       const oldSample = supplementalMockData.samples[oldGroup];
       const newSample = supplementalMockData.samples[newGroup];
       const compareRows = rows.filter(row => row.station.key !== 'machine');
-      const overallNewVsOld = compareRows.reduce((sum, row) => {
-        return sum + ((row.oldGroup.cycle - row.newGroup.cycle) / row.oldGroup.cycle) * 100;
-      }, 0) / compareRows.length;
+      const overallNewVsOld = perStickOverallGap(rows).newVsOld;
       const savedDowntime = oldSample.downtimeMin - newSample.downtimeMin;
       const qualityGap = newSample.qualityYield - oldSample.qualityYield;
       const stationRiskRows = rows.map(row => {
