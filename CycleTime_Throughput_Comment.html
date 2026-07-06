@@ -521,6 +521,51 @@
       background: rgba(83, 227, 140, 0.12);
       color: #8bf3b2;
     }
+    .employee-lock-panel {
+      border: 1px solid rgba(255, 181, 71, 0.34);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, rgba(255, 181, 71, 0.12), rgba(255, 255, 255, 0.025));
+      display: grid;
+      gap: 12px;
+    }
+    .employee-lock-panel.hidden,
+    .employee-protected-content.is-locked {
+      display: none;
+    }
+    .employee-lock-title {
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 900;
+    }
+    .employee-lock-text {
+      color: var(--muted-strong);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .employee-lock-form {
+      display: grid;
+      grid-template-columns: minmax(220px, 360px) auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .employee-lock-form input {
+      min-height: 42px;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      background: rgba(12, 15, 24, 0.92);
+      color: var(--text);
+      padding: 0 12px;
+      font: inherit;
+      font-weight: 800;
+    }
+    .employee-lock-message {
+      min-height: 18px;
+      color: #ffbf66;
+      font-size: 12px;
+      font-weight: 800;
+    }
     .employee-summary-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -638,6 +683,7 @@
       .detail-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .station-compact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .employee-tools { grid-template-columns: 1fr 1fr; }
+      .employee-lock-form { grid-template-columns: 1fr; }
       .employee-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .employee-insight-panel { grid-template-columns: 1fr; }
       .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -658,6 +704,7 @@
       .detail-summary-grid { grid-template-columns: 1fr; }
       .station-compact-grid { grid-template-columns: 1fr; }
       .employee-tools { grid-template-columns: 1fr; }
+      .employee-lock-form { grid-template-columns: 1fr; }
       .employee-summary-grid { grid-template-columns: 1fr; }
       .employee-insight-panel { grid-template-columns: 1fr; }
       .assumptions { grid-template-columns: 1fr; }
@@ -784,6 +831,18 @@
         </div>
         <span class="chip">Excel employee database</span>
       </div>
+      <div id="employeeLockPanel" class="employee-lock-panel">
+        <div>
+          <div class="employee-lock-title">Cycle time data is locked</div>
+          <div class="employee-lock-text">กรุณาใส่รหัสผ่านเพื่อเข้าถึงข้อมูลรายวันตามรหัสพนักงานและการแก้ไขค่า cycle time</div>
+        </div>
+        <div class="employee-lock-form">
+          <input id="employeePasswordInput" type="password" autocomplete="current-password" placeholder="Password">
+          <button id="employeeUnlockBtn" class="btn primary" type="button">ปลดล็อคข้อมูล</button>
+        </div>
+        <div id="employeeLockMessage" class="employee-lock-message" aria-live="polite"></div>
+      </div>
+      <div id="employeeProtectedContent" class="employee-protected-content is-locked">
       <div class="employee-tools">
         <div>
           <label for="employeeGroupSelect">กลุ่มข้อมูล</label>
@@ -805,6 +864,7 @@
       <div id="employeeMatrix" class="employee-table-wrap"></div>
       <div class="assumption-banner">
         การบันทึกใน HTML นี้จะเก็บไว้ใน browser ของเครื่องนี้ด้วย localStorage ยังไม่ได้เขียนกลับเข้าไฟล์ Excel ต้นฉบับ ถ้าต้องการส่งต่อให้กดคัดลอก/บันทึกข้อมูลออกจาก browser ในขั้นถัดไปได้
+      </div>
       </div>
     </section>
 
@@ -956,9 +1016,17 @@
     const employeeMatrix = document.getElementById('employeeMatrix');
     const saveEmployeeData = document.getElementById('saveEmployeeData');
     const resetEmployeeData = document.getElementById('resetEmployeeData');
+    const employeeLockPanel = document.getElementById('employeeLockPanel');
+    const employeeProtectedContent = document.getElementById('employeeProtectedContent');
+    const employeePasswordInput = document.getElementById('employeePasswordInput');
+    const employeeUnlockBtn = document.getElementById('employeeUnlockBtn');
+    const employeeLockMessage = document.getElementById('employeeLockMessage');
     const employeeCycleSeed = window.employeeCycleSeed || [];
     const employeeStorageKey = 'apexEmployeeCycleOverrides:v2';
+    const employeeAccessKey = 'apexCycleTimeAccess:v1';
+    const employeeAccessPassword = 'Apex2026';
     let employeeOverrides = JSON.parse(localStorage.getItem(employeeStorageKey) || '{}');
+    let employeeUnlocked = sessionStorage.getItem(employeeAccessKey) === 'unlocked';
 
     records.forEach(record => {
       const option = document.createElement('option');
@@ -1448,6 +1516,29 @@
       const station = stationByKey(stationKey);
       return `${selectedTimeUnit() === 'second' ? 'วินาที' : 'นาที'}/${station.basis}`;
     }
+    function setEmployeeLockState() {
+      employeeLockPanel.classList.toggle('hidden', employeeUnlocked);
+      employeeProtectedContent.classList.toggle('is-locked', !employeeUnlocked);
+      if (!employeeUnlocked) {
+        employeeSummary.innerHTML = '';
+        employeeInsight.innerHTML = '';
+        employeeMatrix.innerHTML = '';
+      }
+    }
+    function unlockEmployeeCycleData() {
+      const password = employeePasswordInput.value.trim();
+      if (password !== employeeAccessPassword) {
+        employeeLockMessage.textContent = 'รหัสผ่านไม่ถูกต้อง';
+        employeePasswordInput.select();
+        return;
+      }
+      employeeUnlocked = true;
+      sessionStorage.setItem(employeeAccessKey, 'unlocked');
+      employeeLockMessage.textContent = '';
+      employeePasswordInput.value = '';
+      setEmployeeLockState();
+      renderEmployeeMatrix();
+    }
     function filteredEmployeeRecords() {
       const group = employeeGroupSelect.value;
       const station = employeeStationSelect.value;
@@ -1457,6 +1548,10 @@
       );
     }
     function renderEmployeeMatrix() {
+      if (!employeeUnlocked) {
+        setEmployeeLockState();
+        return;
+      }
       const stationKey = employeeStationSelect.value || 'arrange';
       const recordsForView = filteredEmployeeRecords();
       const dates = [...new Set(recordsForView.map(record => record.date))].sort();
@@ -1876,6 +1971,10 @@
     stationSelect.addEventListener('change', renderAll);
     employeeGroupSelect.addEventListener('change', renderEmployeeMatrix);
     employeeStationSelect.addEventListener('change', renderEmployeeMatrix);
+    employeeUnlockBtn.addEventListener('click', unlockEmployeeCycleData);
+    employeePasswordInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter') unlockEmployeeCycleData();
+    });
     employeeMatrix.addEventListener('change', event => {
       if (event.target.matches('input[data-record-key]')) {
         updateEmployeeOverrideFromInput(event.target);
@@ -1891,6 +1990,7 @@
       renderEmployeeMatrix();
     });
     window.addEventListener('resize', renderAll);
+    setEmployeeLockState();
     renderAll();
   </script>
 </body>
