@@ -1040,6 +1040,10 @@
       option.textContent = station.full;
       stationSelect.appendChild(option);
     });
+    const allStationOption = document.createElement('option');
+    allStationOption.value = 'allStations';
+    allStationOption.textContent = 'สรุปรวมทุก Station';
+    stationSelect.appendChild(allStationOption);
     stations.filter(station => station.key !== 'machine').forEach(station => {
       const option = document.createElement('option');
       option.value = station.key;
@@ -1211,6 +1215,31 @@
         ? ((totals.oldPerStick - totals.newPerStick) / totals.oldPerStick) * 100
         : 0;
       return { ...totals, diffPerStick, newVsOld };
+    }
+    function dailyAllStationPerStick(record) {
+      const componentDefs = [
+        { key: 'arrange', divisor: 14 },
+        { key: 'machine', divisor: 14 },
+        { key: 'inspect', divisor: 14 },
+        { key: 'pack', divisor: 18 }
+      ];
+      return componentDefs.reduce((sum, component) => {
+        return sum + rawCycleToMinutes(component.key, record.metrics[component.key].avg) / component.divisor;
+      }, 0);
+    }
+    function dailyChartValue(key, record) {
+      return key === 'allStations'
+        ? displayCycleFromMinutes(dailyAllStationPerStick(record))
+        : displayCycleValue(key, record.metrics[key].avg);
+    }
+    function dailyChartUnit(key) {
+      if (key === 'allStations') {
+        return selectedTimeUnit() === 'second' ? 'วินาที/ไม้' : 'นาที/ไม้';
+      }
+      return displayTimeUnit(stationByKey(key));
+    }
+    function dailyChartTitle(key) {
+      return key === 'allStations' ? 'สรุปรวมทุก Station' : stationByKey(key).full;
     }
     function renderKpis(rows) {
       const allGaps = rows.flatMap(row => row.groups.map(group => group.gap));
@@ -1728,12 +1757,12 @@
     }
     function renderDailyChartSummary() {
       const key = stationSelect.value;
-      const station = stationByKey(key);
+      const isAllStations = key === 'allStations';
       const oldRecords = records.filter(record => record.group === 'บล็อคเก่า');
       const newRecords = records.filter(record => record.group === 'บล็อคใหม่');
       const stationRecords = records.map(record => ({
         ...record,
-        displayValue: displayCycleValue(key, record.metrics[key].avg)
+        displayValue: dailyChartValue(key, record)
       }));
       const avgDisplay = group => {
         const groupRecords = stationRecords.filter(record => record.group === group);
@@ -1742,12 +1771,17 @@
       const oldAvg = avgDisplay('บล็อคเก่า');
       const newAvg = avgDisplay('บล็อคใหม่');
       const comparisonRow = comparisonRows().find(row => row.station.key === key);
-      const oldCompareAvg = comparisonRow ? displayCycleFromMinutes(comparisonRow.oldGroup.cycle) : oldAvg;
-      const newCompareAvg = comparisonRow ? displayCycleFromMinutes(comparisonRow.newGroup.cycle) : newAvg;
-      const gap = ((oldCompareAvg - newCompareAvg) / oldCompareAvg) * 100;
+      const allStationSummary = isAllStations ? perStickOverallGap(comparisonRows()) : null;
+      const oldCompareAvg = isAllStations
+        ? displayCycleFromMinutes(allStationSummary.oldPerStick)
+        : comparisonRow ? displayCycleFromMinutes(comparisonRow.oldGroup.cycle) : oldAvg;
+      const newCompareAvg = isAllStations
+        ? displayCycleFromMinutes(allStationSummary.newPerStick)
+        : comparisonRow ? displayCycleFromMinutes(comparisonRow.newGroup.cycle) : newAvg;
+      const gap = isAllStations ? allStationSummary.newVsOld : ((oldCompareAvg - newCompareAvg) / oldCompareAvg) * 100;
       const bestDay = [...stationRecords].sort((a, b) => a.displayValue - b.displayValue)[0];
       const worstDay = [...stationRecords].sort((a, b) => b.displayValue - a.displayValue)[0];
-      const unit = displayTimeUnit(station);
+      const unit = dailyChartUnit(key);
       const isFixed = key === 'machine';
       dailyChartSummary.innerHTML = `
         <div class="chart-summary-card ${gap > 0 && !isFixed ? 'highlight' : gap < 0 && !isFixed ? 'warn' : ''}">
@@ -1781,12 +1815,11 @@
     function drawDailyChart() {
       const key = stationSelect.value;
       const selectedDate = dateSelect.value;
-      const station = stationByKey(key);
       const { ctx, width, height } = setupCanvas(dailyChart);
       const pad = { top: 38, right: 18, bottom: 74, left: 64 };
       const chartW = width - pad.left - pad.right;
       const chartH = height - pad.top - pad.bottom;
-      const values = records.map(record => displayCycleValue(key, record.metrics[key].avg));
+      const values = records.map(record => dailyChartValue(key, record));
       const max = Math.max(...values) * 1.12;
       ctx.strokeStyle = 'rgba(154, 168, 199, 0.26)';
       ctx.fillStyle = '#9ba8c7';
@@ -1803,11 +1836,11 @@
       ctx.textAlign = 'left';
       ctx.fillStyle = '#c8d3ec';
       ctx.font = '12px "IBM Plex Sans Thai"';
-      ctx.fillText(`${station.full} (${displayTimeUnit(station)}) | ยิ่งต่ำยิ่งดี`, pad.left, 18);
+      ctx.fillText(`${dailyChartTitle(key)} (${dailyChartUnit(key)}) | ยิ่งต่ำยิ่งดี`, pad.left, 18);
       const slot = chartW / records.length;
       const barW = Math.min(36, slot * 0.62);
       records.forEach((record, i) => {
-        const value = displayCycleValue(key, record.metrics[key].avg);
+        const value = dailyChartValue(key, record);
         const h = (value / max) * chartH;
         const x = pad.left + slot * i + slot / 2 - barW / 2;
         const y = pad.top + chartH - h;
