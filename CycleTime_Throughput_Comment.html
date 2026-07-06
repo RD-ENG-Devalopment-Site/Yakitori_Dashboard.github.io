@@ -1251,6 +1251,16 @@
     function dailyChartTitle(key) {
       return key === 'allStations' ? 'สรุปรวมทุก Station' : stationByKey(key).full;
     }
+    function stationStackColor(stationKey, group) {
+      const palettes = {
+        arrange: { old: '#1d6fb8', new: '#38a8ff' },
+        machine: { old: '#b88400', new: '#ffd447' },
+        inspect: { old: '#bd3b3b', new: '#ff6666' },
+        pack: { old: '#6d4a3d', new: '#b98772' }
+      };
+      const tone = group === 'บล็อคใหม่' ? 'new' : 'old';
+      return palettes[stationKey]?.[tone] || stationByKey(stationKey).color;
+    }
     function renderKpis(rows) {
       const allGaps = rows.flatMap(row => row.groups.map(group => group.gap));
       const maxGap = Math.max(...allGaps);
@@ -1851,13 +1861,22 @@
       if (isAllStations) {
         let legendX = pad.left + 260;
         dailyAllStationComponents(records[0]).forEach(component => {
-          ctx.fillStyle = component.station.color;
+          ctx.fillStyle = stationStackColor(component.key, 'บล็อคใหม่');
           ctx.fillRect(legendX, 8, 10, 10);
           ctx.fillStyle = '#c8d3ec';
           ctx.font = '10px "IBM Plex Sans Thai"';
           ctx.fillText(component.station.name, legendX + 14, 17);
           legendX += 92;
         });
+        ctx.fillStyle = '#8f7cff';
+        ctx.fillRect(legendX, 8, 10, 10);
+        ctx.fillStyle = '#c8d3ec';
+        ctx.fillText('บล็อคเก่า = โทนเข้ม', legendX + 14, 17);
+        legendX += 118;
+        ctx.fillStyle = '#53e38c';
+        ctx.fillRect(legendX, 8, 10, 10);
+        ctx.fillStyle = '#c8d3ec';
+        ctx.fillText('บล็อคใหม่ = โทนสว่าง', legendX + 14, 17);
       }
       const slot = chartW / records.length;
       const barW = Math.min(36, slot * 0.62);
@@ -1871,7 +1890,7 @@
           dailyAllStationComponents(record).forEach(component => {
             const segmentH = (component.displayValue / max) * chartH;
             const segmentY = segmentBottom - segmentH;
-            ctx.fillStyle = component.station.color;
+            ctx.fillStyle = stationStackColor(component.key, record.group);
             ctx.fillRect(x, segmentY, barW, segmentH);
             segmentBottom = segmentY;
           });
