@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Summary Block Cycle Time</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+    :root {
+      --bg: #0f111b;
+      --paper: #171a27;
+      --panel: #1d2131;
+      --panel-strong: #141724;
+      --line: #2f3650;
+      --line-soft: #242a41;
+      --text: #f5f7ff;
+      --muted: #9ba8c7;
+      --muted-strong: #c8d3ec;
+      --original: #8f7cff;
+      --newblock: #53e38c;
+      --best: #53e38c;
+      --danger: #ffb547;
+      --blue: #1fb6ff;
+      --shadow: 0 24px 56px rgba(3, 7, 18, 0.46);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans Thai", sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0) 18%),
+        radial-gradient(circle at 18% 0%, rgba(143, 124, 255, 0.16), transparent 26%),
+        radial-gradient(circle at 86% 8%, rgba(31, 182, 255, 0.12), transparent 24%),
+        var(--bg);
+    }
+    .wrap { width: min(1520px, calc(100% - 40px)); margin: 0 auto; padding: 28px 0 40px; }
+    .top-nav {
+      margin-bottom: 18px;
+      background: #181b26;
+      border-bottom: 1px solid var(--line);
+    }
+    .top-nav-inner {
+      display: flex;
+      align-items: stretch;
+      min-height: 58px;
+      padding: 0 30px;
+      overflow: visible;
+    }
+    .nav-links {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      min-width: 0;
+    }
+    .nav-link {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 30px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .nav-link:hover { background: rgba(255, 255, 255, 0.025); }
+    .nav-link.active { color: var(--text); }
+    .nav-link.active::after {
+      content: "";
+      position: absolute;
+      left: 30px;
+      right: 30px;
+      bottom: 0;
+      height: 3px;
+      background: #ff2f5f;
+    }
+    .hero, .section, .card {
+      background: linear-gradient(180deg, rgba(31, 35, 51, 0.98), rgba(23, 26, 39, 0.98));
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+    .hero { padding: 18px 20px; margin-bottom: 14px; position: relative; overflow: hidden; }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--original), var(--newblock));
+      opacity: 0.95;
+    }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(500px, 620px); gap: 18px; align-items: center; }
+    .eyebrow { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(143, 124, 255, 0.22);
+      color: var(--muted-strong);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    h1, h2, h3 { font-family: "Plus Jakarta Sans", "IBM Plex Sans Thai", sans-serif; margin: 0; letter-spacing: 0; }
+    h1 { font-size: clamp(28px, 2.5vw, 38px); line-height: 1.08; }
+    h2 { font-size: 20px; }
+    h3 { font-size: 15px; }
+    p { margin: 0; color: var(--muted); }
+    .sub { margin-top: 8px; max-width: 720px; font-size: 13px; line-height: 1.45; }
+    .control-panel {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      background: linear-gradient(180deg, rgba(24, 27, 40, 0.98), rgba(19, 21, 32, 0.98));
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    label { display: block; font-size: 12px; color: var(--muted); font-weight: 700; margin-bottom: 6px; }
+    select {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+      padding: 0 12px;
+      font: inherit;
+      color: var(--text);
+    }
+    .assumptions { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .assumption { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line-soft); border-radius: 8px; padding: 8px; font-size: 11px; font-weight: 700; color: var(--muted-strong); line-height: 1.35; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .kpi {
+      padding: 16px;
+      min-height: 118px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.01)),
+        linear-gradient(180deg, rgba(31, 35, 51, 0.98), rgba(20, 23, 35, 0.98));
+    }
+    .kpi-label { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .kpi-value { margin-top: 8px; font-size: 30px; font-weight: 800; line-height: 1; }
+    .kpi-note { margin-top: 8px; font-size: 12px; color: var(--muted); line-height: 1.45; }
+    .section { padding: 18px; margin-bottom: 18px; }
+    .section, .hero { scroll-margin-top: 86px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+    .section-head p { font-size: 13px; margin-top: 4px; }
+    .legend { display: flex; gap: 8px; flex-wrap: wrap; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; margin-right: 6px; }
+    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 10px; background: rgba(20, 22, 33, 0.92); }
+    table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    th, td { padding: 13px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; text-align: left; }
+    th { background: rgba(143, 124, 255, 0.12); color: var(--muted-strong); font-size: 12px; font-weight: 800; white-space: nowrap; }
+    tbody tr:hover { background: rgba(255, 255, 255, 0.02); }
+    .station-name { font-weight: 800; min-width: 190px; }
+    .group-cell { min-width: 210px; }
+    .group-box { display: grid; gap: 5px; }
+    .group-box.is-best {
+      background: linear-gradient(180deg, rgba(83, 227, 140, 0.09), rgba(83, 227, 140, 0.04));
+      border: 1px solid rgba(83, 227, 140, 0.42);
+      border-radius: 10px;
+      padding: 7px 9px;
+    }
+    .group-box.is-other {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      padding: 7px 9px;
+    }
+    .group-box.is-fixed {
+      background: linear-gradient(180deg, rgba(255, 181, 71, 0.09), rgba(255, 255, 255, 0.018));
+      border: 1px dashed rgba(255, 181, 71, 0.54);
+      border-radius: 10px;
+      padding: 7px 9px;
+    }
+    .group-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .group-tag { font-size: 12px; font-weight: 800; }
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 24px;
+      border-radius: 999px;
+      padding: 0 8px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--muted-strong);
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .rank-badge.best {
+      background: rgba(83, 227, 140, 0.16);
+      color: #7af0a9;
+    }
+    .rank-badge.fixed {
+      min-width: 54px;
+      background: rgba(255, 181, 71, 0.14);
+      color: #ffcb7a;
+      border: 1px solid rgba(255, 181, 71, 0.34);
+    }
+    .cycle-line { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+    .cycle-value { font-size: 22px; line-height: 1; font-weight: 900; }
+    .cycle-unit { color: var(--muted); font-size: 12px; font-weight: 800; }
+    .throughput-line { color: var(--muted-strong); font-size: 11px; font-weight: 700; }
+    .gap { display: inline-flex; width: fit-content; padding: 2px 7px; border-radius: 999px; background: rgba(255, 181, 71, 0.10); color: var(--danger); border: 1px solid rgba(255, 181, 71, 0.32); font-size: 10px; font-weight: 900; }
+    .gap.best { background: rgba(83, 227, 140, 0.12); color: var(--best); border-color: rgba(83, 227, 140, 0.34); }
+    .gap.fixed { background: rgba(255, 181, 71, 0.10); color: #ffcb7a; border-color: rgba(255, 181, 71, 0.34); }
+    .small { color: var(--muted); font-size: 10px; }
+    .summary-cell { min-width: 190px; }
+    .summary-graph-cell { min-width: 170px; }
+    .summary-title { font-size: 17px; line-height: 1.2; font-weight: 900; display: block; }
+    .summary-order { font-size: 12px; color: var(--muted-strong); font-weight: 700; line-height: 1.55; }
+    .mini-vertical-chart {
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      height: 92px;
+      padding: 8px 6px 0;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--line-soft);
+    }
+    .mini-bar-wrap {
+      flex: 1;
+      min-width: 0;
+      display: grid;
+      justify-items: center;
+      align-content: end;
+      gap: 6px;
+    }
+    .mini-bar-value {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--muted-strong);
+      line-height: 1;
+    }
+    .mini-bar {
+      width: 22px;
+      min-height: 6px;
+      border-radius: 8px 8px 0 0;
+    }
+    .mini-bar-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      line-height: 1.2;
+      text-align: center;
+      word-break: break-word;
+    }
+    .presentation-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .presentation-card {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+    .presentation-card.best {
+      background: linear-gradient(180deg, rgba(83, 227, 140, 0.10), rgba(83, 227, 140, 0.04));
+      border-color: rgba(83, 227, 140, 0.38);
+    }
+    .presentation-card.overall {
+      background: linear-gradient(180deg, rgba(31, 182, 255, 0.11), rgba(143, 124, 255, 0.06));
+      border-color: rgba(31, 182, 255, 0.34);
+    }
+    .presentation-title {
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+    .presentation-percent {
+      font-size: 30px;
+      line-height: 1;
+      font-weight: 900;
+    }
+    .presentation-status {
+      display: inline-flex;
+      width: fit-content;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted-strong);
+    }
+    .presentation-status.win {
+      background: rgba(83, 227, 140, 0.12);
+      color: #7af0a9;
+      border-color: rgba(83, 227, 140, 0.30);
+    }
+    .presentation-status.lose {
+      background: rgba(255, 181, 71, 0.10);
+      color: #ffbf66;
+      border-color: rgba(255, 181, 71, 0.32);
+    }
+    .supplement-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 1.25fr 0.9fr;
+      gap: 14px;
+      align-items: start;
+    }
+    .supplement-panel {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      padding: 14px;
+      min-height: 100%;
+    }
+    .supplement-panel h3 { margin-bottom: 10px; }
+    .metric-list { display: grid; gap: 9px; }
+    .metric-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: baseline;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .metric-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .metric-label { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .metric-value { color: var(--text); font-size: 18px; font-weight: 900; text-align: right; }
+    .metric-note { color: var(--muted); font-size: 11px; line-height: 1.45; grid-column: 1 / -1; }
+    .supplement-table { width: 100%; min-width: 0; border-collapse: collapse; }
+    .supplement-table th,
+    .supplement-table td {
+      padding: 9px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 12px;
+    }
+    .supplement-table th {
+      background: rgba(143, 124, 255, 0.10);
+      color: var(--muted-strong);
+      font-weight: 900;
+    }
+    .status-pill {
+      display: inline-flex;
+      width: fit-content;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 900;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted-strong);
+      white-space: nowrap;
+    }
+    .status-pill.good {
+      background: rgba(83, 227, 140, 0.12);
+      color: #7af0a9;
+      border-color: rgba(83, 227, 140, 0.32);
+    }
+    .status-pill.warn {
+      background: rgba(255, 181, 71, 0.10);
+      color: #ffbf66;
+      border-color: rgba(255, 181, 71, 0.32);
+    }
+    .delay-list { display: grid; gap: 9px; }
+    .delay-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 9px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .delay-name { font-size: 12px; font-weight: 900; }
+    .delay-percent { color: var(--danger); font-size: 13px; font-weight: 900; }
+    .assumption-banner {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 9px;
+      background: rgba(31, 182, 255, 0.08);
+      border: 1px solid rgba(31, 182, 255, 0.22);
+      color: var(--muted-strong);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    canvas { width: 100%; height: 340px; display: block; }
+    .chart-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .chart-summary-card {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      padding: 14px;
+      display: grid;
+      gap: 6px;
+      min-height: 104px;
+    }
+    .chart-summary-card.highlight {
+      background: linear-gradient(180deg, rgba(83, 227, 140, 0.10), rgba(83, 227, 140, 0.035));
+      border-color: rgba(83, 227, 140, 0.36);
+    }
+    .chart-summary-card.warn {
+      background: linear-gradient(180deg, rgba(255, 181, 71, 0.10), rgba(255, 181, 71, 0.035));
+      border-color: rgba(255, 181, 71, 0.34);
+    }
+    .chart-summary-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .chart-summary-value {
+      font-size: 24px;
+      line-height: 1;
+      font-weight: 900;
+    }
+    .detail-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .detail-summary-card {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      padding: 14px;
+      display: grid;
+      gap: 6px;
+    }
+    .detail-summary-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .detail-summary-value {
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 900;
+    }
+    .detail-dashboard-grid { display: grid; grid-template-columns: 1.55fr 0.95fr; gap: 14px; }
+    .station-compact-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+    .station-compact-card {
+      min-height: 136px;
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.025);
+      display: grid;
+      align-content: start;
+      gap: 7px;
+    }
+    .station-compact-card.bottleneck {
+      background: linear-gradient(180deg, rgba(255, 181, 71, 0.12), rgba(255, 181, 71, 0.035));
+      border-color: rgba(255, 181, 71, 0.40);
+    }
+    .station-compact-card.best-output {
+      background: linear-gradient(180deg, rgba(83, 227, 140, 0.11), rgba(83, 227, 140, 0.035));
+      border-color: rgba(83, 227, 140, 0.38);
+    }
+    .compact-station-name { font-size: 13px; line-height: 1.25; font-weight: 900; }
+    .compact-cycle { font-size: 22px; line-height: 1; font-weight: 900; }
+    .compact-cycle small { color: var(--muted); font-size: 11px; font-weight: 800; }
+    .compact-output { color: var(--muted-strong); font-size: 12px; font-weight: 800; line-height: 1.35; }
+    .compact-note { color: var(--muted); font-size: 11px; line-height: 1.35; }
+    .executive-panel {
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.025);
+      min-height: 136px;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+    }
+    .executive-list { display: grid; gap: 8px; }
+    .executive-item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      align-items: start;
+      color: var(--muted-strong);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .executive-bullet {
+      width: 8px;
+      height: 8px;
+      margin-top: 7px;
+      border-radius: 999px;
+      background: var(--newblock);
+    }
+    .employee-tools {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto auto;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+    .btn {
+      min-height: 42px;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      padding: 0 14px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn.primary {
+      border-color: rgba(83, 227, 140, 0.42);
+      background: rgba(83, 227, 140, 0.12);
+      color: #8bf3b2;
+    }
+    .employee-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .employee-summary-card {
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.025);
+      display: grid;
+      gap: 5px;
+    }
+    .employee-summary-label { color: var(--muted); font-size: 11px; font-weight: 800; }
+    .employee-summary-value { font-size: 22px; line-height: 1; font-weight: 900; }
+    .employee-insight-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .employee-insight-card {
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.025);
+      display: grid;
+      gap: 6px;
+    }
+    .employee-insight-title {
+      color: var(--muted-strong);
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .employee-insight-text {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .employee-result-pill {
+      display: inline-flex;
+      width: fit-content;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 900;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted-strong);
+      white-space: nowrap;
+    }
+    .employee-result-pill.good {
+      background: rgba(83, 227, 140, 0.12);
+      color: #7af0a9;
+      border-color: rgba(83, 227, 140, 0.34);
+    }
+    .employee-result-pill.warn {
+      background: rgba(255, 181, 71, 0.10);
+      color: #ffbf66;
+      border-color: rgba(255, 181, 71, 0.34);
+    }
+    .employee-table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(20, 22, 33, 0.92);
+      max-height: 420px;
+    }
+    .employee-table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+    }
+    .employee-table th,
+    .employee-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 12px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    .employee-table th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #25243d;
+      color: var(--muted-strong);
+    }
+    .employee-table input {
+      width: 82px;
+      min-height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--line-soft);
+      background: rgba(12, 15, 24, 0.92);
+      color: var(--text);
+      padding: 0 8px;
+      font: inherit;
+      font-weight: 800;
+    }
+    .employee-table input.changed {
+      border-color: rgba(83, 227, 140, 0.54);
+      background: rgba(83, 227, 140, 0.08);
+    }
+    .employee-empty {
+      padding: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .mobile-note { display: none; color: var(--muted); font-size: 12px; margin-top: 8px; }
+    @media (max-width: 1100px) {
+      .hero-grid, .detail-dashboard-grid { grid-template-columns: 1fr; }
+      .control-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .chart-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .detail-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .station-compact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .employee-tools { grid-template-columns: 1fr 1fr; }
+      .employee-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .employee-insight-panel { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .presentation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .supplement-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .wrap { width: min(100% - 24px, 1500px); padding-top: 12px; }
+      .top-nav { margin-bottom: 12px; }
+      .top-nav-inner { padding: 0 12px; overflow-x: auto; }
+      .nav-link { padding: 0 16px; }
+      .nav-link.active::after { left: 16px; right: 16px; }
+      .hero, .section { padding: 14px; }
+      .control-panel { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: 1fr; }
+      .presentation-grid { grid-template-columns: 1fr; }
+      .chart-summary-grid { grid-template-columns: 1fr; }
+      .detail-summary-grid { grid-template-columns: 1fr; }
+      .station-compact-grid { grid-template-columns: 1fr; }
+      .employee-tools { grid-template-columns: 1fr; }
+      .employee-summary-grid { grid-template-columns: 1fr; }
+      .employee-insight-panel { grid-template-columns: 1fr; }
+      .assumptions { grid-template-columns: 1fr; }
+      .section-head { align-items: start; flex-direction: column; }
+      canvas { height: 300px; }
+      .mobile-note { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <nav class="top-nav" aria-label="Main navigation">
+      <div class="top-nav-inner">
+        <div class="nav-links">
+          <a class="nav-link" href="index.html">HOME</a>
+          <a class="nav-link active" href="CycleTime_Throughput_Comment.html">Summary Block Cycle Time</a>
+        </div>
+      </div>
+    </nav>
+    <header class="hero">
+      <div class="hero-grid">
+        <div>
+          <h1>Summary Block Cycle Time</h1>
+          <p class="sub">สรุป Cycle Time และ Throughput เปรียบเทียบบล็อคเก่ากับบล็อคใหม่ตามแต่ละ Station</p>
+        </div>
+        <div class="control-panel">
+          <div>
+            <label for="dateSelect">เลือกวันที่</label>
+            <select id="dateSelect"></select>
+          </div>
+          <div>
+            <label for="timeUnitSelect">หน่วยเวลา</label>
+            <select id="timeUnitSelect">
+              <option value="second">วินาที</option>
+              <option value="minute">นาที</option>
+            </select>
+          </div>
+          <div class="assumptions">
+            <div class="assumption">1 บล็อค = 14 ไม้</div>
+            <div class="assumption">1 bulk = 18 ไม้</div>
+            <div class="assumption">1 ไม้ = 25 กรัม</div>
+            <div class="assumption">เสียบไม้ fixed 17.5 วิ/บล็อค</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section id="kpiGrid" class="kpi-grid"></section>
+
+    <section id="compare-section" class="section">
+      <div class="section-head">
+        <div>
+          <h2>ตารางเปรียบเทียบ 2 กลุ่มตาม Station</h2>
+          <p>อ่านหนึ่งแถวให้จบได้ทันที: เทียบบล็อคเก่ากับบล็อคใหม่ใน station เดียวกัน แล้วดูว่าบล็อคใหม่เร็วขึ้นหรือช้าลงกี่เปอร์เซ็นต์</p>
+        </div>
+        <div class="legend">
+          <span class="chip"><span class="legend-dot" style="background:var(--original)"></span>บล็อคเก่า</span>
+          <span class="chip"><span class="legend-dot" style="background:var(--newblock)"></span>บล็อคใหม่</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Station</th>
+              <th>บล็อคเก่า</th>
+              <th>บล็อคใหม่</th>
+              <th>สรุปเทียบกัน</th>
+              <th>กราฟ</th>
+            </tr>
+          </thead>
+          <tbody id="compareTable"></tbody>
+        </table>
+      </div>
+      <div class="mobile-note">บนหน้าจอเล็กสามารถเลื่อนตารางซ้าย-ขวาเพื่อดูครบทั้งสองกลุ่มได้</div>
+    </section>
+
+    <section id="summary-section" class="section">
+      <div class="section-head">
+        <div>
+          <h2>สรุปการเปรียบเทียบ</h2>
+          <p>สรุปเฉพาะการเปรียบเทียบระหว่างบล็อคใหม่กับบล็อคเก่า เพื่อหยิบไปใช้ในงานนำเสนอได้ทันที</p>
+        </div>
+      </div>
+      <div id="presentationCompare" class="presentation-grid"></div>
+    </section>
+
+    <section id="missing-data-section" class="section">
+      <div class="section-head">
+        <div>
+          <h2>ข้อมูลเสริมที่ยังขาดสำหรับตัดสินใจ</h2>
+          <p>เติมข้อมูลประกอบการอ่านผล เช่น sample, ความแปรปรวน, target, quality และ delay เพื่อให้ dashboard พร้อมใช้พรีเซนต์มากขึ้น</p>
+        </div>
+        <span class="chip">Mock data + คำนวณจาก cycle time</span>
+      </div>
+      <div id="missingDataSummary" class="supplement-grid"></div>
+      <div class="assumption-banner">
+        หมายเหตุ: ข้อมูล sample, จำนวนพนักงาน, quality, downtime และ delay ในส่วนนี้เป็นข้อมูลจำลองเพื่อวางโครง dashboard ก่อนเชื่อมข้อมูลจริงจาก Excel หรือแบบฟอร์มหน้างาน ส่วนค่าเฉลี่ย/ความแปรปรวน cycle time คำนวณจากข้อมูลที่มีใน HTML นี้
+      </div>
+    </section>
+
+    <section id="chart-section" class="section">
+      <div class="section-head">
+        <div>
+          <h2>กราฟรายวันของ Station ที่เลือก</h2>
+          <p>ใช้ดูความสม่ำเสมอของ cycle time แต่ละวัน สีของแท่งบอกกลุ่มข้อมูล และหน่วยเวลาจะเปลี่ยนตาม option ที่เลือก</p>
+        </div>
+        <div style="min-width:260px">
+          <label for="stationSelect">เลือก station</label>
+          <select id="stationSelect"></select>
+        </div>
+      </div>
+      <div id="dailyChartSummary" class="chart-summary-grid"></div>
+      <div class="card" style="padding:14px">
+        <canvas id="dailyChart" aria-label="กราฟรายวัน"></canvas>
+      </div>
+    </section>
+
+    <section id="employee-section" class="section">
+      <div class="section-head">
+        <div>
+          <h2>ข้อมูลรายวันตามรหัสพนักงาน</h2>
+          <p>ฐานข้อมูลเริ่มต้นดึงจาก Excel: แยกตามวันที่ จุดงาน และรหัสพนักงาน สามารถแก้ค่าแล้วบันทึกไว้ใน browser เพื่อใช้คำนวณสรุปผลในหน้านี้</p>
+        </div>
+        <span class="chip">Excel employee database</span>
+      </div>
+      <div class="employee-tools">
+        <div>
+          <label for="employeeGroupSelect">กลุ่มข้อมูล</label>
+          <select id="employeeGroupSelect">
+            <option value="new">บล็อคใหม่</option>
+            <option value="old">บล็อคเก่า</option>
+            <option value="all">ทั้งหมดจาก Excel</option>
+          </select>
+        </div>
+        <div>
+          <label for="employeeStationSelect">จุดงาน</label>
+          <select id="employeeStationSelect"></select>
+        </div>
+        <button id="saveEmployeeData" class="btn primary" type="button">บันทึกค่าที่แก้</button>
+        <button id="resetEmployeeData" class="btn" type="button">คืนค่าจาก Excel</button>
+      </div>
+      <div id="employeeSummary" class="employee-summary-grid"></div>
+      <div id="employeeInsight" class="employee-insight-panel"></div>
+      <div id="employeeMatrix" class="employee-table-wrap"></div>
+      <div class="assumption-banner">
+        การบันทึกใน HTML นี้จะเก็บไว้ใน browser ของเครื่องนี้ด้วย localStorage ยังไม่ได้เขียนกลับเข้าไฟล์ Excel ต้นฉบับ ถ้าต้องการส่งต่อให้กดคัดลอก/บันทึกข้อมูลออกจาก browser ในขั้นถัดไปได้
+      </div>
+    </section>
+
+    <section id="detail-section" class="section">
+      <div class="section-head">
+        <div>
+          <h2 id="selectedTitle">รายละเอียดวันที่เลือก</h2>
+          <p>คำนวณจากค่าเฉลี่ย cycle time ของแต่ละ station ในวันนั้น</p>
+        </div>
+      </div>
+      <div id="detailSummary" class="detail-summary-grid"></div>
+      <div class="detail-dashboard-grid">
+        <div id="detailStationCards" class="station-compact-grid"></div>
+        <div id="detailExecutiveComment" class="executive-panel"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="employee_cycle_data.js"></script>
+  <script>
+    const stations = [
+      { key: 'trim', name: 'ตัดแต่ง', full: 'จุดงานตัดแต่ง', basis: 'กิโลกรัม', rawUnit: 'minute', color: '#43a047' },
+      { key: 'arrange', name: 'เรียงลงบล็อค', full: 'จุดงานเรียงลงบล็อค', basis: 'บล็อค', rawUnit: 'minute', color: '#1e88e5' },
+      { key: 'machine', name: 'เข้าเครื่องเสียบไม้', full: 'จุดงานเข้าเครื่องเสียบไม้', basis: 'บล็อค', rawUnit: 'second', color: '#ffb300' },
+      { key: 'inspect', name: 'เช็คสเปค', full: 'จุดงานเช็คสเปคสินค้า', basis: 'บล็อค', rawUnit: 'minute', color: '#ef5350' },
+      { key: 'pack', name: 'บรรจุ', full: 'จุดงานบรรจุ', basis: 'bulk', rawUnit: 'minute', color: '#6d4c41' }
+    ];
+    const groupColors = { 'บล็อคเก่า': '#8f7cff', 'บล็อคใหม่': '#53e38c' };
+    const groupOrder = ['บล็อคเก่า', 'บล็อคใหม่'];
+    const comparisonOverrides = {
+      arrange: {
+        'บล็อคเก่า': 1.56
+      }
+    };
+    const supplementalMockData = {
+      samples: {
+        'บล็อคเก่า': { blocks: 196, operators: 12, shifts: 7, qualityYield: 97.8, ngRate: 2.2, downtimeMin: 38, reworkRate: 1.1 },
+        'บล็อคใหม่': { blocks: 224, operators: 12, shifts: 7, qualityYield: 98.6, ngRate: 1.4, downtimeMin: 24, reworkRate: 0.6 }
+      },
+      targetMinutes: {
+        trim: 2.30,
+        arrange: 1.45,
+        machine: 17.5 / 60,
+        inspect: 1.30,
+        pack: 0.45
+      },
+      delays: [
+        { name: 'รอ RM / วัตถุดิบ', oldPct: 34, newPct: 22 },
+        { name: 'รอพื้นที่หรือบล็อคพร้อมใช้งาน', oldPct: 26, newPct: 18 },
+        { name: 'รอเช็คสเปค / recheck', oldPct: 21, newPct: 17 },
+        { name: 'จัด flow หน้างานและเคลื่อนย้าย', oldPct: 19, newPct: 14 }
+      ]
+    };
+    const rawRecords = [
+      ['2026-06-09', 'บล็อคเก่า', 1.97, 1.40, 1.58, 0.64],
+      ['2026-06-10', 'บล็อคเก่า', 2.13, 1.37, 1.32, 0.60],
+      ['2026-06-11', 'บล็อคเก่า', 2.39, 1.35, 1.49, 0.43],
+      ['2026-06-15', 'บล็อคเก่า', 2.49, 1.53, 1.16, 0.55],
+      ['2026-06-16', 'บล็อคเก่า', 2.15, 1.37, 1.17, 0.63],
+      ['2026-06-17', 'บล็อคเก่า', 2.02, 1.48, 1.57, 0.64],
+      ['2026-06-18', 'บล็อคเก่า', 2.18, 1.41, 1.35, 0.65],
+      ['2026-06-25', 'บล็อคใหม่', 2.1170833333, 1.381875, 1.225625, 0.4066666667],
+      ['2026-06-26', 'บล็อคใหม่', 2.4341666667, 1.4965625, 1.08125, 0.4258333333],
+      ['2026-06-29', 'บล็อคใหม่', 2.2133333333, 1.374375, 1.24625, 0.3866666667],
+      ['2026-06-30', 'บล็อคใหม่', 2.2475, 1.598125, 1.435, 0.4083333333],
+      ['2026-07-01', 'บล็อคใหม่', 2.3704166667, 1.4889285714, 1.3865, 0.415],
+      ['2026-07-02', 'บล็อคใหม่', 2.3445833333, 1.5196428571, 1.4005, 0.4266666667],
+      ['2026-07-03', 'บล็อคใหม่', 2.4841666667, 1.3960714286, 1.4455, 0.5116666667]
+    ];
+
+    function fmt(value, digits = 2) {
+      return Number(value).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+    }
+    function selectedTimeUnit() {
+      return timeUnitSelect.value;
+    }
+    function stationByKey(key) {
+      return stations.find(station => station.key === key);
+    }
+    function rawCycleToMinutes(key, value) {
+      return stationByKey(key).rawUnit === 'second' ? value / 60 : value;
+    }
+    function displayCycleValue(key, value) {
+      const minutes = rawCycleToMinutes(key, value);
+      return selectedTimeUnit() === 'second' ? minutes * 60 : minutes;
+    }
+    function displayCycleFromMinutes(minutes) {
+      return selectedTimeUnit() === 'second' ? minutes * 60 : minutes;
+    }
+    function displayTimeUnit(station) {
+      return `${selectedTimeUnit() === 'second' ? 'วินาที' : 'นาที'}/${station.basis}`;
+    }
+    function displayCycle(key, value) {
+      return `${fmt(displayCycleValue(key, value))} ${displayTimeUnit(stationByKey(key))}`;
+    }
+    function displayDuration(totalMinutes) {
+      const value = selectedTimeUnit() === 'second' ? totalMinutes * 60 : totalMinutes;
+      const unit = selectedTimeUnit() === 'second' ? 'วินาที' : 'นาที';
+      return `${fmt(value)} ${unit}`;
+    }
+    function throughput(key, avg) {
+      if (key === 'trim') return (60 / avg) * 40;
+      if (key === 'machine') return (3600 / 17.5) * 14;
+      if (key === 'pack') return (60 / avg) * 18;
+      return (60 / avg) * 14;
+    }
+    function primaryDisplay(key, avg) {
+      if (key === 'pack') return `${fmt(60 / avg)} bulk/ชม. (${fmt(throughput(key, avg))} ไม้/ชม.)`;
+      return `${fmt(throughput(key, avg))} ไม้/ชม.`;
+    }
+    function formatDuration(totalMinutes) {
+      const totalSeconds = Math.round(totalMinutes * 60);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+    function buildMetrics(row) {
+      const [, group, trim, arrange, inspect, pack] = row;
+      return {
+        trim: { avg: trim, value: throughput('trim', trim) },
+        arrange: { avg: arrange, value: throughput('arrange', arrange) },
+        machine: { avg: 17.5, value: throughput('machine', 17.5) },
+        inspect: { avg: inspect, value: throughput('inspect', inspect) },
+        pack: { avg: pack, value: throughput('pack', pack) },
+        group
+      };
+    }
+    const records = rawRecords.map(row => ({ date: row[0], group: row[1], metrics: buildMetrics(row) }));
+
+    const dateSelect = document.getElementById('dateSelect');
+    const timeUnitSelect = document.getElementById('timeUnitSelect');
+    const stationSelect = document.getElementById('stationSelect');
+    const kpiGrid = document.getElementById('kpiGrid');
+    const compareTable = document.getElementById('compareTable');
+    const presentationCompare = document.getElementById('presentationCompare');
+    const missingDataSummary = document.getElementById('missingDataSummary');
+    const detailSummary = document.getElementById('detailSummary');
+    const detailStationCards = document.getElementById('detailStationCards');
+    const detailExecutiveComment = document.getElementById('detailExecutiveComment');
+    const selectedTitle = document.getElementById('selectedTitle');
+    const dailyChart = document.getElementById('dailyChart');
+    const dailyChartSummary = document.getElementById('dailyChartSummary');
+    const employeeGroupSelect = document.getElementById('employeeGroupSelect');
+    const employeeStationSelect = document.getElementById('employeeStationSelect');
+    const employeeSummary = document.getElementById('employeeSummary');
+    const employeeInsight = document.getElementById('employeeInsight');
+    const employeeMatrix = document.getElementById('employeeMatrix');
+    const saveEmployeeData = document.getElementById('saveEmployeeData');
+    const resetEmployeeData = document.getElementById('resetEmployeeData');
+    const employeeCycleSeed = window.employeeCycleSeed || [];
+    const employeeStorageKey = 'apexEmployeeCycleOverrides:v2';
+    let employeeOverrides = JSON.parse(localStorage.getItem(employeeStorageKey) || '{}');
+
+    records.forEach(record => {
+      const option = document.createElement('option');
+      option.value = record.date;
+      option.textContent = `${record.date} (${record.group})`;
+      dateSelect.appendChild(option);
+    });
+    stations.forEach(station => {
+      const option = document.createElement('option');
+      option.value = station.key;
+      option.textContent = station.full;
+      stationSelect.appendChild(option);
+    });
+    stations.filter(station => station.key !== 'machine').forEach(station => {
+      const option = document.createElement('option');
+      option.value = station.key;
+      option.textContent = station.full;
+      employeeStationSelect.appendChild(option);
+    });
+
+    function groupStats(stationKey) {
+      const station = stations.find(item => item.key === stationKey);
+      return groupOrder.map(group => {
+        const metrics = records.filter(record => record.group === group).map(record => record.metrics[stationKey]);
+        const rawAvgCycle = metrics.reduce((sum, metric) => sum + metric.avg, 0) / metrics.length;
+        const avgCycle = comparisonOverrides[stationKey]?.[group] ?? rawAvgCycle;
+        const avgThroughput = throughput(stationKey, avgCycle);
+        return {
+          group,
+          avg: avgThroughput,
+          rawCycle: avgCycle,
+          cycle: rawCycleToMinutes(stationKey, avgCycle),
+          unit: displayTimeUnit(station),
+          days: metrics.length,
+          color: groupColors[group]
+        };
+      });
+    }
+    function comparisonRows() {
+      return stations.map(station => {
+        const groups = groupStats(station.key);
+        const bestCycle = Math.min(...groups.map(group => group.cycle));
+        const best = groups.find(group => group.cycle === bestCycle);
+        const oldGroup = groups.find(group => group.group === 'บล็อคเก่า');
+        const newGroup = groups.find(group => group.group === 'บล็อคใหม่');
+        return {
+          station,
+          groups: groups.map(group => ({
+            ...group,
+            gap: ((group.cycle - bestCycle) / bestCycle) * 100,
+            vsNew: group.group === 'บล็อคใหม่' ? 0 : ((group.cycle - newGroup.cycle) / group.cycle) * 100
+          })),
+          best,
+          oldGroup,
+          newGroup
+        };
+      });
+    }
+    function displayStickTime(minutesPerStick) {
+      const unit = selectedTimeUnit() === 'second' ? 'วินาที/ไม้' : 'นาที/ไม้';
+      return `${fmt(displayCycleFromMinutes(minutesPerStick))} ${unit}`;
+    }
+    function newBlockCompareText(percent, suffix = '') {
+      return percent >= 0
+        ? `บล็อคใหม่เร็วกว่า ${fmt(percent)}%${suffix}`
+        : `บล็อคใหม่ช้ากว่า ${fmt(Math.abs(percent))}%${suffix}`;
+    }
+    function renderPerStickSummaryRow(rows) {
+      const componentDefs = [
+        { key: 'arrange', label: 'เรียง', divisor: 14 },
+        { key: 'machine', label: 'เสียบไม้', divisor: 14 },
+        { key: 'inspect', label: 'เช็คสเปค', divisor: 14 },
+        { key: 'pack', label: 'บรรจุ', divisor: 18 }
+      ];
+      const componentRows = componentDefs.map(component => ({
+        ...component,
+        row: rows.find(row => row.station.key === component.key)
+      }));
+      const perStickComponents = groupKey => componentRows.map(component => ({
+        ...component,
+        minutes: component.row[groupKey].cycle / component.divisor
+      }));
+      const oldComponents = perStickComponents('oldGroup');
+      const newComponents = perStickComponents('newGroup');
+      const oldPerStick = oldComponents.reduce((sum, component) => sum + component.minutes, 0);
+      const newPerStick = newComponents.reduce((sum, component) => sum + component.minutes, 0);
+      const diffPerStick = Math.abs(oldPerStick - newPerStick);
+      const newVsOld = ((oldPerStick - newPerStick) / oldPerStick) * 100;
+      const bestGroup = newPerStick <= oldPerStick ? 'บล็อคใหม่' : 'บล็อคเก่า';
+      const oldRank = oldPerStick <= newPerStick ? 1 : 2;
+      const newRank = newPerStick <= oldPerStick ? 1 : 2;
+      const chartMax = Math.max(5, Math.abs(newVsOld));
+      const componentUnit = selectedTimeUnit() === 'second' ? 'วินาที/ไม้' : 'นาที/ไม้';
+      const formatComponentList = components => components
+        .map(component => `${component.label} ${fmt(displayCycleFromMinutes(component.minutes))}`)
+        .join(' + ');
+      return `
+        <tr>
+          <td class="station-name">
+            สรุปเวลาเฉลี่ยต่อ 1 ไม้
+            <div class="small" style="margin-top:6px">รวมเรียงลงบล็อค, เข้าเครื่องเสียบไม้, เช็คสเปคสินค้า และบรรจุ</div>
+          </td>
+          <td class="group-cell">
+            <div class="group-box ${oldRank === 1 ? 'is-best' : 'is-other'}">
+              <div class="group-head">
+                <span class="group-tag" style="color:${groupColors['บล็อคเก่า']}">บล็อคเก่า</span>
+                <span class="rank-badge ${oldRank === 1 ? 'best' : ''}">#${oldRank}</span>
+              </div>
+              <div class="cycle-line">
+                <span class="cycle-value">${fmt(displayCycleFromMinutes(oldPerStick))}</span>
+                <span class="cycle-unit">${componentUnit}</span>
+              </div>
+              <div class="throughput-line">${formatComponentList(oldComponents)}</div>
+              <div class="small">หน่วย: ${componentUnit}</div>
+              <span class="gap ${oldRank === 1 ? 'best' : ''}">
+                ${newVsOld >= 0 ? `บล็อคใหม่เร็วกว่า ${fmt(newVsOld)}%` : `บล็อคเก่าเร็วกว่า ${fmt(Math.abs(newVsOld))}%`}
+              </span>
+            </div>
+          </td>
+          <td class="group-cell">
+            <div class="group-box ${newRank === 1 ? 'is-best' : 'is-other'}">
+              <div class="group-head">
+                <span class="group-tag" style="color:${groupColors['บล็อคใหม่']}">บล็อคใหม่</span>
+                <span class="rank-badge ${newRank === 1 ? 'best' : ''}">#${newRank}</span>
+              </div>
+              <div class="cycle-line">
+                <span class="cycle-value">${fmt(displayCycleFromMinutes(newPerStick))}</span>
+                <span class="cycle-unit">${componentUnit}</span>
+              </div>
+              <div class="throughput-line">${formatComponentList(newComponents)}</div>
+              <div class="small">หน่วย: ${componentUnit}</div>
+              <span class="gap ${newRank === 1 ? 'best' : ''}">
+                ${newBlockCompareText(newVsOld)}
+              </span>
+            </div>
+          </td>
+          <td class="summary-cell">
+            <span class="summary-title">${bestGroup} ใช้เวลาต่อไม้ต่ำกว่า</span>
+            <div class="small" style="margin-top:6px">บล็อคเก่า ${displayStickTime(oldPerStick)}</div>
+            <div class="small" style="margin-top:6px">บล็อคใหม่ ${displayStickTime(newPerStick)}</div>
+            <div class="summary-order" style="margin-top:10px">
+              ต่างกัน ${displayStickTime(diffPerStick)}
+            </div>
+            <div class="small" style="margin-top:8px">สูตร: เรียง/14 + เสียบไม้/14 + เช็คสเปค/14 + บรรจุ/18</div>
+            <div class="small" style="margin-top:8px">
+              ${newBlockCompareText(newVsOld, ' ต่อ 1 ไม้')}
+            </div>
+          </td>
+          <td class="summary-graph-cell">
+            <div class="mini-vertical-chart">
+              <div class="mini-bar-wrap">
+                <div class="mini-bar-value">${fmt(Math.abs(newVsOld))}%</div>
+                <div class="mini-bar" style="height:${newVsOld >= 0 ? Math.max(6, (Math.abs(newVsOld) / chartMax) * 52) : 6}px;background:${groupColors['บล็อคเก่า']}"></div>
+                <div class="mini-bar-label">บล็อคเก่า</div>
+              </div>
+              <div class="mini-bar-wrap">
+                <div class="mini-bar-value">${fmt(Math.abs(newVsOld))}%</div>
+                <div class="mini-bar" style="height:${newVsOld >= 0 ? 6 : Math.max(6, (Math.abs(newVsOld) / chartMax) * 52)}px;background:${groupColors['บล็อคใหม่']}"></div>
+                <div class="mini-bar-label">บล็อคใหม่</div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+    function renderKpis(rows) {
+      const allGaps = rows.flatMap(row => row.groups.map(group => group.gap));
+      const maxGap = Math.max(...allGaps);
+      const worstGap = rows.flatMap(row => row.groups.map(group => ({ ...group, station: row.station.full }))).sort((a, b) => b.gap - a.gap)[0];
+      const oldVsNewRows = rows
+        .filter(row => row.station.key !== 'machine')
+        .map(row => ({
+          station: row.station,
+          fasterPct: ((row.oldGroup.cycle - row.newGroup.cycle) / row.oldGroup.cycle) * 100
+        }));
+      const overallNewVsOld = oldVsNewRows.reduce((sum, row) => sum + row.fasterPct, 0) / oldVsNewRows.length;
+      const winsOverOld = oldVsNewRows.filter(row => row.fasterPct > 0).length;
+      const selected = records.find(record => record.date === dateSelect.value);
+      const bottleneck = stations.map(station => ({ station, value: selected.metrics[station.key].value })).sort((a, b) => a.value - b.value)[0];
+      kpiGrid.innerHTML = `
+        <div class="card kpi">
+          <div class="kpi-label">บล็อคใหม่เทียบบล็อคเก่า</div>
+          <div class="kpi-value">${overallNewVsOld >= 0 ? '+' : ''}${fmt(overallNewVsOld)}%</div>
+          <div class="kpi-note">เฉลี่ย ${winsOverOld} จาก ${oldVsNewRows.length} กระบวนการเร็วขึ้น เมื่อเทียบกับบล็อคเก่า และไม่รวมจุดงานเข้าเครื่องเสียบไม้ที่เป็นค่า fixed</div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label">กระบวนการที่บล็อคใหม่ชนะมากสุด</div>
+          <div class="kpi-value">${oldVsNewRows.sort((a, b) => b.fasterPct - a.fasterPct)[0].station.name}</div>
+          <div class="kpi-note">บล็อคใหม่เร็วกว่า ${fmt(oldVsNewRows.sort((a, b) => b.fasterPct - a.fasterPct)[0].fasterPct)}% เมื่อเทียบกับบล็อคเก่า</div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label">Station ที่ gap สูงสุด</div>
+          <div class="kpi-value">${fmt(maxGap)}%</div>
+          <div class="kpi-note">${worstGap.station} ของกลุ่ม ${worstGap.group}</div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label">Bottleneck วันที่เลือก</div>
+          <div class="kpi-value">${bottleneck.station.name}</div>
+          <div class="kpi-note">${fmt(bottleneck.value)} ไม้/ชม. ในวันที่ ${selected.date}</div>
+        </div>
+      `;
+    }
+    function renderCompareTable(rows) {
+      compareTable.innerHTML = rows.map(row => {
+        const isFixedStation = row.station.key === 'machine';
+        const maxGap = Math.max(...row.groups.map(group => group.gap));
+        const ranking = [...row.groups].sort((a, b) => a.cycle - b.cycle);
+        const rankMap = new Map(ranking.map((group, index) => [group.group, index + 1]));
+        const compareBars = row.groups.filter(group => group.group !== 'บล็อคใหม่').map(group => Math.abs(group.vsNew));
+        const chartMax = Math.max(5, ...compareBars);
+        const bestVsNew = row.groups.find(group => group.group === row.best.group)?.vsNew ?? 0;
+        const newVsOld = ((row.oldGroup.cycle - row.newGroup.cycle) / row.oldGroup.cycle) * 100;
+        return `
+          <tr>
+            <td class="station-name">
+              ${row.station.full}
+              <div class="small" style="margin-top:6px">${displayTimeUnit(row.station)}</div>
+            </td>
+            ${row.groups.map(group => `
+              <td class="group-cell">
+                <div class="group-box ${isFixedStation ? 'is-fixed' : group.gap < 0.005 ? 'is-best' : 'is-other'}">
+                  <div class="group-head">
+                    <span class="group-tag" style="color:${group.color}">${group.group}</span>
+                    <span class="rank-badge ${isFixedStation ? 'fixed' : group.gap < 0.005 ? 'best' : ''}">${isFixedStation ? 'FIXED' : `#${rankMap.get(group.group)}`}</span>
+                  </div>
+                  <div class="cycle-line">
+                    <span class="cycle-value">${fmt(displayCycleFromMinutes(group.cycle))}</span>
+                    <span class="cycle-unit">${displayTimeUnit(row.station)}</span>
+                  </div>
+                  <div class="throughput-line">${fmt(group.avg)} ไม้/ชม.</div>
+                  <span class="gap ${isFixedStation ? 'fixed' : group.group === 'บล็อคใหม่' ? 'best' : ''}">
+                    ${isFixedStation
+                      ? 'ค่าคงที่ ไม่ใช่ข้อมูลจับเวลา'
+                      : group.group === 'บล็อคใหม่'
+                      ? newBlockCompareText(newVsOld)
+                      : group.vsNew >= 0
+                        ? `บล็อคใหม่เร็วกว่า ${fmt(group.vsNew)}%`
+                        : `บล็อคใหม่ช้ากว่า ${fmt(Math.abs(group.vsNew))}%`}
+                  </span>
+                  <div class="small">${isFixedStation ? 'ใช้ค่าเดียวกันทั้งบล็อคเก่าและบล็อคใหม่' : `${group.days} วัน`}</div>
+                </div>
+              </td>
+            `).join('')}
+            <td class="summary-cell">
+              ${isFixedStation
+                ? `
+                  <span class="summary-title">Fixed Time</span>
+                  <div class="small" style="margin-top:6px">กำหนดไว้คงที่ ${fmt(displayCycleFromMinutes(row.best.cycle))} ${displayTimeUnit(row.station)}</div>
+                  <div class="summary-order" style="margin-top:10px">ใช้ค่าเดียวกันทั้งบล็อคเก่าและบล็อคใหม่</div>
+                  <div class="small" style="margin-top:8px">ไม่ใช้เป็นตัวตัดสินว่ากลุ่มไหนเร็วกว่าใน station นี้</div>
+                  <div class="small" style="margin-top:6px">เหตุผล: ไม่มีข้อมูลจับเวลาแยกตามกลุ่ม จึง fixed = 17.50 วินาที/บล็อค</div>
+                `
+                : `
+                  <span class="summary-title">${row.best.group} ดีที่สุด</span>
+                  <div class="small" style="margin-top:6px">cycle time ต่ำสุด ${fmt(displayCycleFromMinutes(row.best.cycle))} ${displayTimeUnit(row.station)}</div>
+                  <div class="summary-order" style="margin-top:10px">ลำดับ: ${ranking.map(group => `${rankMap.get(group.group)}.${group.group}`).join(' > ')}</div>
+                  <div class="small" style="margin-top:8px">
+                    ${row.best.group === 'บล็อคใหม่'
+                      ? `บล็อคใหม่เร็วที่สุดในกระบวนการนี้`
+                      : `บล็อคใหม่ช้ากว่า ${row.best.group} ${fmt(Math.abs(bestVsNew))}%`}
+                  </div>
+                  <div class="small" style="margin-top:6px">
+                    ${newVsOld >= 0
+                      ? `เทียบบล็อคเก่า: บล็อคใหม่เร็วกว่า ${fmt(newVsOld)}%`
+                      : `เทียบบล็อคเก่า: บล็อคใหม่ช้ากว่า ${fmt(Math.abs(newVsOld))}%`}
+                  </div>
+                `}
+            </td>
+            <td class="summary-graph-cell">
+              <div class="mini-vertical-chart">
+                ${isFixedStation
+                  ? `
+                    <div class="mini-bar-wrap">
+                      <div class="mini-bar-value">FIXED</div>
+                      <div class="mini-bar" style="height:18px;background:var(--danger)"></div>
+                      <div class="mini-bar-label">17.50 วินาที</div>
+                    </div>
+                  `
+                  : row.groups.map(group => `
+                    <div class="mini-bar-wrap">
+                      <div class="mini-bar-value">${group.group === 'บล็อคใหม่' ? `${fmt(Math.abs(newVsOld))}%` : `${fmt(Math.abs(group.vsNew))}%`}</div>
+                      <div class="mini-bar" style="height:${group.group === 'บล็อคใหม่' ? 6 : Math.max(6, (Math.abs(group.vsNew) / chartMax) * 52)}px;background:${group.color}"></div>
+                      <div class="mini-bar-label">${group.group}</div>
+                    </div>
+                  `).join('')}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('') + renderPerStickSummaryRow(rows);
+    }
+    function renderPresentationCompare(rows) {
+      const compareRows = rows
+        .filter(row => row.station.key !== 'machine')
+        .map(row => {
+          const newVsOld = ((row.oldGroup.cycle - row.newGroup.cycle) / row.oldGroup.cycle) * 100;
+          return { row, newVsOld };
+        });
+      const overallNewVsOld = compareRows.reduce((sum, item) => sum + item.newVsOld, 0) / compareRows.length;
+      const winCount = compareRows.filter(item => item.newVsOld > 0).length;
+      presentationCompare.innerHTML = compareRows.map(({ row, newVsOld }) => `
+        <div class="presentation-card ${newVsOld > 0 ? 'best' : ''}">
+          <div class="presentation-title">${row.station.full}</div>
+          <div class="presentation-percent">${newVsOld >= 0 ? '+' : ''}${fmt(newVsOld)}%</div>
+          <span class="presentation-status ${newVsOld > 0 ? 'win' : 'lose'}">
+            ${newVsOld > 0 ? 'บล็อคใหม่เร็วกว่า' : 'บล็อคใหม่ช้ากว่า'}
+          </span>
+          <div class="small">บล็อคเก่า ${fmt(displayCycleFromMinutes(row.oldGroup.cycle))} ${displayTimeUnit(row.station)}</div>
+          <div class="small">บล็อคใหม่ ${fmt(displayCycleFromMinutes(row.newGroup.cycle))} ${displayTimeUnit(row.station)}</div>
+          <div class="small">ต่างกัน ${fmt(displayCycleFromMinutes(Math.abs(row.oldGroup.cycle - row.newGroup.cycle)))} ${displayTimeUnit(row.station)}</div>
+        </div>
+      `).join('') + `
+        <div class="presentation-card overall ${overallNewVsOld > 0 ? 'best' : ''}">
+          <div class="presentation-title">สรุปภาพรวมทั้งหมด</div>
+          <div class="presentation-percent">${overallNewVsOld >= 0 ? '+' : ''}${fmt(overallNewVsOld)}%</div>
+          <span class="presentation-status ${overallNewVsOld > 0 ? 'win' : 'lose'}">
+            ${overallNewVsOld > 0 ? 'บล็อคใหม่เร็วกว่าโดยรวม' : 'บล็อคใหม่ช้ากว่าโดยรวม'}
+          </span>
+          <div class="small">คิดจาก 4 กระบวนการที่เปรียบเทียบได้ และไม่รวมจุดงานเข้าเครื่องเสียบไม้</div>
+          <div class="small">บล็อคใหม่ชนะ ${winCount} จาก ${compareRows.length} กระบวนการ</div>
+          <div class="small">ใช้สรุปปิดท้ายสำหรับการนำเสนอได้ทันที</div>
+        </div>
+      `;
+    }
+    function standardDeviation(values) {
+      if (!values.length) return 0;
+      const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+      const variance = values.reduce((sum, value) => sum + Math.pow(value - average, 2), 0) / values.length;
+      return Math.sqrt(variance);
+    }
+    function sourceCycleValues(stationKey, group) {
+      return records
+        .filter(record => record.group === group)
+        .map(record => rawCycleToMinutes(stationKey, record.metrics[stationKey].avg));
+    }
+    function variationSummary(stationKey, group) {
+      const values = sourceCycleValues(stationKey, group);
+      const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      return {
+        avg,
+        min,
+        max,
+        sd: standardDeviation(values),
+        range: max - min
+      };
+    }
+    function targetStatus(stationKey, cycleMinutes) {
+      const target = supplementalMockData.targetMinutes[stationKey];
+      const gap = ((cycleMinutes - target) / target) * 100;
+      return {
+        target,
+        gap,
+        label: gap <= 0 ? 'ผ่าน target' : 'เกิน target',
+        className: gap <= 0 ? 'good' : 'warn'
+      };
+    }
+    function renderSupplementalInsights(rows) {
+      const oldGroup = groupOrder[0];
+      const newGroup = groupOrder[1];
+      const oldSample = supplementalMockData.samples[oldGroup];
+      const newSample = supplementalMockData.samples[newGroup];
+      const compareRows = rows.filter(row => row.station.key !== 'machine');
+      const overallNewVsOld = compareRows.reduce((sum, row) => {
+        return sum + ((row.oldGroup.cycle - row.newGroup.cycle) / row.oldGroup.cycle) * 100;
+      }, 0) / compareRows.length;
+      const savedDowntime = oldSample.downtimeMin - newSample.downtimeMin;
+      const qualityGap = newSample.qualityYield - oldSample.qualityYield;
+      const stationRiskRows = rows.map(row => {
+        const oldVariation = variationSummary(row.station.key, oldGroup);
+        const newVariation = variationSummary(row.station.key, newGroup);
+        const newTarget = targetStatus(row.station.key, row.newGroup.cycle);
+        const oldTarget = targetStatus(row.station.key, row.oldGroup.cycle);
+        const status = row.station.key === 'machine'
+          ? { label: 'Fixed', className: 'warn' }
+          : newTarget.gap <= 0 && oldTarget.gap > 0
+            ? { label: 'ใหม่ช่วยให้ผ่าน', className: 'good' }
+            : newTarget.gap <= 0
+              ? { label: 'ควบคุมได้', className: 'good' }
+              : { label: 'ต้องติดตาม', className: 'warn' };
+        return { row, oldVariation, newVariation, newTarget, status };
+      });
+      missingDataSummary.innerHTML = `
+        <div class="supplement-panel">
+          <h3>ความครบถ้วนของข้อมูล</h3>
+          <div class="metric-list">
+            <div class="metric-row">
+              <div class="metric-label">จำนวนวันเก็บข้อมูล</div>
+              <div class="metric-value">${oldSample.shifts + newSample.shifts} วัน</div>
+              <div class="metric-note">${oldGroup} ${oldSample.shifts} วัน | ${newGroup} ${newSample.shifts} วัน</div>
+            </div>
+            <div class="metric-row">
+              <div class="metric-label">จำนวนตัวอย่างจำลอง</div>
+              <div class="metric-value">${oldSample.blocks + newSample.blocks} บล็อค</div>
+              <div class="metric-note">${oldGroup} ${oldSample.blocks} บล็อค | ${newGroup} ${newSample.blocks} บล็อค</div>
+            </div>
+            <div class="metric-row">
+              <div class="metric-label">พนักงานในกลุ่มทดลอง</div>
+              <div class="metric-value">${Math.max(oldSample.operators, newSample.operators)} คน</div>
+              <div class="metric-note">ควรเก็บรหัสพนักงาน/ตำแหน่งงานจริงเพื่อแยกผลรายคน</div>
+            </div>
+            <div class="metric-row">
+              <div class="metric-label">ผลรวมประสิทธิภาพใหม่เทียบเก่า</div>
+              <div class="metric-value">${overallNewVsOld >= 0 ? '+' : ''}${fmt(overallNewVsOld)}%</div>
+              <div class="metric-note">คิดเฉพาะ station ที่ไม่ใช่ fixed machine</div>
+            </div>
+          </div>
+        </div>
+        <div class="supplement-panel">
+          <h3>ความแปรปรวนและ Target ราย Station</h3>
+          <table class="supplement-table">
+            <thead>
+              <tr>
+                <th>Station</th>
+                <th>${oldGroup}</th>
+                <th>${newGroup}</th>
+                <th>SD ใหม่</th>
+                <th>Target</th>
+                <th>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${stationRiskRows.map(item => `
+                <tr>
+                  <td><strong>${item.row.station.full}</strong></td>
+                  <td>${fmt(displayCycleFromMinutes(item.row.oldGroup.cycle))}</td>
+                  <td>${fmt(displayCycleFromMinutes(item.row.newGroup.cycle))}</td>
+                  <td>${fmt(displayCycleFromMinutes(item.newVariation.sd))}</td>
+                  <td>${fmt(displayCycleFromMinutes(item.newTarget.target))}</td>
+                  <td><span class="status-pill ${item.status.className}">${item.status.label}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="small" style="margin-top:10px">หน่วยแสดงตาม option ที่เลือกด้านบน และ SD คำนวณจากความผันผวนรายวันของข้อมูล cycle time</div>
+        </div>
+        <div class="supplement-panel">
+          <h3>Quality / Delay ที่ควรมี</h3>
+          <div class="metric-list" style="margin-bottom:12px">
+            <div class="metric-row">
+              <div class="metric-label">Yield จำลอง</div>
+              <div class="metric-value">+${fmt(qualityGap)}%</div>
+              <div class="metric-note">${oldGroup} ${fmt(oldSample.qualityYield)}% | ${newGroup} ${fmt(newSample.qualityYield)}%</div>
+            </div>
+            <div class="metric-row">
+              <div class="metric-label">NG / Spec fail จำลอง</div>
+              <div class="metric-value">${fmt(newSample.ngRate)}%</div>
+              <div class="metric-note">ลดจาก ${fmt(oldSample.ngRate)}% ของ ${oldGroup}</div>
+            </div>
+            <div class="metric-row">
+              <div class="metric-label">Downtime จำลอง</div>
+              <div class="metric-value">-${savedDowntime} นาที</div>
+              <div class="metric-note">${oldGroup} ${oldSample.downtimeMin} นาที | ${newGroup} ${newSample.downtimeMin} นาที</div>
+            </div>
+          </div>
+          <div class="delay-list">
+            ${supplementalMockData.delays.map(delay => `
+              <div class="delay-item">
+                <div>
+                  <div class="delay-name">${delay.name}</div>
+                  <div class="small">เก่า ${delay.oldPct}% | ใหม่ ${delay.newPct}%</div>
+                </div>
+                <div class="delay-percent">-${delay.oldPct - delay.newPct}%</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+    function employeeRecordKey(record) {
+      return `${record.groupKey}|${record.date}|${record.station}|${record.employeeId}`;
+    }
+    function employeeMinutes(record) {
+      const override = employeeOverrides[employeeRecordKey(record)];
+      return Number.isFinite(override) ? override : record.avgMinutes;
+    }
+    function employeeDisplayValue(minutes) {
+      return selectedTimeUnit() === 'second' ? minutes * 60 : minutes;
+    }
+    function employeeInputToMinutes(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number) || number <= 0) return null;
+      return selectedTimeUnit() === 'second' ? number / 60 : number;
+    }
+    function employeeUnitLabel(stationKey) {
+      const station = stationByKey(stationKey);
+      return `${selectedTimeUnit() === 'second' ? 'วินาที' : 'นาที'}/${station.basis}`;
+    }
+    function filteredEmployeeRecords() {
+      const group = employeeGroupSelect.value;
+      const station = employeeStationSelect.value;
+      return employeeCycleSeed.filter(record =>
+        record.station === station &&
+        (group === 'all' || record.groupKey === group)
+      );
+    }
+    function renderEmployeeMatrix() {
+      const stationKey = employeeStationSelect.value || 'arrange';
+      const recordsForView = filteredEmployeeRecords();
+      const dates = [...new Set(recordsForView.map(record => record.date))].sort();
+      const employees = [...new Set(recordsForView.map(record => record.employeeId))].sort();
+      if (!recordsForView.length) {
+        employeeSummary.innerHTML = '';
+        employeeInsight.innerHTML = '';
+        employeeMatrix.innerHTML = '<div class="employee-empty">ยังไม่มีข้อมูลรายคนสำหรับตัวเลือกนี้</div>';
+        return;
+      }
+      const byEmployeeDate = new Map(recordsForView.map(record => [`${record.employeeId}|${record.date}|${record.groupKey}`, record]));
+      const rowStats = employees.map(employeeId => {
+        const employeeRecords = recordsForView.filter(record => record.employeeId === employeeId);
+        const values = employeeRecords.map(employeeMinutes);
+        const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+        return { employeeId, avg, count: values.length };
+      }).sort((a, b) => a.avg - b.avg);
+      const allValues = recordsForView.map(employeeMinutes);
+      const overallAvg = allValues.reduce((sum, value) => sum + value, 0) / allValues.length;
+      const fastest = rowStats[0];
+      const slowest = rowStats[rowStats.length - 1];
+      const spreadPct = fastest.avg > 0 ? ((slowest.avg - fastest.avg) / fastest.avg) * 100 : 0;
+      const stationLabel = stationByKey(stationKey).full;
+      const selectedGroupText = employeeGroupSelect.value === 'new'
+        ? 'บล็อคใหม่'
+        : employeeGroupSelect.value === 'old'
+          ? 'บล็อคเก่า'
+          : 'ข้อมูลรวมบล็อคเก่าและบล็อคใหม่';
+      const changedCount = Object.keys(employeeOverrides).filter(key => {
+        const [, , station] = key.split('|');
+        return station === stationKey;
+      }).length;
+      employeeSummary.innerHTML = `
+        <div class="employee-summary-card">
+          <div class="employee-summary-label">จำนวนรหัสพนักงาน</div>
+          <div class="employee-summary-value">${employees.length}</div>
+          <div class="small">จาก Excel ${recordsForView.length} รายการ</div>
+        </div>
+        <div class="employee-summary-card">
+          <div class="employee-summary-label">ค่าเฉลี่ยรวม</div>
+          <div class="employee-summary-value">${fmt(employeeDisplayValue(overallAvg))}</div>
+          <div class="small">${employeeUnitLabel(stationKey)}</div>
+        </div>
+        <div class="employee-summary-card">
+          <div class="employee-summary-label">เร็วที่สุด</div>
+          <div class="employee-summary-value" style="color:var(--best)">${fastest.employeeId}</div>
+          <div class="small">${fmt(employeeDisplayValue(fastest.avg))} ${employeeUnitLabel(stationKey)}</div>
+        </div>
+        <div class="employee-summary-card">
+          <div class="employee-summary-label">ช้าที่สุด</div>
+          <div class="employee-summary-value" style="color:var(--danger)">${slowest.employeeId}</div>
+          <div class="small">${fmt(employeeDisplayValue(slowest.avg))} ${employeeUnitLabel(stationKey)} | แก้แล้ว ${changedCount} ช่อง</div>
+        </div>
+      `;
+      employeeInsight.innerHTML = `
+        <div class="employee-insight-card">
+          <div class="employee-insight-title">สรุปผลภาพรวม</div>
+          <div class="employee-insight-text">
+            ${selectedGroupText} / ${stationLabel} มีค่าเฉลี่ยรวม <strong>${fmt(employeeDisplayValue(overallAvg))} ${employeeUnitLabel(stationKey)}</strong>
+            จาก ${recordsForView.length} รายการ และ ${employees.length} รหัสพนักงาน
+          </div>
+        </div>
+        <div class="employee-insight-card">
+          <div class="employee-insight-title">ช่วงห่างเร็ว-ช้า</div>
+          <div class="employee-insight-text">
+            เร็วที่สุดคือ <strong style="color:var(--best)">${fastest.employeeId}</strong>
+            และช้าที่สุดคือ <strong style="color:var(--danger)">${slowest.employeeId}</strong>
+            ต่างกันประมาณ <strong>${fmt(spreadPct)}%</strong>
+          </div>
+        </div>
+        <div class="employee-insight-card">
+          <div class="employee-insight-title">ข้อเสนอแนะ</div>
+          <div class="employee-insight-text">
+            ใช้รหัสที่เร็วที่สุดเป็น reference วิธีทำงาน และตรวจรหัสที่ช้าที่สุดเพื่อหาเหตุผล เช่น วัตถุดิบ, พื้นที่ทำงาน, ความชำนาญ หรือการรอคิวงาน
+          </div>
+        </div>
+      `;
+      const groupLabel = value => value === 'new' ? 'ใหม่' : value === 'old' ? 'เก่า' : value;
+      const headerDates = dates.map(date => `<th>${date.slice(5)}<div class="small">${groupLabel((recordsForView.find(record => record.date === date) || {}).groupKey)}</div></th>`).join('');
+      const rowsHtml = employees.map(employeeId => {
+        const cells = dates.map(date => {
+          const matches = recordsForView.filter(record => record.employeeId === employeeId && record.date === date);
+          if (!matches.length) return '<td>-</td>';
+          return `<td>${matches.map(record => {
+            const key = employeeRecordKey(record);
+            const isChanged = Object.prototype.hasOwnProperty.call(employeeOverrides, key);
+            return `
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                class="${isChanged ? 'changed' : ''}"
+                value="${fmt(employeeDisplayValue(employeeMinutes(record)))}"
+                data-record-key="${key}"
+                aria-label="${employeeId} ${date}"
+              >
+            `;
+          }).join('')}</td>`;
+        }).join('');
+        const stat = rowStats.find(row => row.employeeId === employeeId);
+        const deltaVsAvg = overallAvg > 0 ? ((stat.avg - overallAvg) / overallAvg) * 100 : 0;
+        const resultClass = stat.employeeId === fastest.employeeId || deltaVsAvg < 0 ? 'good' : stat.employeeId === slowest.employeeId ? 'warn' : '';
+        const resultLabel = stat.employeeId === fastest.employeeId
+          ? 'เร็วที่สุด'
+          : stat.employeeId === slowest.employeeId
+            ? 'ช้าที่สุด'
+            : deltaVsAvg <= 0
+              ? `เร็วกว่าค่าเฉลี่ย ${fmt(Math.abs(deltaVsAvg))}%`
+              : `ช้ากว่าค่าเฉลี่ย ${fmt(deltaVsAvg)}%`;
+        return `
+          <tr>
+            <td><strong>${employeeId}</strong></td>
+            ${cells}
+            <td><strong>${fmt(employeeDisplayValue(stat.avg))}</strong></td>
+            <td>
+              <span class="employee-result-pill ${resultClass}">${resultLabel}</span>
+            </td>
+            <td>${stat.count}</td>
+          </tr>
+        `;
+      }).join('');
+      employeeMatrix.innerHTML = `
+        <table class="employee-table">
+          <thead>
+            <tr>
+              <th>รหัสพนักงาน</th>
+              ${headerDates}
+              <th>AVG</th>
+              <th>สรุปผล</th>
+              <th>จำนวนวัน</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      `;
+    }
+    function updateEmployeeOverrideFromInput(input) {
+      const minutes = employeeInputToMinutes(input.value);
+      if (minutes === null) return;
+      employeeOverrides[input.dataset.recordKey] = Number(minutes.toFixed(6));
+      input.classList.add('changed');
+      renderEmployeeMatrix();
+    }
+    function setupCanvas(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      const width = Math.max(360, Math.floor(rect.width));
+      const height = Math.max(300, Math.floor(rect.height || 340));
+      canvas.width = width * ratio;
+      canvas.height = height * ratio;
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+      return { ctx, width, height };
+    }
+    function renderDailyChartSummary() {
+      const key = stationSelect.value;
+      const station = stationByKey(key);
+      const oldRecords = records.filter(record => record.group === 'บล็อคเก่า');
+      const newRecords = records.filter(record => record.group === 'บล็อคใหม่');
+      const stationRecords = records.map(record => ({
+        ...record,
+        displayValue: displayCycleValue(key, record.metrics[key].avg)
+      }));
+      const avgDisplay = group => {
+        const groupRecords = stationRecords.filter(record => record.group === group);
+        return groupRecords.reduce((sum, record) => sum + record.displayValue, 0) / groupRecords.length;
+      };
+      const oldAvg = avgDisplay('บล็อคเก่า');
+      const newAvg = avgDisplay('บล็อคใหม่');
+      const gap = ((oldAvg - newAvg) / oldAvg) * 100;
+      const bestDay = [...stationRecords].sort((a, b) => a.displayValue - b.displayValue)[0];
+      const worstDay = [...stationRecords].sort((a, b) => b.displayValue - a.displayValue)[0];
+      const unit = displayTimeUnit(station);
+      const isFixed = key === 'machine';
+      dailyChartSummary.innerHTML = `
+        <div class="chart-summary-card ${gap > 0 && !isFixed ? 'highlight' : gap < 0 && !isFixed ? 'warn' : ''}">
+          <div class="chart-summary-label">ผลสรุป station นี้</div>
+          <div class="chart-summary-value">${isFixed ? 'Fixed' : gap >= 0 ? `+${fmt(gap)}%` : `-${fmt(Math.abs(gap))}%`}</div>
+          <div class="small">
+            ${isFixed
+              ? 'เป็นค่าคงที่ 17.50 วินาที/บล็อค ไม่ใช้สรุปผลเร็ว/ช้า'
+              : gap >= 0
+                ? `บล็อคใหม่เร็วกว่าโดยเฉลี่ย`
+                : `บล็อคใหม่ช้ากว่าโดยเฉลี่ย`}
+          </div>
+        </div>
+        <div class="chart-summary-card">
+          <div class="chart-summary-label">ค่าเฉลี่ยบล็อคเก่า</div>
+          <div class="chart-summary-value">${fmt(oldAvg)}</div>
+          <div class="small">${unit} จาก ${oldRecords.length} วัน</div>
+        </div>
+        <div class="chart-summary-card">
+          <div class="chart-summary-label">ค่าเฉลี่ยบล็อคใหม่</div>
+          <div class="chart-summary-value">${fmt(newAvg)}</div>
+          <div class="small">${unit} จาก ${newRecords.length} วัน</div>
+        </div>
+        <div class="chart-summary-card">
+          <div class="chart-summary-label">อ่านกราฟเร็ว</div>
+          <div class="chart-summary-value">ต่ำ = ดี</div>
+          <div class="small">เร็วสุด ${bestDay.date} (${fmt(bestDay.displayValue)} ${unit}) | ช้าสุด ${worstDay.date} (${fmt(worstDay.displayValue)} ${unit})</div>
+        </div>
+      `;
+    }
+    function drawDailyChart() {
+      const key = stationSelect.value;
+      const selectedDate = dateSelect.value;
+      const station = stationByKey(key);
+      const { ctx, width, height } = setupCanvas(dailyChart);
+      const pad = { top: 38, right: 18, bottom: 74, left: 64 };
+      const chartW = width - pad.left - pad.right;
+      const chartH = height - pad.top - pad.bottom;
+      const values = records.map(record => displayCycleValue(key, record.metrics[key].avg));
+      const max = Math.max(...values) * 1.12;
+      ctx.strokeStyle = 'rgba(154, 168, 199, 0.26)';
+      ctx.fillStyle = '#9ba8c7';
+      ctx.font = '12px "IBM Plex Sans Thai"';
+      ctx.textAlign = 'right';
+      [0, 0.5, 1].forEach(step => {
+        const y = pad.top + chartH - chartH * step;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(width - pad.right, y);
+        ctx.stroke();
+        ctx.fillText(fmt(max * step, 0), pad.left - 10, y + 4);
+      });
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#c8d3ec';
+      ctx.font = '12px "IBM Plex Sans Thai"';
+      ctx.fillText(`${station.full} (${displayTimeUnit(station)}) | ยิ่งต่ำยิ่งดี`, pad.left, 18);
+      const slot = chartW / records.length;
+      const barW = Math.min(36, slot * 0.62);
+      records.forEach((record, i) => {
+        const value = displayCycleValue(key, record.metrics[key].avg);
+        const h = (value / max) * chartH;
+        const x = pad.left + slot * i + slot / 2 - barW / 2;
+        const y = pad.top + chartH - h;
+        ctx.fillStyle = groupColors[record.group];
+        ctx.fillRect(x, y, barW, h);
+        ctx.fillStyle = '#f5f7ff';
+        ctx.textAlign = 'center';
+        ctx.font = '10px "IBM Plex Sans Thai"';
+        ctx.fillText(fmt(value, value >= 100 ? 0 : 1), x + barW / 2, Math.max(12, y - 8));
+        if (record.date === selectedDate) {
+          ctx.strokeStyle = '#f5f7ff';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x - 1, y - 1, barW + 2, h + 2);
+        }
+        ctx.save();
+        ctx.translate(x + barW / 2, height - 42);
+        ctx.rotate(-Math.PI / 5);
+        ctx.fillStyle = '#9ba8c7';
+        ctx.textAlign = 'right';
+        ctx.font = '10px "IBM Plex Sans Thai"';
+        ctx.fillText(record.date.slice(5), 0, 0);
+        ctx.restore();
+      });
+    }
+    function renderDetail() {
+      return renderDetailExecutive();
+      const selected = records.find(record => record.date === dateSelect.value);
+      const totalCycleMinutes =
+        selected.metrics.trim.avg +
+        selected.metrics.arrange.avg +
+        (selected.metrics.machine.avg / 60) +
+        selected.metrics.inspect.avg +
+        selected.metrics.pack.avg;
+      const totalCycleSeconds = totalCycleMinutes * 60;
+      const alternateTotal = selectedTimeUnit() === 'second'
+        ? `${fmt(totalCycleMinutes)} นาที`
+        : `${fmt(totalCycleSeconds, 0)} วินาที`;
+      selectedTitle.textContent = `รายละเอียดวันที่เลือก: ${selected.date} (${selected.group})`;
+      detailSummary.innerHTML = `
+        <div class="detail-summary-card">
+          <div class="detail-summary-label">รวม cycle time ทั้งวัน</div>
+          <div class="detail-summary-value">${displayDuration(totalCycleMinutes)}</div>
+          <div class="small">รวมทุก station และแสดงตามหน่วยเวลาที่เลือก</div>
+        </div>
+        <div class="detail-summary-card">
+          <div class="detail-summary-label">รวมเวลาแบบ hh:mm:ss</div>
+          <div class="detail-summary-value">${formatDuration(totalCycleMinutes)}</div>
+          <div class="small">ใช้ดูภาพรวมเวลาของ flow ในวันนั้นแบบอ่านเร็ว</div>
+        </div>
+        <div class="detail-summary-card">
+          <div class="detail-summary-label">รวมเวลาอีกหน่วย</div>
+          <div class="detail-summary-value">${alternateTotal}</div>
+          <div class="small">ช่วยตรวจเทียบระหว่างนาทีและวินาทีได้เร็วขึ้น</div>
+        </div>
+      `;
+      detailTable.innerHTML = stations.map(station => {
+        const metric = selected.metrics[station.key];
+        return `
+          <tr>
+            <td class="station-name">${station.full}</td>
+            <td>${displayCycle(station.key, metric.avg)}</td>
+            <td><strong>${primaryDisplay(station.key, metric.avg)}</strong></td>
+            <td>${station.key === 'machine' ? 'ใช้ค่า fixed' : 'คำนวณจากค่าเฉลี่ยรายวัน'}</td>
+          </tr>
+        `;
+      }).join('');
+      const sorted = stations.map(station => ({ station, value: selected.metrics[station.key].value })).sort((a, b) => a.value - b.value);
+      commentBox.value = `วันที่ ${selected.date} (${selected.group}) มี cycle time รวมประมาณ ${displayDuration(totalCycleMinutes)} (${formatDuration(totalCycleMinutes)})\n\nจุดที่เป็น bottleneck คือ ${sorted[0].station.full} มีกำลังผลิตประมาณ ${fmt(sorted[0].value)} ไม้/ชั่วโมง\n\nจุดที่มีกำลังผลิตสูงสุดคือ ${sorted[sorted.length - 1].station.full} ประมาณ ${fmt(sorted[sorted.length - 1].value)} ไม้/ชั่วโมง\n\nข้อเสนอแนะ: ใช้ตารางเปรียบเทียบด้านบนร่วมกับกราฟรายวันเพื่อดูว่า station ไหนเริ่มช้าลงต่อเนื่อง และควรปรับก่อน`;
+    }
+    function renderDetailExecutive() {
+      const selected = records.find(record => record.date === dateSelect.value);
+      const stationItems = stations.map(station => {
+        const metric = selected.metrics[station.key];
+        return {
+          station,
+          metric,
+          output: metric.value,
+          cycleText: displayCycle(station.key, metric.avg),
+          outputText: primaryDisplay(station.key, metric.avg)
+        };
+      });
+      const totalCycleMinutes =
+        selected.metrics.trim.avg +
+        selected.metrics.arrange.avg +
+        (selected.metrics.machine.avg / 60) +
+        selected.metrics.inspect.avg +
+        selected.metrics.pack.avg;
+      const rankableStationItems = stationItems.filter(item => item.station.key !== 'machine');
+      const bottleneck = [...rankableStationItems].sort((a, b) => a.output - b.output)[0];
+      const bestOutput = [...rankableStationItems].sort((a, b) => b.output - a.output)[0];
+      const secondBottleneck = [...rankableStationItems].sort((a, b) => a.output - b.output)[1];
+      const bottleneckGap = ((secondBottleneck.output - bottleneck.output) / secondBottleneck.output) * 100;
+      const totalCycleSeconds = totalCycleMinutes * 60;
+      const alternateTotal = selectedTimeUnit() === 'second'
+        ? `${fmt(totalCycleMinutes)} นาที`
+        : `${fmt(totalCycleSeconds, 0)} วินาที`;
+
+      selectedTitle.textContent = `สรุปรายวัน: ${selected.date} (${selected.group})`;
+      detailSummary.innerHTML = `
+        <div class="detail-summary-card">
+          <div class="detail-summary-label">Cycle time รวม</div>
+          <div class="detail-summary-value">${displayDuration(totalCycleMinutes)}</div>
+          <div class="small">${formatDuration(totalCycleMinutes)} | อีกหน่วย: ${alternateTotal}</div>
+        </div>
+        <div class="detail-summary-card">
+          <div class="detail-summary-label">Bottleneck วันนี้</div>
+          <div class="detail-summary-value" style="color:var(--danger)">${bottleneck.station.name}</div>
+          <div class="small">${fmt(bottleneck.output)} ไม้/ชม. ต่ำสุดใน flow</div>
+        </div>
+        <div class="detail-summary-card">
+          <div class="detail-summary-label">กำลังผลิตสูงสุด</div>
+          <div class="detail-summary-value" style="color:var(--best)">${bestOutput.station.name}</div>
+          <div class="small">${fmt(bestOutput.output)} ไม้/ชม. | ไม่รวมจุด fixed</div>
+        </div>
+        <div class="detail-summary-card">
+          <div class="detail-summary-label">ข้อควรตัดสินใจ</div>
+          <div class="detail-summary-value">${bottleneckGap > 20 ? 'ต้องแก้คอขวด' : 'ติดตามต่อ'}</div>
+          <div class="small">คอขวดต่ำกว่าจุดถัดไปประมาณ ${fmt(Math.abs(bottleneckGap))}%</div>
+        </div>
+      `;
+
+      detailStationCards.innerHTML = stationItems.map(item => {
+        const isBottleneck = item.station.key === bottleneck.station.key;
+        const isBestOutput = item.station.key === bestOutput.station.key;
+        const badge = isBottleneck
+          ? '<span class="status-pill warn">Bottleneck</span>'
+          : isBestOutput
+            ? '<span class="status-pill good">กำลังผลิตสูงสุด</span>'
+            : item.station.key === 'machine'
+              ? '<span class="status-pill warn">Fixed 17.50 วิ/บล็อค</span>'
+              : '<span class="status-pill">ปกติ</span>';
+        return `
+          <div class="station-compact-card ${isBottleneck ? 'bottleneck' : isBestOutput ? 'best-output' : ''}">
+            <div class="compact-station-name">${item.station.full}</div>
+            <div class="compact-cycle">${displayCycleValue(item.station.key, item.metric.avg) >= 100 ? fmt(displayCycleValue(item.station.key, item.metric.avg), 0) : fmt(displayCycleValue(item.station.key, item.metric.avg))} <small>${displayTimeUnit(item.station)}</small></div>
+            <div class="compact-output">${item.outputText}</div>
+            ${badge}
+            <div class="compact-note">${item.station.key === 'machine' ? 'ค่าคงที่ ไม่ใช่ข้อมูลจับเวลาพนักงาน' : 'คำนวณจากค่าเฉลี่ยของวันที่เลือก'}</div>
+          </div>
+        `;
+      }).join('');
+
+      detailExecutiveComment.innerHTML = `
+        <h3>สรุปสำหรับผู้บริหาร</h3>
+        <div class="executive-list">
+          <div class="executive-item">
+            <span class="executive-bullet" style="background:var(--danger)"></span>
+            <div>วันที่ ${selected.date} จุดที่จำกัด output คือ <strong>${bottleneck.station.full}</strong> ทำได้ประมาณ <strong>${fmt(bottleneck.output)} ไม้/ชม.</strong></div>
+          </div>
+          <div class="executive-item">
+            <span class="executive-bullet"></span>
+            <div>จุดที่มีกำลังผลิตสูงสุดคือ <strong>${bestOutput.station.full}</strong> ประมาณ <strong>${fmt(bestOutput.output)} ไม้/ชม.</strong></div>
+          </div>
+          <div class="executive-item">
+            <span class="executive-bullet" style="background:var(--blue)"></span>
+            <div>เวลา flow รวมของวันที่เลือกคือ <strong>${displayDuration(totalCycleMinutes)}</strong> หรือ <strong>${formatDuration(totalCycleMinutes)}</strong></div>
+          </div>
+          <div class="executive-item">
+            <span class="executive-bullet" style="background:var(--original)"></span>
+            <div>ข้อเสนอแนะ: โฟกัสแก้ที่ <strong>${bottleneck.station.name}</strong> ก่อน เพราะเป็นจุดที่ดึงกำลังผลิตรวมของวันลงมากที่สุด</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAll() {
+      const rows = comparisonRows();
+      renderKpis(rows);
+      renderCompareTable(rows);
+      renderPresentationCompare(rows);
+      renderSupplementalInsights(rows);
+      renderDailyChartSummary();
+      drawDailyChart();
+      renderEmployeeMatrix();
+      renderDetailExecutive();
+    }
+    dateSelect.value = '2026-07-03';
+    stationSelect.value = 'arrange';
+    employeeGroupSelect.value = 'old';
+    employeeStationSelect.value = 'arrange';
+    dateSelect.addEventListener('change', renderAll);
+    timeUnitSelect.addEventListener('change', renderAll);
+    stationSelect.addEventListener('change', renderAll);
+    employeeGroupSelect.addEventListener('change', renderEmployeeMatrix);
+    employeeStationSelect.addEventListener('change', renderEmployeeMatrix);
+    employeeMatrix.addEventListener('change', event => {
+      if (event.target.matches('input[data-record-key]')) {
+        updateEmployeeOverrideFromInput(event.target);
+      }
+    });
+    saveEmployeeData.addEventListener('click', () => {
+      localStorage.setItem(employeeStorageKey, JSON.stringify(employeeOverrides));
+      renderEmployeeMatrix();
+    });
+    resetEmployeeData.addEventListener('click', () => {
+      employeeOverrides = {};
+      localStorage.removeItem(employeeStorageKey);
+      renderEmployeeMatrix();
+    });
+    window.addEventListener('resize', renderAll);
+    renderAll();
+  </script>
+</body>
+</html>
