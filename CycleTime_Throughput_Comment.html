@@ -1741,7 +1741,10 @@
       };
       const oldAvg = avgDisplay('บล็อคเก่า');
       const newAvg = avgDisplay('บล็อคใหม่');
-      const gap = ((oldAvg - newAvg) / oldAvg) * 100;
+      const comparisonRow = comparisonRows().find(row => row.station.key === key);
+      const oldCompareAvg = comparisonRow ? displayCycleFromMinutes(comparisonRow.oldGroup.cycle) : oldAvg;
+      const newCompareAvg = comparisonRow ? displayCycleFromMinutes(comparisonRow.newGroup.cycle) : newAvg;
+      const gap = ((oldCompareAvg - newCompareAvg) / oldCompareAvg) * 100;
       const bestDay = [...stationRecords].sort((a, b) => a.displayValue - b.displayValue)[0];
       const worstDay = [...stationRecords].sort((a, b) => b.displayValue - a.displayValue)[0];
       const unit = displayTimeUnit(station);
