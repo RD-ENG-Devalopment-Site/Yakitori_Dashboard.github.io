@@ -2,55 +2,37 @@
   {
     "machine_id": "YK-101",
     "machine_name": "Skewer Yakitori Machine 1",
-    "model_node_name": "Skewer Yakitori Machine.STEP-3",
+    "model_node_name": "Skewer Yakitori Machine.STEP-8",
     "product_name": "Yakitori Line 1",
     "product_type": "Skewer Machine",
-    "description": "เครื่องเสียบไม้ฝั่งซ้ายด้านบนของไลน์ผลิต",
+    "description": "เครื่องเสียบไม้ฝั่งขวาของแถวหลักในไลน์ผลิต",
     "remark": "แก้ไขชื่อสินค้าและรายละเอียดได้จากหน้า Detail Editor"
   },
   {
     "machine_id": "YK-102",
     "machine_name": "Skewer Yakitori Machine 2",
-    "model_node_name": "Skewer Yakitori Machine.STEP-2",
+    "model_node_name": "Skewer Yakitori Machine.STEP-1",
     "product_name": "Yakitori Line 2",
     "product_type": "Skewer Machine",
-    "description": "เครื่องเสียบไม้ตำแหน่งกลางด้านบนของไลน์ผลิต",
+    "description": "เครื่องเสียบไม้ตำแหน่งกลางของแถวหลักในไลน์ผลิต",
     "remark": "แก้ไขชื่อสินค้าและรายละเอียดได้จากหน้า Detail Editor"
   },
   {
     "machine_id": "YK-103",
     "machine_name": "Skewer Yakitori Machine 3",
-    "model_node_name": "Skewer Yakitori Machine.STEP-6",
+    "model_node_name": "Skewer Yakitori Machine.STEP-9",
     "product_name": "Yakitori Line 3",
     "product_type": "Skewer Machine",
-    "description": "เครื่องเสียบไม้ฝั่งขวาด้านบนของไลน์ผลิต",
+    "description": "เครื่องเสียบไม้ฝั่งซ้ายของแถวหลักในไลน์ผลิต",
     "remark": "แก้ไขชื่อสินค้าและรายละเอียดได้จากหน้า Detail Editor"
   },
   {
     "machine_id": "YK-104",
     "machine_name": "Skewer Yakitori Machine 4",
-    "model_node_name": "Skewer Yakitori Machine.STEP-4",
+    "model_node_name": "Skewer Yakitori Machine.STEP-7",
     "product_name": "Yakitori Line 4",
     "product_type": "Skewer Machine",
-    "description": "เครื่องเสียบไม้ฝั่งซ้ายด้านล่างของไลน์ผลิต",
-    "remark": "แก้ไขชื่อสินค้าและรายละเอียดได้จากหน้า Detail Editor"
-  },
-  {
-    "machine_id": "YK-105",
-    "machine_name": "Skewer Yakitori Machine 5",
-    "model_node_name": "Skewer Yakitori Machine.STEP-1",
-    "product_name": "Yakitori Line 5",
-    "product_type": "Skewer Machine",
-    "description": "เครื่องเสียบไม้ตำแหน่งกลางด้านล่างของไลน์ผลิต",
-    "remark": "แก้ไขชื่อสินค้าและรายละเอียดได้จากหน้า Detail Editor"
-  },
-  {
-    "machine_id": "YK-106",
-    "machine_name": "Skewer Yakitori Machine 6",
-    "model_node_name": "Skewer Yakitori Machine.STEP-5",
-    "product_name": "Yakitori Line 6",
-    "product_type": "Skewer Machine",
-    "description": "เครื่องเสียบไม้ฝั่งขวาด้านล่างของไลน์ผลิต",
+    "description": "เครื่องเสียบไม้ตำแหน่งแถวล่างตรงกลางของไลน์ผลิต",
     "remark": "แก้ไขชื่อสินค้าและรายละเอียดได้จากหน้า Detail Editor"
   },
   {
