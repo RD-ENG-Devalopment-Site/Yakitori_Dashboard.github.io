@@ -1217,15 +1217,25 @@
       return { ...totals, diffPerStick, newVsOld };
     }
     function dailyAllStationPerStick(record) {
+      return dailyAllStationComponents(record).reduce((sum, component) => sum + component.minutes, 0);
+    }
+    function dailyAllStationComponents(record) {
       const componentDefs = [
         { key: 'arrange', divisor: 14 },
         { key: 'machine', divisor: 14 },
         { key: 'inspect', divisor: 14 },
         { key: 'pack', divisor: 18 }
       ];
-      return componentDefs.reduce((sum, component) => {
-        return sum + rawCycleToMinutes(component.key, record.metrics[component.key].avg) / component.divisor;
-      }, 0);
+      return componentDefs.map(component => {
+        const station = stationByKey(component.key);
+        const minutes = rawCycleToMinutes(component.key, record.metrics[component.key].avg) / component.divisor;
+        return {
+          ...component,
+          station,
+          minutes,
+          displayValue: displayCycleFromMinutes(minutes)
+        };
+      });
     }
     function dailyChartValue(key, record) {
       return key === 'allStations'
@@ -1814,6 +1824,7 @@
     }
     function drawDailyChart() {
       const key = stationSelect.value;
+      const isAllStations = key === 'allStations';
       const selectedDate = dateSelect.value;
       const { ctx, width, height } = setupCanvas(dailyChart);
       const pad = { top: 38, right: 18, bottom: 74, left: 64 };
@@ -1837,6 +1848,17 @@
       ctx.fillStyle = '#c8d3ec';
       ctx.font = '12px "IBM Plex Sans Thai"';
       ctx.fillText(`${dailyChartTitle(key)} (${dailyChartUnit(key)}) | ยิ่งต่ำยิ่งดี`, pad.left, 18);
+      if (isAllStations) {
+        let legendX = pad.left + 260;
+        dailyAllStationComponents(records[0]).forEach(component => {
+          ctx.fillStyle = component.station.color;
+          ctx.fillRect(legendX, 8, 10, 10);
+          ctx.fillStyle = '#c8d3ec';
+          ctx.font = '10px "IBM Plex Sans Thai"';
+          ctx.fillText(component.station.name, legendX + 14, 17);
+          legendX += 92;
+        });
+      }
       const slot = chartW / records.length;
       const barW = Math.min(36, slot * 0.62);
       records.forEach((record, i) => {
@@ -1844,8 +1866,19 @@
         const h = (value / max) * chartH;
         const x = pad.left + slot * i + slot / 2 - barW / 2;
         const y = pad.top + chartH - h;
-        ctx.fillStyle = groupColors[record.group];
-        ctx.fillRect(x, y, barW, h);
+        if (isAllStations) {
+          let segmentBottom = pad.top + chartH;
+          dailyAllStationComponents(record).forEach(component => {
+            const segmentH = (component.displayValue / max) * chartH;
+            const segmentY = segmentBottom - segmentH;
+            ctx.fillStyle = component.station.color;
+            ctx.fillRect(x, segmentY, barW, segmentH);
+            segmentBottom = segmentY;
+          });
+        } else {
+          ctx.fillStyle = groupColors[record.group];
+          ctx.fillRect(x, y, barW, h);
+        }
         ctx.fillStyle = '#f5f7ff';
         ctx.textAlign = 'center';
         ctx.font = '10px "IBM Plex Sans Thai"';
