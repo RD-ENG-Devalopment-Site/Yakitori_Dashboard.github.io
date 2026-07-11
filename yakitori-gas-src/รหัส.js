@@ -60,6 +60,11 @@ function doPost(e) {
 var BL23G_SOURCE_SHEET = "BL23gR15_DataLog";
 var BL23G_SHIFT_B_SHEET = "BL23gR15_ShiftB_DataLog";
 var BL23G_TARGET_PRODUCTIVITY = 130;
+var BL23G_M1_PROJECT_KEY = "BL23G_M1";
+var BL23G_M2_PROJECT_KEY = "BL23G_M2";
+var BL23G_M1_SPREADSHEET_ID = "1o1dAQCU6mp43qzJcgst2wn5xH5-ILjMZ4nqrO5Txjhg";
+var BL23G_M1_SOURCE_SHEET = "BL23gR15_M1_DataLog";
+var BL23G_M1_SHIFT_B_SHEET = "BL23gR15_M1_ShiftB_DataLog";
 var GZ30G_SOURCE_SHEET = "GZ30gR15_DataLog";
 var GZ30G_SHIFT_B_SHEET = "GZ30gR15_ShiftB_DataLog";
 var GZ30G_TARGET_PRODUCTIVITY = 69;
@@ -107,6 +112,28 @@ function normalizeLine_(value) {
 
 function resolveBl23gSheetName_(shift) {
   return normalizeShift_(shift) === "B" ? BL23G_SHIFT_B_SHEET : BL23G_SOURCE_SHEET;
+}
+
+function isBl23gM1Project_(projectKey) {
+  return String(projectKey || "").trim().toUpperCase() === BL23G_M1_PROJECT_KEY;
+}
+
+function getBl23gProjectConfig_(projectKey) {
+  if (isBl23gM1Project_(projectKey)) {
+    return {
+      projectKey: BL23G_M1_PROJECT_KEY,
+      spreadsheet: SpreadsheetApp.openById(BL23G_M1_SPREADSHEET_ID),
+      sourceSheet: BL23G_M1_SOURCE_SHEET,
+      shiftBSheet: BL23G_M1_SHIFT_B_SHEET
+    };
+  }
+
+  return {
+    projectKey: BL23G_M2_PROJECT_KEY,
+    spreadsheet: SpreadsheetApp.getActiveSpreadsheet(),
+    sourceSheet: BL23G_SOURCE_SHEET,
+    shiftBSheet: BL23G_SHIFT_B_SHEET
+  };
 }
 
 function isGz30gSheetName_(sheetName) {
@@ -480,7 +507,11 @@ function parseGizzardSheet_(sheet, defaultShift, db, records, lineLabel, targetP
 }
 
 function getJsonStream(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var projectKey = e && e.parameter && e.parameter.projectKey
+    ? String(e.parameter.projectKey).trim().toUpperCase()
+    : BL23G_M2_PROJECT_KEY;
+  var bl23Config = getBl23gProjectConfig_(projectKey);
+  var ss = bl23Config.spreadsheet;
   var sheetName = "GZ30gR15_DataLog";
   var requestedAction = e && e.parameter && e.parameter.action
     ? String(e.parameter.action).trim().toLowerCase()
@@ -500,20 +531,20 @@ function getJsonStream(e) {
     var bl23Db = {};
     var bl23Records = [];
 
-    var sourceSheet = ss.getSheetByName(BL23G_SOURCE_SHEET);
+    var sourceSheet = ss.getSheetByName(bl23Config.sourceSheet);
     if (sourceSheet) {
       parseBl23gSheet_(sourceSheet, "A", bl23Db, bl23Records);
     }
 
-    if (sheetName === BL23G_SHIFT_B_SHEET) {
+    if (sheetName === bl23Config.shiftBSheet) {
       bl23Db = {};
       bl23Records = [];
-      var shiftBSheet = ss.getSheetByName(BL23G_SHIFT_B_SHEET);
+      var shiftBSheet = ss.getSheetByName(bl23Config.shiftBSheet);
       if (shiftBSheet) {
         parseBl23gSheet_(shiftBSheet, "B", bl23Db, bl23Records);
       }
     } else {
-      var shiftB = ss.getSheetByName(BL23G_SHIFT_B_SHEET);
+      var shiftB = ss.getSheetByName(bl23Config.shiftBSheet);
       if (shiftB) {
         parseBl23gSheet_(shiftB, "B", bl23Db, bl23Records);
       }
@@ -740,17 +771,22 @@ function buildBreakdownFeed_(sheet) {
 }
 
 function saveExternalRecord_(payload) {
+  var projectKey = String(payload.projectKey || "").trim().toUpperCase();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var line = normalizeLine_(payload.line);
   var requestedSheet = String(payload.sheet || payload.targetSheet || "").trim();
   var now = new Date();
 
-  if (line === "BL23G" || isBl23gSheetName_(requestedSheet)) {
+  if (line === "BL23G" || line === BL23G_M1_PROJECT_KEY || line === BL23G_M2_PROJECT_KEY || isBl23gSheetName_(requestedSheet)) {
+    var bl23Config = getBl23gProjectConfig_(projectKey || (line === BL23G_M1_PROJECT_KEY ? BL23G_M1_PROJECT_KEY : BL23G_M2_PROJECT_KEY));
+    ss = bl23Config.spreadsheet;
     var shift = normalizeShift_(payload.shift);
-    var targetSheetName = resolveBl23gSheetName_(shift);
-    var targetSheet = targetSheetName === BL23G_SHIFT_B_SHEET ? ensureBl23ShiftBSheet_(ss) : ss.getSheetByName(BL23G_SOURCE_SHEET);
+    var targetSheetName = shift === "B" ? bl23Config.shiftBSheet : bl23Config.sourceSheet;
+    var targetSheet = targetSheetName === bl23Config.shiftBSheet
+      ? ensureShiftBSheetCopy_(ss, bl23Config.sourceSheet, bl23Config.shiftBSheet)
+      : ss.getSheetByName(bl23Config.sourceSheet);
     if (!targetSheet) {
-      throw new Error("BL23G source sheet not found: " + BL23G_SOURCE_SHEET);
+      throw new Error("BL23G source sheet not found: " + bl23Config.sourceSheet);
     }
 
     targetSheet.appendRow(buildBl23gRow_(payload, shift));
