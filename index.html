@@ -298,7 +298,8 @@
         }
 
         const lineConfigs = [
-            { prefix: 'bl', label: 'BL 23G', sheet: 'BL23gR15_DataLog', target: 130, color: '#8b5cf6' },
+            { prefix: 'blm1', label: 'BL23G R15 (M1)', sheet: 'BL23gR15_M1_DataLog', projectKey: 'BL23G_M1', target: 130, color: '#a78bfa' },
+            { prefix: 'bl', label: 'BL23G R15 (M2)', sheet: 'BL23gR15_DataLog', projectKey: 'BL23G_M2', target: 130, color: '#8b5cf6' },
             { prefix: 'giz', label: 'Gizzard 40G S18', sheet: 'GZ40gS18_DataLog', target: 84, color: '#009ef7' },
             { prefix: 'gz30g', label: 'Gz 30G R15', sheet: 'GZ30gR15_DataLog', target: 69, color: '#ffc700' }
         ];
@@ -489,7 +490,8 @@
 
         function getExperimentalDisplayName(label) {
             const map = {
-                'BL 23G': 'BL23G Experimental',
+                'BL23G R15 (M2)': 'BL23G R15 (M2)',
+                'BL23G R15 (M1)': 'BL23G R15 (M1)',
                 'Gizzard 40G S18': 'Gz40g Experimental',
                 'Gz 30G R15': 'Gz30g Experimental',
                 'BB SKIN': 'BB Skin Experimental'
@@ -1301,7 +1303,8 @@
         async function renderDashboardData() {
             const results = await Promise.all(lineConfigs.map(async (config) => {
                 try {
-                    const response = await fetch(window.YakitoriRuntime.buildApiUrl(config.sheet), { cache: 'no-store' });
+                    const params = config.projectKey ? { projectKey: config.projectKey } : {};
+                    const response = await fetch(window.YakitoriRuntime.buildApiUrl(config.sheet, params), { cache: 'no-store' });
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const payload = await response.json();
                     return {
