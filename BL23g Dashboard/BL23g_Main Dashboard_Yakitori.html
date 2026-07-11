@@ -607,7 +607,12 @@
                 if (db.error) {
                     throw new Error("หลังบ้านแจ้งข้อผิดพลาด: " + db.error);
                 }
-                if (db._records) delete db._records;
+                // The GAS response also carries summary metadata. Keep only trial records
+                // in the dashboard dataset so summary fields cannot become chart points.
+                [
+                    '_records', '_summary', '_summaryByShift', '_summaryByShiftA', '_summaryByShiftB',
+                    'latestProd', 'latestTrial', 'latestShift', 'bestProd', 'bestTrial', 'bestShift'
+                ].forEach(key => delete db[key]);
                 if (Object.keys(db).length === 0) {
                     throw new Error("ไม่มีข้อมูลส่งกลับมาจาก Google Sheets");
                 }
