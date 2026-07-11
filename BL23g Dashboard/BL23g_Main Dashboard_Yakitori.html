@@ -263,6 +263,42 @@
             </div>
         </div>
 
+        <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden mb-8">
+            <div class="p-5 border-b border-[#323248] flex justify-between items-center">
+                <h3 class="text-white font-bold text-sm">ตารางเปรียบเทียบข้อมูลเวลาและกำลังคนในทุกกระบวนการ</h3>
+                <p class="text-xs text-[#a1a5b7]">*คลิกที่แถวเพื่อดูข้อมูลในกราฟและ Panel ด้านขวา</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-[#151521] text-xs uppercase tracking-wider text-[#a1a5b7] border-b border-[#323248]">
+                            <th class="p-4 font-bold sticky left-0 bg-[#151521] z-10 text-white" rowspan="2">รอบการปรับปรุง</th>
+                            <th class="p-4 font-medium text-[#50cd89] text-center" rowspan="2">Productivity</th>
+                            <th class="p-4 font-medium text-center" rowspan="2">Efficiency</th>
+                            <th class="p-2 font-bold text-center border-l border-[#323248] text-[#8b5cf6]" colspan="7">ข้อมูลเวลา (CYCLE TIME)</th>
+                            <th class="p-2 font-bold text-center border-l border-[#323248] text-[#009ef7]" colspan="6">ข้อมูลกำลังคน (Manpower)</th>
+                        </tr>
+                        <tr class="bg-[#1e1e2d] text-[11px] text-[#a1a5b7] border-b border-[#323248]">
+                            <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7]">1. เตรียม RM</th>
+                            <th class="p-3 font-medium text-center text-[#8b5cf6]">2. เรียงเนื้อ (คอขวด)</th>
+                            <th class="p-3 font-medium text-center text-[#ffc700]">3. เข้าเครื่อง</th>
+                            <th class="p-3 font-medium text-center text-[#f1416c]">4. เช็คสเปค</th>
+                            <th class="p-3 font-medium text-center text-[#50cd89]">5. PACKING</th>
+                            <th class="p-3 font-medium text-center text-white bg-[#2b2b40]">Total CT (วิ)</th>
+                            <th class="p-3 font-medium text-center text-[#009ef7] bg-[#2b2b40]">ยอดผลิต (ไม้/ชม.)</th>
+                            <th class="p-3 font-medium text-center border-l border-[#323248] text-white">รวมคน</th>
+                            <th class="p-3 font-medium text-center">เตรียม</th>
+                            <th class="p-3 font-medium text-center">เรียง</th>
+                            <th class="p-3 font-medium text-center">Inspec</th>
+                            <th class="p-3 font-medium text-center">แพ็ค</th>
+                            <th class="p-3 font-medium text-center">Operate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-[#2b2b40]"></tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden mb-6 mt-4">
             <div class="p-5 border-b border-[#323248] flex justify-between items-center">
                 <div>
@@ -287,41 +323,64 @@
             </div>
         </div>
 
-        <div class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden mb-8">
-            <div class="p-5 border-b border-[#323248] flex justify-between items-center">
-                <h3 class="text-white font-bold text-sm">ตารางเปรียบเทียบข้อมูลเวลาและกำลังคนในทุกกระบวนการ</h3>
-                <p class="text-xs text-[#a1a5b7]">*คลิกที่แถวเพื่อดูข้อมูลในกราฟและ Panel ด้านขวา</p>
+        <div style="display:none" class="bg-card rounded-xl shadow-lg border border-[#323248] overflow-hidden mb-8">
+            <div class="p-5 border-b border-[#323248] flex flex-wrap gap-4 justify-between items-center">
+                <div>
+                    <h3 class="text-white font-bold text-sm">สรุปข้อมูลเวลาและกำลังคน</h3>
+                    <p class="text-xs text-[#a1a5b7] mt-1">เลือกครั้งที่ต้องการเพื่อดูรายละเอียดเฉพาะรอบนั้น</p>
+                </div>
+                <div class="flex flex-wrap gap-3 items-center">
+                    <label class="text-xs text-[#a1a5b7]" for="tableShiftSelect">Shift</label>
+                    <select id="tableShiftSelect" onchange="setTableShift(this.value)" class="bg-[#151521] border border-[#323248] rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-[#009ef7]"></select>
+                    <label class="text-xs text-[#a1a5b7]" for="tableRoundSelect">รอบ</label>
+                    <select id="tableRoundSelect" onchange="selectTableRecord(this.value)" class="bg-[#151521] border border-[#323248] rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-[#009ef7] min-w-[190px]"></select>
+                </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
-                    <thead>
-                        <tr class="bg-[#151521] text-xs uppercase tracking-wider text-[#a1a5b7] border-b border-[#323248]">
-                            <th class="p-4 font-bold sticky left-0 bg-[#151521] z-10 text-white" rowspan="2">รอบการปรับปรุง</th>
-                            <th class="p-4 font-medium text-[#50cd89] text-center" rowspan="2">Productivity</th>
-                            <th class="p-4 font-medium text-center " rowspan="2">Efficiency</th>
-                            <th class="p-2 font-bold text-center border-l border-[#323248] text-[#8b5cf6]" colspan="7">ข้อมูลเวลา (CYCLE TIME)</th>
-                            <th class="p-2 font-bold text-center border-l border-[#323248] text-[#009ef7]" colspan="6">ข้อมูลกำลังคน (Manpower)</th>
-                        </tr>
-                        <tr class="bg-[#1e1e2d] text-[11px] text-[#a1a5b7] border-b border-[#323248]">
-                            <th class="p-3 font-medium text-center border-l border-[#323248] text-[#009ef7]">1. เตรียม RM</th>
-                            <th class="p-3 font-medium text-center text-[#8b5cf6]">2. เรียงเนื้อ (คอขวด)</th>
-                            <th class="p-3 font-medium text-center text-[#ffc700]">3. เข้าเครื่อง</th>
-                            <th class="p-3 font-medium text-center text-[#f1416c]">4. เช็คสเปค</th>
-                            <th class="p-3 font-medium text-center text-[#50cd89]">5. PACKING</th>
-                            <th class="p-3 font-medium text-center text-white bg-[#2b2b40]">Total CT (วิ)</th>
-                            <th class="p-3 font-medium text-center text-[#009ef7] bg-[#2b2b40]">ยอดผลิต (ไม้/ชม.)</th>
 
-                            <th class="p-3 font-medium text-center border-l border-[#323248] text-white">รวมคน</th>
-                            <th class="p-3 font-medium text-center">เตรียม</th>
-                            <th class="p-3 font-medium text-center">เรียง</th>
-                            <th class="p-3 font-medium text-center">Inspec</th>
-                            <th class="p-3 font-medium text-center">แพ็ค</th>
-                            <th class="p-3 font-medium text-center">Operate</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody" class="divide-y divide-[#2b2b40]">
-                    </tbody>
-                </table>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 p-5 border-b border-[#323248]">
+                <div class="rounded-lg border border-[#323248] bg-[#151521] p-4">
+                    <p class="text-[10px] uppercase tracking-wider text-[#7e8299]">Latest Productivity</p>
+                    <p id="table-summary-latest" class="text-2xl font-bold text-[#009ef7] mt-2">--</p>
+                    <p id="table-summary-latest-label" class="text-xs text-[#a1a5b7] mt-1">--</p>
+                </div>
+                <div class="rounded-lg border border-[#323248] bg-[#151521] p-4">
+                    <p class="text-[10px] uppercase tracking-wider text-[#7e8299]">Best Productivity</p>
+                    <p id="table-summary-best" class="text-2xl font-bold text-[#50cd89] mt-2">--</p>
+                    <p id="table-summary-best-label" class="text-xs text-[#a1a5b7] mt-1">--</p>
+                </div>
+                <div class="rounded-lg border border-[#323248] bg-[#151521] p-4">
+                    <p class="text-[10px] uppercase tracking-wider text-[#7e8299]">Average Efficiency</p>
+                    <p id="table-summary-eff" class="text-2xl font-bold text-[#8b5cf6] mt-2">--</p>
+                    <p class="text-xs text-[#a1a5b7] mt-1">จากรอบที่แสดง</p>
+                </div>
+                <div class="rounded-lg border border-[#323248] bg-[#151521] p-4">
+                    <p class="text-[10px] uppercase tracking-wider text-[#7e8299]">Target Productivity</p>
+                    <p id="table-summary-target" class="text-2xl font-bold text-[#ffc700] mt-2">--</p>
+                    <p class="text-xs text-[#a1a5b7] mt-1">ไม้/คน/ชม.</p>
+                </div>
+            </div>
+
+            <div class="p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-white font-bold text-sm">รายละเอียดรอบที่เลือก</h4>
+                    <span class="text-[10px] uppercase tracking-wider text-[#7e8299]">Cycle Time + Manpower</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
+                        <thead>
+                            <tr class="bg-[#151521] text-xs text-[#a1a5b7] border-b border-[#323248]">
+                                <th class="p-3 text-white">รอบการปรับปรุง</th>
+                                <th class="p-3 text-[#50cd89]">Productivity</th>
+                                <th class="p-3">Efficiency</th>
+                                <th class="p-3 text-[#8b5cf6]">Cycle Time รายขั้นตอน</th>
+                                <th class="p-3 text-white">Total CT</th>
+                                <th class="p-3 text-[#009ef7]">กำลังคนรวม</th>
+                                <th class="p-3">รายละเอียดกำลังคน</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBodyCompact" class="divide-y divide-[#2b2b40]"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -856,7 +915,88 @@
             listContainer.innerHTML = html || '<div class="col-span-2 px-3 py-4 text-center text-[#6b7280] text-xs">No data for this shift</div>';
         }
 
+        function renderRotatingInsight(key, data) {
+            const record = data || {};
+            const visibleKeys = getVisibleKeys().slice().sort(compareRecordKeys);
+            const currentIndex = visibleKeys.indexOf(key);
+            const previousKey = currentIndex > 0 ? visibleKeys[currentIndex - 1] : null;
+            const previous = previousKey ? (db[previousKey] || {}) : null;
+            const shift = getRecordShift(key);
+            const shiftCode = shift === 'B' ? 1 : 0;
+            const trialNumber = Number(getTrialLabel(key));
+            const rotationIndex = ((Number.isFinite(trialNumber) ? trialNumber : 0) + shiftCode) % 12;
+            const currentProd = Number(record.prod) || 0;
+            const previousProd = Number(previous?.prod) || 0;
+            const total = Number(record.total) || 0;
+            const manpower = Number(record.man) || 0;
+            const efficiency = Number(record.eff) || (targetProductivity ? (currentProd / targetProductivity) * 100 : 0);
+            const previousEfficiency = Number(previous?.eff) || 0;
+            const cycle = record.cycle_detail || {};
+            const previousCycle = previous?.cycle_detail || {};
+            const stations = [
+                { key: 'prep', label: 'เตรียม RM', value: Number(cycle.prep) || 0 },
+                { key: 'arrange', label: 'เรียงเนื้อ (คอขวด)', value: Number(cycle.arrange) || 0 },
+                { key: 'machine', label: 'เข้าเครื่อง', value: Number(cycle.machine) || 0 },
+                { key: 'inspec', label: 'เช็คสเปค', value: Number(cycle.inspec) || 0 },
+                { key: 'pack', label: 'PACKING', value: Number(cycle.pack) || 0 }
+            ];
+            const bottleneck = stations.reduce((max, station) => station.value > max.value ? station : max, stations[0]);
+            const previousBottleneckValue = Number(previousCycle[bottleneck.key]) || 0;
+            const cycleTotal = stations.reduce((sum, station) => sum + station.value, 0);
+            const previousCycleTotal = Object.keys(previousCycle).length
+                ? ['prep', 'arrange', 'machine', 'inspec', 'pack'].reduce((sum, station) => sum + (Number(previousCycle[station]) || 0), 0)
+                : 0;
+            const prodGap = currentProd - previousProd;
+            const prodGapPct = previousProd ? (prodGap / previousProd) * 100 : 0;
+            const cycleGap = cycleTotal - previousCycleTotal;
+            const targetGap = currentProd - targetProductivity;
+            const targetGapPct = targetProductivity ? (targetGap / targetProductivity) * 100 : 0;
+            const oppositeShift = shift === 'B' ? 'A' : 'B';
+            const oppositeKeys = keys.filter(candidate => !isBaselineRecord(candidate) && getRecordShift(candidate) === oppositeShift).sort(compareRecordKeys);
+            const oppositeKey = oppositeKeys[oppositeKeys.length - 1];
+            const opposite = oppositeKey ? (db[oppositeKey] || {}) : null;
+            const shiftGap = opposite ? currentProd - (Number(opposite.prod) || 0) : 0;
+            const shiftGapPct = opposite && Number(opposite.prod) ? (shiftGap / Number(opposite.prod)) * 100 : 0;
+            const bestLabel = bestTrialKey && db[bestTrialKey] ? `${Number(db[bestTrialKey].prod || 0).toFixed(1)} (Trial ${getTrialLabel(bestTrialKey)})` : 'ยังไม่มีข้อมูล';
+            const sign = value => Number(value) > 0 ? '+' : '';
+            const fixed = value => Number(value || 0).toFixed(2);
+            const pct = value => `${sign(value)}${Number(value || 0).toFixed(1)}%`;
+            const state = currentProd < previousProd ? 'negative' : (currentProd >= Number(db[bestTrialKey]?.prod || 0) ? 'best' : (efficiency >= previousEfficiency ? 'improving' : 'stable'));
+            const action = `ทดลองลดเวลา ${bottleneck.label} ลง 0.50-1.00 วินาที และตรวจสอบผลใน Trial ถัดไป`;
+            const templates = [
+                { opening: `รอบนี้ ${getTrialLabel(key)} ของ ${shift} ทำ Productivity ได้ ${currentProd.toFixed(1)} ไม้/คน/ชม.`, bottleneck: `${bottleneck.label} ใช้เวลาสูงสุด ${fixed(bottleneck.value)} วินาที จึงเป็นจุดโฟกัสหลัก`, shift: previous ? `เมื่อเทียบรอบก่อน ผลผลิตเปลี่ยนแปลง ${sign(prodGap)}${prodGap.toFixed(1)} ไม้/คน/ชม. (${pct(prodGapPct)})` : `ยังไม่มีรอบก่อนหน้าใน ${shift} สำหรับใช้เปรียบเทียบ`, action, risk: `หากยังไม่ลดเวลาจุดนี้ จะมี Gap จาก Target ${targetProductivity} อยู่ที่ ${pct(targetGapPct)}` },
+                { opening: `${getTrialLabel(key)} แสดง Efficiency ${efficiency.toFixed(2)}% จากกำลังคน ${manpower} คน`, bottleneck: `ข้อจำกัดของกระบวนการอยู่ที่ ${bottleneck.label} (${fixed(bottleneck.value)} วินาที)`, shift: opposite ? `${shift} ต่างจาก Shift ${oppositeShift} อยู่ ${sign(shiftGap)}${shiftGap.toFixed(1)} ไม้/คน/ชม. (${pct(shiftGapPct)})` : `ยังไม่มีข้อมูล Shift ${oppositeShift} สำหรับการเทียบ`, action: `ปรับสมดุลกำลังคนและวิธีทำงานบริเวณ ${bottleneck.label}`, risk: `ถ้าความต่างระหว่างกะเพิ่มขึ้น อาจทำให้มาตรฐานการผลิตไม่คงที่` },
+                { opening: `ผลผลิตปัจจุบันอยู่ที่ ${currentProd.toFixed(1)} เมื่อเทียบกับ Best Record ${bestLabel}`, bottleneck: `เวลาที่ควรทบทวนก่อนคือ ${bottleneck.label} ซึ่งใช้ ${fixed(bottleneck.value)} วินาที`, shift: previous ? `Cycle Time ของรอบนี้เปลี่ยนจากรอบก่อน ${sign(cycleGap)}${fixed(cycleGap)} วินาที` : `รอบนี้เป็นจุดเริ่มต้นของชุดข้อมูลที่เลือก`, action: `นำวิธีทำงานจากรอบที่ดีที่สุดมาเทียบกับ ${bottleneck.label}`, risk: `หากความแตกต่างจาก Best Record ยังสูง อาจรักษาระดับผลผลิตไม่ได้` },
+                { opening: `${shift} ของ ${getTrialLabel(key)} ให้ผลผลิต ${currentProd.toFixed(1)} ไม้/คน/ชม.`, bottleneck: `${bottleneck.label} เป็นจุดที่ควรตรวจสอบความสมดุลของงาน`, shift: opposite ? `ผลต่างระหว่าง ${shift} และ Shift ${oppositeShift} คือ ${sign(shiftGap)}${shiftGap.toFixed(1)} (${pct(shiftGapPct)})` : `ยังไม่มีข้อมูลอีกกะเพื่อยืนยันความแตกต่าง`, action: `ตรวจสอบมาตรฐานการจัดคนและลำดับงานของทั้งสองกะ`, risk: `มาตรฐานที่ไม่เท่ากันอาจทำให้ผลลัพธ์ระหว่างกะแตกต่างต่อเนื่อง` },
+                { opening: `Cycle Time รวมของรอบนี้อยู่ที่ ${fixed(cycleTotal)} วินาที`, bottleneck: `${bottleneck.label} ใช้เวลา ${fixed(bottleneck.value)} วินาที สูงที่สุดในกระบวนการ`, shift: previous ? `Cycle Time รวมเปลี่ยนจากรอบก่อน ${sign(cycleGap)}${fixed(cycleGap)} วินาที` : `ยังไม่มีค่ารอบก่อนสำหรับวัดการเปลี่ยนแปลง`, action: `ทดลองลดเวลาที่ ${bottleneck.label} ก่อนประเมินทั้งไลน์`, risk: `การลดเวลาโดยไม่ติดตามคุณภาพอาจทำให้เกิด Rework เพิ่มขึ้น` },
+                { opening: `รอบนี้ใช้กำลังคน ${manpower} คน และทำผลผลิตได้ ${currentProd.toFixed(1)} ไม้/คน/ชม.`, bottleneck: `ภาระงานที่ ${bottleneck.label} อาจไม่สมดุลกับจำนวนคนที่จัดไว้`, shift: opposite ? `เมื่อเทียบกับ Shift ${oppositeShift} มีผลต่าง Productivity ${pct(shiftGapPct)}` : `ยังไม่มีข้อมูลกำลังคนของ Shift ${oppositeShift} สำหรับเปรียบเทียบ`, action: `ทดลองโยกกำลังคนไปยัง ${bottleneck.label} และวัดผลซ้ำ`, risk: `การเพิ่มคนโดยไม่แก้ขั้นตอนอาจเพิ่มต้นทุนโดยไม่เพิ่มผลผลิต` },
+                { opening: `${shift} มีสัญญาณปรับปรุงดีขึ้น โดย Productivity อยู่ที่ ${currentProd.toFixed(1)}`, bottleneck: `แม้ผลผลิตดีขึ้น แต่ ${bottleneck.label} ยังเป็นจุดจำกัด`, shift: previous ? `ผลผลิตดีขึ้นจากรอบก่อน ${pct(prodGapPct)}` : `รอบนี้เป็นข้อมูลแรกของ ${shift}`, action: `รักษาวิธีทำงานรอบนี้และยืนยันผลซ้ำอีก 1-2 รอบ`, risk: `ผลดีขึ้นเพียงครั้งเดียวอาจยังไม่เพียงพอสำหรับกำหนดเป็นมาตรฐานถาวร` },
+                { opening: `รอบล่าสุดของ ${shift} ลดลงเหลือ ${currentProd.toFixed(1)} ไม้/คน/ชม.`, bottleneck: `${bottleneck.label} มีผลต่อการลดลงของผลผลิตมากที่สุด`, shift: previous ? `เมื่อเทียบรอบก่อน ผลต่างอยู่ที่ ${sign(prodGap)}${prodGap.toFixed(1)} (${pct(prodGapPct)})` : `ยังไม่มีรอบก่อนหน้าเพื่อยืนยันแนวโน้ม`, action: `ตรวจสอบสาเหตุหน้างานและยืนยันข้อมูลก่อนเริ่ม Trial ถัดไป`, risk: `หากแนวโน้มลดลงต่อเนื่อง Gap จาก Target จะเพิ่มขึ้น` },
+                { opening: `${getTrialLabel(key)} ทำได้ ${currentProd.toFixed(1)} เทียบกับ Target ${targetProductivity}`, bottleneck: `ระยะห่างจากเป้าหมายสัมพันธ์กับเวลาที่ ${bottleneck.label}`, shift: `รอบนี้มี Gap จาก Target ${pct(targetGapPct)}`, action: `กำหนด Action เฉพาะจุดเพื่อปิด Gap ในรอบถัดไป`, risk: `หากไม่ลดเวลาคอขวด จะยังไม่สามารถแตะ Target ได้สม่ำเสมอ` },
+                { opening: `ผลผลิตของรอบนี้อยู่ที่ ${currentProd.toFixed(1)} โดยต้องควบคุมคุณภาพควบคู่กัน`, bottleneck: `${bottleneck.label} ใช้เวลาสูง แต่เป็นขั้นตอนที่ต้องรักษาคุณภาพ`, shift: previous ? `ผลต่างจากรอบก่อนอยู่ที่ ${sign(prodGap)}${prodGap.toFixed(1)} ไม้/คน/ชม.` : `ยังไม่มีข้อมูลรอบก่อนเพื่อเทียบผลกระทบ`, action: `ลดเวลาเป็นขั้นและติดตาม Defect/Rework ร่วมกับ Productivity`, risk: `การเร่งผลผลิตโดยไม่ควบคุมคุณภาพอาจเพิ่มงานแก้ไข` },
+                { opening: `${shift} มีแนวโน้มคงที่ที่ Productivity ${currentProd.toFixed(1)}`, bottleneck: `${bottleneck.label} ยังคงเป็นจุดที่ใช้เวลามากที่สุด`, shift: previous ? `ผลต่างจากรอบก่อนอยู่ที่ ${pct(prodGapPct)}` : `ควรเก็บข้อมูลต่อเนื่องก่อนสรุปแนวโน้ม`, action: `เก็บข้อมูลเพิ่มเพื่อยืนยันค่าพื้นฐานของกระบวนการ`, risk: `ถ้าจำนวนรอบยังน้อย ไม่ควรใช้เป็นมาตรฐานถาวร` },
+                { opening: `จากข้อมูลรอบ ${getTrialLabel(key)} ควรให้ความสำคัญกับ ${bottleneck.label}`, bottleneck: `เวลาปัจจุบันของจุดนี้คือ ${fixed(bottleneck.value)} วินาที`, shift: previous ? `ผลลัพธ์ต่างจากรอบก่อน ${sign(prodGap)}${prodGap.toFixed(1)} ไม้/คน/ชม.` : `ยังไม่มีรอบก่อนเพื่อระบุแนวโน้ม`, action, risk: `ควรกำหนดเกณฑ์ผ่านก่อนทดลอง เพื่อป้องกันผลกระทบต่อคุณภาพและกำลังคน` }
+            ];
+            const template = templates[rotationIndex];
+            const modeLabel = state === 'negative' ? 'ต้องติดตาม' : (state === 'best' ? 'Best Record' : (state === 'improving' ? 'กำลังดีขึ้น' : 'ติดตามต่อเนื่อง'));
+            document.getElementById('insight-overall').innerHTML = `ผลผลิตตามสัดส่วนพนักงานอยู่ที่ <span class="font-bold text-[#009ef7] text-[15px]">${manpower} คน</span> ได้ ${currentProd.toFixed(1)} ไม้/คน/ชม. <span class="text-[#a1a5b7]">[ผลผลิตรวม ${total.toLocaleString()} ไม้/ชั่วโมง]</span> <span class="text-[#50cd89]">สถานะ: ${modeLabel}</span>`;
+            const rows = [
+                ['Opening', template.opening, '#009ef7'],
+                ['Bottleneck', template.bottleneck, '#8b5cf6'],
+                ['Shift comparison', template.shift, '#ffc700'],
+                ['Action', template.action, '#f1416c'],
+                ['Risk', template.risk, '#50cd89']
+            ];
+            document.getElementById('insight-steps').innerHTML = rows.map((row, index) => `
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0 w-6 h-6 rounded bg-[#2b2b40] border flex items-center justify-center text-xs font-bold mt-0.5" style="color:${row[2]};border-color:${row[2]}55">${index + 1}</div>
+                    <div><h4 class="font-bold text-sm mb-1" style="color:${row[2]}">${row[0]}</h4><p class="text-[#a1a5b7] text-sm leading-relaxed">${row[1]}</p></div>
+                </div>`).join('');
+        }
+
         function renderInsight(key, data) {
+            renderRotatingInsight(key, data);
+            return;
             let roundText = isBaselineRecord(key) ? 'กระบวนการเดิม' : `Trial ${getTrialLabel(key)} / Shift ${getRecordShift(key)}`;
             document.getElementById('insight-round').innerText = `[${roundText}]`;
             
@@ -1007,34 +1147,100 @@
         }
 
         function renderTable() {
+            return renderLegacyTable();
+            const tableBody = document.getElementById('tableBody');
+            const allKeys = getVisibleKeys();
+            const dataKeys = allKeys.filter(k => !isBaselineRecord(k));
+            const keys = tableShiftFilter === 'ALL'
+                ? allKeys
+                : allKeys.filter(k => isBaselineRecord(k) || getRecordShift(k) === tableShiftFilter);
+            if (!keys.length) {
+                tableBody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-[#a1a5b7]">ยังไม่มีข้อมูลสำหรับ Shift นี้</td></tr>';
+                return;
+            }
+
+            const filteredDataKeys = keys.filter(k => !isBaselineRecord(k));
+            const latestKey = filteredDataKeys[filteredDataKeys.length - 1] || keys[keys.length - 1];
+            const bestKey = [...filteredDataKeys].sort((a, b) => (Number(db[b]?.prod) || 0) - (Number(db[a]?.prod) || 0))[0] || latestKey;
+            const summaryKeys = filteredDataKeys.length ? filteredDataKeys : dataKeys;
+            const avgEff = summaryKeys.length
+                ? summaryKeys.reduce((sum, k) => sum + (Number(db[k]?.eff) || 0), 0) / summaryKeys.length
+                : 0;
+
+            const labelFor = k => isBaselineRecord(k)
+                ? 'กระบวนการเดิม'
+                : `ครั้งที่ ${getTrialLabel(k)} / Shift ${getRecordShift(k)}`;
+            const summaryLatest = document.getElementById('table-summary-latest');
+            const summaryLatestLabel = document.getElementById('table-summary-latest-label');
+            const summaryBest = document.getElementById('table-summary-best');
+            const summaryBestLabel = document.getElementById('table-summary-best-label');
+            const summaryEff = document.getElementById('table-summary-eff');
+            const summaryTarget = document.getElementById('table-summary-target');
+            if (summaryLatest && latestKey) summaryLatest.textContent = `${(Number(db[latestKey]?.prod) || 0).toFixed(1)} ไม้/คน/ชม.`;
+            if (summaryLatestLabel && latestKey) summaryLatestLabel.textContent = labelFor(latestKey);
+            if (summaryBest && bestKey) summaryBest.textContent = `${(Number(db[bestKey]?.prod) || 0).toFixed(1)} ไม้/คน/ชม.`;
+            if (summaryBestLabel && bestKey) summaryBestLabel.textContent = `${labelFor(bestKey)} (Best)`;
+            if (summaryEff) summaryEff.textContent = `${avgEff.toFixed(2)}%`;
+            if (summaryTarget) summaryTarget.textContent = `${targetProductivity.toFixed(0)}`;
+
+            if (!tableSelectedKey || !keys.includes(tableSelectedKey)) tableSelectedKey = latestKey;
+            const roundSelect = document.getElementById('tableRoundSelect');
+            if (roundSelect) {
+                roundSelect.innerHTML = keys.map(k => `<option value="${k}" ${k === tableSelectedKey ? 'selected' : ''}>${labelFor(k)}</option>`).join('');
+            }
+            const shiftSelect = document.getElementById('tableShiftSelect');
+            if (shiftSelect) {
+                shiftSelect.innerHTML = '<option value="ALL">All Shifts</option><option value="A">Shift A</option><option value="B">Shift B</option>';
+                shiftSelect.value = tableShiftFilter;
+            }
+
+            const d = db[tableSelectedKey] || db[latestKey];
+            const selectedKey = d ? (db[tableSelectedKey] ? tableSelectedKey : latestKey) : null;
+            if (!d || !selectedKey) {
+                tableBody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-[#a1a5b7]">ยังไม่มีข้อมูล</td></tr>';
+                return;
+            }
+            const cycle = d.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
+            const layout = d.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 };
+            const totalCt = ['prep', 'arrange', 'machine', 'inspec', 'pack'].reduce((sum, key) => sum + (Number(cycle[key]) || 0), 0);
+            const cycleText = `RM ${formatVal(Number(cycle.prep) || 0)} · เรียง ${formatVal(Number(cycle.arrange) || 0)} · เข้าเครื่อง ${formatVal(Number(cycle.machine) || 0)} · เช็ค ${formatVal(Number(cycle.inspec) || 0)} · Pack ${formatVal(Number(cycle.pack) || 0)}`;
+            const manpowerText = `เตรียม ${layout.prep || 0} · เรียง ${layout.block || 0} · Inspec ${layout.inspec || 0} · แพ็ค ${layout.pack || 0} · Operate ${layout.op || 0}`;
+            tableBody.innerHTML = `
+                <tr class="bg-[#1e1e2d]">
+                    <td class="p-4 font-bold text-white">${labelFor(selectedKey)}${selectedKey === bestKey ? ' ⭐' : ''}</td>
+                    <td class="p-4 font-bold text-[#50cd89]">${(Number(d.prod) || 0).toFixed(1)}</td>
+                    <td class="p-4 text-[#a1a5b7]">${(Number(d.eff) || 0).toFixed(2)}%</td>
+                    <td class="p-4 text-[#8b5cf6] text-xs">${cycleText}</td>
+                    <td class="p-4 font-bold text-white">${formatVal(totalCt)} วิ</td>
+                    <td class="p-4 font-bold text-[#009ef7]">${d.man || 0} คน</td>
+                    <td class="p-4 text-[#a1a5b7] text-xs">${manpowerText}</td>
+                </tr>`;
+        }
+
+        function renderLegacyTable() {
             const tableBody = document.getElementById('tableBody');
             let html = '';
             getVisibleKeys().forEach(k => {
                 const d = db[k];
-                if(!d) return; 
-                
+                if (!d) return;
                 let titleText = isBaselineRecord(k)
                     ? 'กระบวนการเดิม'
                     : `ครั้งที่ ${getTrialLabel(k)} / Shift ${getRecordShift(k)}`;
-                if (k === bestTrialKey) titleText += " ⭐ (Best)";
-                let cycle = d.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
-                let layout = d.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 };
-
-                let m_prep = Number(cycle.prep) || 0;
-                let m_arrange = Number(cycle.arrange) || 0;
-                let m_machine = Number(cycle.machine) || 0;
-                let m_inspec = Number(cycle.inspec) || 0;
-                let m_pack = Number(cycle.pack) || 0;
-                
-                let total_ct = m_prep + m_arrange + m_machine + m_inspec + m_pack;
-                let totalOutput = d.total || 0;
-
+                if (k === bestTrialKey) titleText += ' ⭐ (Best)';
+                const cycle = d.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
+                const layout = d.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 };
+                const m_prep = Number(cycle.prep) || 0;
+                const m_arrange = Number(cycle.arrange) || 0;
+                const m_machine = Number(cycle.machine) || 0;
+                const m_inspec = Number(cycle.inspec) || 0;
+                const m_pack = Number(cycle.pack) || 0;
+                const total_ct = m_prep + m_arrange + m_machine + m_inspec + m_pack;
+                const totalOutput = Number(d.total) || 0;
                 html += `
                     <tr id="row-${k}" class="hover:bg-[#2b2b40] transition duration-150 cursor-pointer text-center" onclick="selectIteration('${k}')">
                         <td class="p-3 font-medium text-white sticky left-0 bg-[#1e1e2d] border-r border-[#323248] text-left">${titleText}</td>
-                        <td class="p-3 text-[#50cd89] font-bold">${(d.prod || 0).toFixed(1)}</td>
-                        <td class="p-3">${(d.eff || 0).toFixed(2)}%</td>
-                        
+                        <td class="p-3 text-[#50cd89] font-bold">${(Number(d.prod) || 0).toFixed(1)}</td>
+                        <td class="p-3">${(Number(d.eff) || 0).toFixed(2)}%</td>
                         <td class="p-3 border-l border-[#323248] text-[#009ef7] bg-[rgba(139,92,246,0.05)]">${formatVal(m_prep)}</td>
                         <td class="p-3 bg-[rgba(139,92,246,0.05)] text-[#8b5cf6] font-bold text-[15px]">${formatVal(m_arrange)}</td>
                         <td class="p-3 bg-[rgba(139,92,246,0.05)] text-[#ffc700]">${formatVal(m_machine)}</td>
@@ -1042,17 +1248,26 @@
                         <td class="p-3 bg-[rgba(139,92,246,0.05)] text-[#50cd89]">${formatVal(m_pack)}</td>
                         <td class="p-3 bg-[#2b2b40] font-bold text-white border-l border-[#323248]">${formatVal(total_ct)}</td>
                         <td class="p-3 bg-[#2b2b40] font-bold text-[#009ef7]">${totalOutput.toLocaleString()}</td>
-                        
                         <td class="p-3 border-l border-[#323248] text-[#009ef7] font-bold bg-[rgba(0,158,247,0.05)]">${d.man || 0}</td>
-                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.prep}</td>
-                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.block}</td>
-                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.inspec}</td>
-                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.pack}</td>
-                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.op}</td>
-                    </tr>
-                `;
+                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.prep || 0}</td>
+                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.block || 0}</td>
+                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.inspec || 0}</td>
+                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.pack || 0}</td>
+                        <td class="p-3 bg-[rgba(0,158,247,0.05)] text-[#a1a5b7]">${layout.op || 0}</td>
+                    </tr>`;
             });
             tableBody.innerHTML = html;
+        }
+
+        function setTableShift(shift) {
+            tableShiftFilter = String(shift || 'all').toUpperCase();
+            renderTable();
+        }
+
+        function selectTableRecord(key) {
+            tableSelectedKey = key;
+            renderTable();
+            selectIteration(key);
         }
 
         function calculateExecutiveSummary(baselineKey, selectedKey) {
@@ -1062,15 +1277,15 @@
             if(!baseline || !selected) return;
 
             const baseLabel = isBaselineRecord(baselineKey)
-                ? "?????????????"
+                ? "Original Process"
                 : "Trial " + getTrialLabel(baselineKey) + " / Shift " + getRecordShift(baselineKey);
             const selectedLabel = isBaselineRecord(selectedKey)
-                ? "?????????????????"
+                ? "Selected Process"
                 : "Trial " + getTrialLabel(selectedKey) + " / Shift " + getRecordShift(selectedKey);
-            document.getElementById("lbl-summary-prod").innerText = baseLabel + " vs " + selectedLabel + " (???????????)";
-            document.getElementById("lbl-summary-eff").innerText = baseLabel + " vs " + selectedLabel + " (???????????)";
-            document.getElementById("lbl-summary-arrange").innerText = baseLabel + " vs " + selectedLabel + " (???????????)";
-            document.getElementById("lbl-summary-total").innerText = baseLabel + " vs " + selectedLabel + " (???????????)";
+            document.getElementById("lbl-summary-prod").innerText = baseLabel + " vs " + selectedLabel + " (Productivity)";
+            document.getElementById("lbl-summary-eff").innerText = baseLabel + " vs " + selectedLabel + " (Efficiency)";
+            document.getElementById("lbl-summary-arrange").innerText = baseLabel + " vs " + selectedLabel + " (Cycle Time)";
+            document.getElementById("lbl-summary-total").innerText = baseLabel + " vs " + selectedLabel + " (Total Output)";
 
             const badgeIds = ["growth-prod", "growth-eff", "growth-arrange", "growth-total"];
             badgeIds.forEach(id => {
@@ -1439,10 +1654,10 @@
             const selectedTotalCT = (Number(selectedCycle.prep)||0) + (Number(selectedCycle.arrange)||0) + (Number(selectedCycle.machine)||0) + (Number(selectedCycle.inspec)||0) + (Number(selectedCycle.pack)||0);
 
             const baseLabel = isBaselineRecord(baselineKey)
-                ? "?????????????"
+                ? "Original Process"
                 : "Trial " + getTrialLabel(baselineKey) + " / Shift " + getRecordShift(baselineKey);
             const selectedLabel = isBaselineRecord(selectedKey)
-                ? "?????????????????"
+                ? "Selected Process"
                 : "Trial " + getTrialLabel(selectedKey) + " / Shift " + getRecordShift(selectedKey);
             const compareLabel = baseLabel + " vs " + selectedLabel;
 
@@ -1452,7 +1667,7 @@
                 const titleEl = rightTitle.querySelector("h3");
                 const subtitleEl = rightTitle.querySelector("span.text-xs");
                 if (titleEl) titleEl.innerText = "Comparison Gap Overview (Baseline vs Selected)";
-                if (subtitleEl) subtitleEl.innerText = "?????: %Gap (??? = ??????, ?? = ?????)";
+                if (subtitleEl) subtitleEl.innerText = "Gap Analysis: %Gap (Positive = Better, Negative = Worse)";
             }
 
             const prodJourneyChartCtx = document.getElementById("prodJourneyChart").getContext("2d");
@@ -1460,10 +1675,10 @@
             prodJourneyChart = new Chart(prodJourneyChartCtx, {
                 type: "bar",
                 data: {
-                    labels: [baseLabel + " (????????)", selectedLabel + " (????????)", "Target (??????????????)"],
+                    labels: [baseLabel + " (Baseline)", selectedLabel + " (Selected)", "Target (Target)"],
                     datasets: [
                         {
-                            label: "Productivity (???/??/??.)",
+                            label: "Productivity (sticks/person/hour)",
                             data: [baseline.prod, selected.prod, targetProductivity],
                             backgroundColor: ["#323248", "#009ef7", "#50cd89"],
                             borderRadius: 4, barPercentage: 0.5, yAxisID: "y"
