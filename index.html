@@ -247,7 +247,7 @@
                         <div>
                             <h3 class="text-sm font-bold text-white mb-5 border-b border-[#323248] pb-3">Productivity Progress vs Target (ไม้/คน/ชม.)</h3>
                             
-                            <div class="space-y-3">
+                            <div id="productivitySectionBody" class="space-y-3">
                         <div id="progressPanelList"></div>
 
                     </div>
@@ -350,7 +350,7 @@
 
             const summaryCard = title ? title.closest('div.bg-card.rounded-xl.border') : null;
             if (summaryCard && !document.getElementById('comparePanel')) {
-                const summaryBody = summaryCard.querySelector('.space-y-6');
+                const summaryBody = document.getElementById('productivitySectionBody');
                 if (summaryBody) {
                     summaryBody.insertAdjacentHTML('beforeend', `
                         <div id="comparePanel" class="bg-[#151521] border border-[#323248] rounded-xl p-4 md:p-5">
@@ -548,6 +548,13 @@
             return Number(b?.latest?.trial || 0) - Number(a?.latest?.trial || 0);
         }
 
+        function compareRecentChangeOrder(a, b) {
+            const aIsM1 = a?.line === 'BL23G R15 (M1)';
+            const bIsM1 = b?.line === 'BL23G R15 (M1)';
+            if (aIsM1 !== bIsM1) return aIsM1 ? -1 : 1;
+            return compareRecordRecency(a, b);
+        }
+
         function buildDashboardInsights(results) {
             const visibleShifts = currentShiftFilter === 'all' ? ['A', 'B'] : [currentShiftFilter];
             const streams = results.flatMap(({ label, target, records }) => {
@@ -601,7 +608,7 @@
 
             const recentChanges = [...streams]
                 .filter(item => item.previous)
-                .sort(compareRecordRecency)
+                .sort(compareRecentChangeOrder)
                 .slice(0, 6);
 
             return {
