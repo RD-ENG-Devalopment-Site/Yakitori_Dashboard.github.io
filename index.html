@@ -384,6 +384,16 @@
                             <div id="freshnessPanel" class="bg-[#151521] rounded-xl border border-[#323248] shadow-sm p-5"></div>
                             <div id="recentChangePanel" class="xl:col-span-2 bg-[#151521] rounded-xl border border-[#323248] shadow-sm p-6"></div>
                         </div>
+                        <section class="rounded-xl border border-[#323248] bg-[#151521] p-4 md:p-5">
+                            <div class="flex flex-col gap-1 mb-4">
+                                <div class="flex items-center justify-between gap-3">
+                                    <h4 class="text-sm font-bold text-white">Operational Summary</h4>
+                                    <span class="text-[10px] uppercase tracking-[0.2em] text-[#6b7280] font-bold">Live operational view</span>
+                                </div>
+                                <p class="text-xs text-[#a1a5b7]">สรุปเป้าหมาย คอขวด Breakdown และข้อมูลที่ต้องติดตามจากข้อมูลล่าสุด</p>
+                            </div>
+                            <div id="overviewCards" class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4"></div>
+                        </section>
                     `);
                 }
             }
@@ -801,7 +811,7 @@
             };
         }
 
-        function renderOverviewCards(results) {
+        function renderLegacyOverviewCards(results) {
             const container = document.getElementById('overviewCards');
             if (!container) return;
 
@@ -833,7 +843,7 @@
                         </div>
                         <span class="text-[11px] uppercase tracking-[0.22em] text-[#6b7280] font-bold">${shiftLabel}</span>
                     </div>
-                    <h3 class="text-sm font-bold text-white mb-1">Production Snapshot</h3>
+                    <h3 class="text-sm font-bold text-white mb-1">Target Attainment</h3>
                     <div class="flex items-end gap-2 mb-4">
                         <span class="${avgColor} text-3xl font-bold font-en">${formatMetricValue(summary.avgLatest)}</span>
                         <span class="text-[#6b7280] text-sm">ไม้/คน/ชม.</span>
@@ -904,12 +914,54 @@
             `;
         }
 
-        function renderOverviewCards(results) {
+        function getBottleneckSnapshot(results) {
+            const stations = [
+                { key: 'prep', label: 'เตรียม RM' },
+                { key: 'arrange', label: 'เรียงเนื้อ' },
+                { key: 'machine', label: 'เข้าเครื่อง' },
+                { key: 'inspect', label: 'เช็คสเปค' },
+                { key: 'pack', label: 'PACKING' }
+            ];
+            const shifts = currentShiftFilter === 'all' ? ['A', 'B'] : [currentShiftFilter];
+            const candidates = results.flatMap(({ label, records }) => shifts.map(shift => {
+                const scoped = sortTrials(filterByShift(records, shift));
+                const latest = scoped[scoped.length - 1];
+                if (!latest?.cycle) return null;
+                const station = stations
+                    .map(item => ({ ...item, value: Number(latest.cycle[item.key]) || 0 }))
+                    .sort((a, b) => b.value - a.value)[0];
+                return station?.value > 0 ? { line: label, shift, trial: latest.trial, station: station.label, value: station.value } : null;
+            })).filter(Boolean);
+            return candidates.sort((a, b) => b.value - a.value)[0] || null;
+        }
+
+        function getBreakdownSnapshot(feed) {
+            const records = Array.isArray(feed?._records) ? feed._records : [];
+            const openItems = records.filter(item => String(item?.status || item?.breakdownStatus || 'Open').toLowerCase() === 'open');
+            const totalDowntime = records.reduce((sum, item) => sum + (Number(item?.durationMin) || 0), 0);
+            return {
+                total: records.length,
+                open: openItems.length,
+                totalDowntime,
+                latest: records[0] || null
+            };
+        }
+
+        function renderOverviewCards(results, breakdownFeed = {}) {
             const container = document.getElementById('overviewCards');
             if (!container) return;
 
             const summary = buildOverviewData(results);
             const insights = buildDashboardInsights(results);
+            const bottleneck = getBottleneckSnapshot(results);
+            const breakdown = getBreakdownSnapshot(breakdownFeed);
+            const visibleShifts = currentShiftFilter === 'all' ? ['A', 'B'] : [currentShiftFilter];
+            const expectedFeeds = results.length * visibleShifts.length;
+            const availableFeeds = results.reduce((count, item) => count + visibleShifts.filter(shift =>
+                Boolean(getStats(filterByShift(item.records, shift), item.summary?.byShift?.[shift]))
+            ).length, 0);
+            const missingFeeds = Math.max(expectedFeeds - availableFeeds, 0);
+            const targetHits = summary.activeLines.filter(item => item.currentStats.latest.prod >= item.target).length;
             const shiftLabel = summary.currentShiftFilter === 'all' ? 'All Shift' : `Shift ${summary.currentShiftFilter}`;
             const avgColor = summary.avgLatest === null ? 'text-[#a1a5b7]' : 'text-white';
             const strongestLine = summary.strongest
@@ -922,12 +974,6 @@
             const shiftLeader = shiftGap === null ? '--' : (shiftGap >= 0 ? 'Shift B lead' : 'Shift A lead');
             const shiftGapText = shiftGap === null ? '--' : `${Math.abs(shiftGap).toFixed(1)} pts`;
             const breakdownSource = summary.weakest;
-            const breakdownGap = breakdownSource
-                ? Math.max((breakdownSource.target || 0) - breakdownSource.currentStats.latest.prod, 0)
-                : null;
-            const breakdownPct = breakdownSource && breakdownSource.target > 0
-                ? ((breakdownGap || 0) / breakdownSource.target) * 100
-                : null;
             const ownerSuggestion = breakdownSource
                 ? `${breakdownSource.label} line owner + R&D`
                 : 'Pending assignment';
@@ -943,7 +989,10 @@
                     : 'เทียบ Shift A/B เมื่อมีข้อมูลครบทั้งสองกะ',
                 insights.momentumRisk && (insights.momentumRisk.deltaProd || 0) < 0
                     ? `เช็กสาเหตุ Trial ล่าสุดของ ${insights.momentumRisk.line} / Shift ${insights.momentumRisk.shift}`
-                    : 'ยังไม่พบการตกแรงจากรอบล่าสุด'
+                    : 'ยังไม่พบการตกแรงจากรอบล่าสุด',
+                bottleneck
+                    ? `โฟกัสคอขวด ${bottleneck.station} ของ ${bottleneck.line} / Shift ${bottleneck.shift}`
+                    : 'ยังไม่มี Cycle Time เพียงพอสำหรับระบุคอขวด'
             ];
 
             container.innerHTML = `
@@ -954,13 +1003,14 @@
                         </div>
                         <span class="text-[11px] uppercase tracking-[0.22em] text-[#6b7280] font-bold">${shiftLabel}</span>
                     </div>
-                    <h3 class="text-sm font-bold text-white mb-1">Production Snapshot</h3>
+                    <h3 class="text-sm font-bold text-white mb-1">Target Attainment</h3>
                     <div class="flex items-end gap-2 mb-4">
                         <span class="${avgColor} text-3xl font-bold font-en">${formatMetricValue(summary.avgLatest)}</span>
-                        <span class="text-[#6b7280] text-sm">sticks/person/hour</span>
+                        <span class="text-[#6b7280] text-sm">average productivity</span>
                     </div>
                     <div class="space-y-2 text-sm">
-                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Lines active</span><span class="text-white font-semibold">${summary.activeLines.length}/3</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Target achieved</span><span class="text-[#50cd89] font-semibold">${targetHits}/${summary.activeLines.length || 0} feeds</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Feeds available</span><span class="text-white font-semibold">${availableFeeds}/${expectedFeeds}</span></div>
                         <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Best line</span><span class="text-[#50cd89] font-semibold">${strongestLine}</span></div>
                         <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Weakest line</span><span class="text-[#f1416c] font-semibold">${weakestLine}</span></div>
                     </div>
@@ -990,18 +1040,17 @@
                         <div class="w-10 h-10 rounded-lg bg-[rgba(255,199,0,0.1)] text-[#ffc700] flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 1a1 1 0 0 1 .894.553l5.5 11A1 1 0 0 1 13.5 14H2.5a1 1 0 0 1-.894-1.447l5.5-11A1 1 0 0 1 8 1zm0 4a.5.5 0 0 0-.5.5V9a.5.5 0 0 0 1 0V5.5A.5.5 0 0 0 8 5zm0 7.25a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5z"/></svg>
                         </div>
-                        <span class="text-[11px] uppercase tracking-[0.22em] text-[#6b7280] font-bold">Snapshot</span>
+                        <span class="text-[11px] uppercase tracking-[0.22em] text-[#6b7280] font-bold">Cycle time</span>
                     </div>
-                    <h3 class="text-sm font-bold text-white mb-1">Breakdown Snapshot</h3>
+                    <h3 class="text-sm font-bold text-white mb-1">Top Bottleneck</h3>
                     <div class="flex items-end gap-2 mb-4">
-                        <span class="text-[#ffc700] text-3xl font-bold font-en">${breakdownGap === null ? '--' : formatMetricValue(breakdownGap)}</span>
-                        <span class="text-[#6b7280] text-sm">gap to target</span>
+                        <span class="text-[#ffc700] text-3xl font-bold font-en">${bottleneck ? formatMetricValue(bottleneck.value, 2) : '--'}</span>
+                        <span class="text-[#6b7280] text-sm">seconds</span>
                     </div>
                     <div class="space-y-2 text-sm">
-                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">At-risk line</span><span class="text-white font-semibold">${breakdownSource ? breakdownSource.label : '--'}</span></div>
-                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Loss proxy</span><span class="text-[#ffc700] font-semibold">${breakdownPct === null ? '--' : `${breakdownPct.toFixed(1)}%`}</span></div>
-                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Latest source</span><span class="text-white font-semibold">${insights.latestRecord ? `${insights.latestRecord.line} / Shift ${insights.latestRecord.shift}` : '--'}</span></div>
-                        <div class="text-[12px] text-[#a1a5b7] leading-relaxed">ใช้เป็นสัญญาณเตือนเบื้องต้นจาก productivity gap จนกว่าจะเชื่อม downtime log แบบแยกเหตุการณ์จริง</div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Station</span><span class="text-white font-semibold">${bottleneck ? bottleneck.station : '--'}</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Line / Shift</span><span class="text-[#ffc700] font-semibold">${bottleneck ? `${bottleneck.line} / ${bottleneck.shift}` : '--'}</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Latest trial</span><span class="text-white font-semibold">${bottleneck ? `T${bottleneck.trial}` : '--'}</span></div>
                     </div>
                 </div>
 
@@ -1010,12 +1059,13 @@
                         <div class="w-10 h-10 rounded-lg bg-[rgba(80,205,137,0.1)] text-[#50cd89] flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm1 8.5H4.5v-1H9V4.5h1v4z"/></svg>
                         </div>
-                        <span class="text-[11px] uppercase tracking-[0.22em] text-[#6b7280] font-bold">Next step</span>
+                        <span class="text-[11px] uppercase tracking-[0.22em] text-[#6b7280] font-bold">Breakdown & data</span>
                     </div>
-                    <h3 class="text-sm font-bold text-white mb-1">Action Needed</h3>
+                    <h3 class="text-sm font-bold text-white mb-1">Operational Follow-up</h3>
                     <div class="space-y-2 text-sm mb-4">
-                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Suggested owner</span><span class="text-white font-semibold text-right">${ownerSuggestion}</span></div>
-                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Due</span><span class="text-[#50cd89] font-semibold">${dueHint}</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Open breakdown</span><span class="${breakdown.open ? 'text-[#f1416c]' : 'text-[#50cd89]'} font-semibold text-right">${breakdown.open} event${breakdown.open === 1 ? '' : 's'}</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Logged downtime</span><span class="text-[#ffc700] font-semibold">${formatMetricValue(breakdown.totalDowntime, 0)} min</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Data gaps</span><span class="${missingFeeds ? 'text-[#ffc700]' : 'text-[#50cd89]'} font-semibold">${missingFeeds ? `${missingFeeds} feed${missingFeeds === 1 ? '' : 's'} missing` : 'Complete for selected shifts'}</span></div>
                         ${actionList.map((item, index) => `
                             <div class="flex items-start gap-2">
                                 <span class="mt-1 w-2 h-2 rounded-full ${index === 0 ? 'bg-[#50cd89]' : index === 1 ? 'bg-[#009ef7]' : 'bg-[#ffc700]'}"></span>
@@ -1025,7 +1075,7 @@
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <a href="DataRecordingApproval.html" target="_blank" class="px-3 py-2 rounded-lg bg-[#009ef7] text-white text-xs font-bold hover:opacity-90 transition">Open Data Entry</a>
-                        <a href="BL23g_All new Idel Prodution time.html" target="_blank" class="px-3 py-2 rounded-lg bg-[#2b2b40] text-white text-xs font-bold hover:bg-[#323248] transition">Breakdown Detail</a>
+                        <a href="MachineBreakdownLog.html" target="_blank" class="px-3 py-2 rounded-lg bg-[#2b2b40] text-white text-xs font-bold hover:bg-[#323248] transition">Breakdown Log</a>
                     </div>
                 </div>
             `;
@@ -1037,7 +1087,9 @@
                 : Object.entries(db || {}).map(([trial, item]) => ({ trial, ...item }));
 
             return records
-                .map(item => ({
+                .map(item => {
+                    const detail = db?.[item?.key] || item;
+                    return {
                     trial: String(item?.trial ?? '').trim(),
                     shift: String(item?.shift ?? 'A').trim().toUpperCase() || 'A',
                     line: String(item?.line ?? '').trim(),
@@ -1046,8 +1098,16 @@
                     man: Number(item?.man) || 0,
                     total: Number(item?.total) || 0,
                     recordDate: String(item?.recordDate ?? '').trim(),
-                    status: String(item?.status ?? '').trim()
-                }))
+                    status: String(item?.status ?? '').trim(),
+                    cycle: {
+                        prep: Number(detail?.cycle_detail?.prep ?? detail?.prep ?? detail?.prepareRm) || 0,
+                        arrange: Number(detail?.cycle_detail?.arrange ?? detail?.arrange ?? detail?.sorting) || 0,
+                        machine: Number(detail?.cycle_detail?.machine ?? detail?.machine ?? detail?.machineTime) || 0,
+                        inspect: Number(detail?.cycle_detail?.inspec ?? detail?.cycle_detail?.inspect ?? detail?.inspect ?? detail?.checkSpec) || 0,
+                        pack: Number(detail?.cycle_detail?.pack ?? detail?.pack ?? detail?.packing) || 0
+                    }
+                    };
+                })
                 .filter(item => isNumericTrial(item.trial));
         }
 
@@ -1317,7 +1377,8 @@
         }
 
         async function renderDashboardData() {
-            const results = await Promise.all(lineConfigs.map(async (config) => {
+            const [results, breakdownFeed] = await Promise.all([
+                Promise.all(lineConfigs.map(async (config) => {
                 try {
                     const params = config.projectKey ? { projectKey: config.projectKey } : {};
                     const response = await fetch(window.YakitoriRuntime.buildApiUrl(config.sheet, params), { cache: 'no-store' });
@@ -1336,7 +1397,14 @@
                         summary: normalizeSheetSummary({})
                     };
                 }
-            }));
+                })),
+                fetch(window.YakitoriRuntime.buildApiUrl('', { action: 'read_breakdown' }), { cache: 'no-store' })
+                    .then(response => response.ok ? response.json() : { _records: [] })
+                    .catch(error => {
+                        console.warn('Failed to load breakdown feed', error);
+                        return { _records: [] };
+                    })
+            ]);
 
             lastDashboardRefreshAt = new Date();
 
@@ -1344,7 +1412,7 @@
 
             renderFreshnessAndAlerts(results);
             renderRecentChanges(results);
-            renderOverviewCards(results);
+            renderOverviewCards(results, breakdownFeed);
             renderComparePanel(results);
 
             if (progressSummary.activeProjectsCount > 0) {
