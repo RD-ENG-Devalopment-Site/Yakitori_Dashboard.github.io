@@ -361,7 +361,24 @@
                                 </div>
                                 <span class="text-[11px] uppercase tracking-[0.2em] text-[#a1a5b7]">Real sheet records</span>
                             </div>
-                            <div id="compareBody" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left whitespace-nowrap text-sm">
+                                    <thead class="text-[11px] uppercase text-[#6b7280] border-b border-[#2b2b40]">
+                                        <tr>
+                                            <th class="py-2 pr-4">Line</th>
+                                            <th class="py-2 pr-4">A Latest</th>
+                                            <th class="py-2 pr-4">B Latest</th>
+                                            <th class="py-2 pr-4">Latest Gap B-A</th>
+                                            <th class="py-2 pr-4">Latest % Gap</th>
+                                            <th class="py-2 pr-4">A Best</th>
+                                            <th class="py-2 pr-4">B Best</th>
+                                            <th class="py-2 pr-4">Best Gap B-A</th>
+                                            <th class="py-2 pr-4">Best % Gap</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="compareBody" class="divide-y divide-[#2b2b40]"></tbody>
+                                </table>
+                            </div>
                         </div>
                         <div id="insightPanelRow" class="grid grid-cols-1 xl:grid-cols-3 gap-4">
                             <div id="freshnessPanel" class="bg-[#151521] rounded-xl border border-[#323248] shadow-sm p-5"></div>
@@ -673,28 +690,42 @@
                     </div>
                     <span class="text-[11px] uppercase tracking-[0.2em] text-[#6b7280] font-bold">Recent trial-to-trial movement</span>
                 </div>
-                <div class="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
-                    ${recentChanges.length ? recentChanges.map(item => {
-                        const prodClass = (item.deltaProd || 0) >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
-                        const effClass = (item.deltaEff || 0) >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
-                        const totalClass = (item.deltaTotal || 0) >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
-                        return `
-                            <div class="rounded-lg border border-[#323248] bg-[#1a1d27] px-3.5 py-3 grid grid-cols-1 sm:grid-cols-[minmax(180px,1.25fr)_minmax(130px,0.8fr)_auto] items-center gap-3">
-                                <div>
-                                    <div class="text-sm text-white font-semibold">${item.line} <span class="text-[#6b7280] font-normal">/ Shift ${item.shift}</span></div>
-                                    <div class="mt-1 text-[11px] text-[#6b7280]">T${item.previous.trial} ${item.previous.prod.toFixed(1)} <span class="mx-1 text-[#7e8299]">→</span> T${item.latest.trial} <span class="font-semibold text-[#7dd3fc]">${item.latest.prod.toFixed(1)}</span></div>
-                                </div>
-                                <div class="flex flex-wrap gap-2 text-[11px] font-semibold">
-                                    <span class="rounded-md px-2 py-1 bg-[#151521] ${prodClass}">Prod ${item.deltaProd >= 0 ? '+' : ''}${item.deltaProd.toFixed(1)}</span>
-                                    <span class="rounded-md px-2 py-1 bg-[#151521] ${effClass}">Eff ${item.deltaEff >= 0 ? '+' : ''}${item.deltaEff.toFixed(2)}%</span>
-                                    <span class="rounded-md px-2 py-1 bg-[#151521] ${totalClass}">Output ${item.deltaTotal >= 0 ? '+' : ''}${item.deltaTotal.toLocaleString()}</span>
-                                </div>
-                                <div class="text-[10px] text-[#6b7280] sm:text-right">${formatDateTimeDisplay(item.latest.recordDate)}</div>
-                            </div>
-                        `;
-                    }).join('') : `
-                        <div class="py-6 text-center text-[#6b7280]">ยังมีข้อมูลไม่พอสำหรับสร้าง recent change feed</div>
-                    `}
+                <div class="overflow-x-auto max-h-[320px] pr-1">
+                    <table class="w-full text-left whitespace-nowrap text-sm">
+                        <thead class="text-[11px] uppercase text-[#6b7280] border-b border-[#2b2b40]">
+                            <tr>
+                                <th class="py-2 pr-4">Line / Shift</th>
+                                <th class="py-2 pr-4">Latest</th>
+                                <th class="py-2 pr-4">Previous</th>
+                                <th class="py-2 pr-4">Prod Δ</th>
+                                <th class="py-2 pr-4">Eff Δ</th>
+                                <th class="py-2 pr-4">Total Output Δ</th>
+                                <th class="py-2 pr-4">Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#2b2b40]">
+                            ${recentChanges.length ? recentChanges.map(item => {
+                                const prodClass = (item.deltaProd || 0) >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
+                                const effClass = (item.deltaEff || 0) >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
+                                const totalClass = (item.deltaTotal || 0) >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
+                                return `
+                                    <tr>
+                                        <td class="py-3 pr-4 text-white font-semibold">${item.line} <span class="text-[#6b7280] font-normal">/ Shift ${item.shift}</span></td>
+                                        <td class="py-3 pr-4 text-white">T${item.latest.trial} <span class="text-[#7dd3fc] font-semibold">${item.latest.prod.toFixed(1)}</span></td>
+                                        <td class="py-3 pr-4 text-[#a1a5b7]">T${item.previous.trial} <span class="font-semibold">${item.previous.prod.toFixed(1)}</span></td>
+                                        <td class="py-3 pr-4 ${prodClass} font-semibold">${item.deltaProd >= 0 ? '+' : ''}${item.deltaProd.toFixed(1)}</td>
+                                        <td class="py-3 pr-4 ${effClass} font-semibold">${item.deltaEff >= 0 ? '+' : ''}${item.deltaEff.toFixed(2)}%</td>
+                                        <td class="py-3 pr-4 ${totalClass} font-semibold">${item.deltaTotal >= 0 ? '+' : ''}${item.deltaTotal.toLocaleString()}</td>
+                                        <td class="py-3 pr-4 text-[#a1a5b7]">${formatDateTimeDisplay(item.latest.recordDate)}</td>
+                                    </tr>
+                                `;
+                            }).join('') : `
+                                <tr>
+                                    <td colspan="7" class="py-6 text-center text-[#6b7280]">ยังมีข้อมูลไม่พอสำหรับสร้าง recent change feed</td>
+                                </tr>
+                            `}
+                        </tbody>
+                    </table>
                 </div>
             `;
         }
@@ -1222,56 +1253,58 @@
         }
 
         function renderComparePanel(results) {
-            const container = document.getElementById('compareBody');
-            if (!container) return;
+            const tbody = document.getElementById('compareBody');
+            if (!tbody) return;
 
-            container.innerHTML = results.map(({ label, target, records, summary }) => {
+            tbody.innerHTML = results.map(({ label, records, summary }) => {
                 const aStats = getStats(filterByShift(records, 'A'), summary?.byShift?.A);
                 const bStats = getStats(filterByShift(records, 'B'), summary?.byShift?.B);
                 const aLatest = aStats ? aStats.latestProd : null;
                 const bLatest = bStats ? bStats.latestProd : null;
-                const gap = (aLatest !== null && bLatest !== null) ? (bLatest - aLatest) : null;
-                const gapClass = gap === null ? 'text-[#a1a5b7]' : (gap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]');
+                const aBest = aStats ? aStats.bestProd : null;
+                const bBest = bStats ? bStats.bestProd : null;
+                const getGap = (a, b) => (a !== null && b !== null) ? (b - a) : null;
+                const getGapPercent = (a, gap) => (gap === null || !a) ? null : (gap / a) * 100;
+                const getGapClass = gap => gap === null ? 'text-[#a1a5b7]' : (gap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]');
+                const latestGap = getGap(aLatest, bLatest);
+                const bestGap = getGap(aBest, bBest);
+                const latestGapPercent = getGapPercent(aLatest, latestGap);
+                const bestGapPercent = getGapPercent(aBest, bestGap);
+                const renderDelta = (value, suffix = '') => value === null ? '--' : `${value >= 0 ? '+' : ''}${value.toFixed(value % 1 === 0 ? 0 : 1)}${suffix}`;
 
                 const renderMetric = (stats, shift, accentClass) => {
                     if (!stats) {
                         return `
-                            <div class="rounded-lg border border-dashed border-[#323248] bg-[#11111b] px-3 py-2.5">
+                            <div class="flex flex-col gap-1">
                                 ${renderShiftBadge(shift)}
-                                <div class="mt-2 text-sm text-[#6b7280]">No data</div>
+                                <span class="text-[#a1a5b7]">--</span>
                             </div>
                         `;
                     }
 
                     return `
-                        <div class="rounded-lg border border-[#323248] bg-[#11111b] px-3 py-2.5">
-                            <div class="flex items-center justify-between gap-2">
-                                ${renderShiftBadge(shift)}
+                        <div class="flex flex-col gap-1">
+                            ${renderShiftBadge(shift)}
+                            <div class="flex items-center gap-2">
+                                <span class="${accentClass} font-semibold">${stats.latestProd.toFixed(1)}</span>
                                 <span class="text-[11px] text-[#6b7280]">T${stats.latestTrial || stats.latest.trial}</span>
                             </div>
-                            <div class="mt-2 text-xl font-bold font-en ${accentClass}">${stats.latestProd.toFixed(1)}</div>
-                            <div class="mt-1 text-[10px] text-[#ffc700]">Best ${stats.bestProd.toFixed(1)} · T${stats.bestTrial}</div>
                         </div>
                     `;
                 };
 
                 return `
-                    <article class="rounded-xl border border-[#323248] bg-[#1a1d27] p-3.5">
-                        <div class="flex items-start justify-between gap-3 mb-3">
-                            <div>
-                                <h5 class="text-sm font-bold text-white">${label}</h5>
-                                <p class="mt-1 text-[11px] text-[#6b7280]">Target ${target} ไม้/คน/ชม.</p>
-                            </div>
-                            <div class="rounded-lg px-2.5 py-1 text-right ${gapClass} bg-[#151521] border border-[#323248]">
-                                <div class="text-[9px] uppercase tracking-[0.14em] text-[#6b7280]">B − A</div>
-                                <div class="text-sm font-bold font-en">${gap === null ? '--' : `${gap >= 0 ? '+' : ''}${gap.toFixed(1)}`}</div>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2.5">
-                            ${renderMetric(aStats, 'A', 'text-[#c4b5fd]')}
-                            ${renderMetric(bStats, 'B', 'text-[#7dd3fc]')}
-                        </div>
-                    </article>
+                    <tr>
+                        <td class="py-3 pr-4 text-white font-semibold align-top">${label}</td>
+                        <td class="py-3 pr-4 align-top">${renderMetric(aStats, 'A', 'text-[#c4b5fd]')}</td>
+                        <td class="py-3 pr-4 align-top">${renderMetric(bStats, 'B', 'text-[#7dd3fc]')}</td>
+                        <td class="py-3 pr-4 font-semibold ${getGapClass(latestGap)}">${renderDelta(latestGap)}</td>
+                        <td class="py-3 pr-4 font-semibold ${getGapClass(latestGap)}">${renderDelta(latestGapPercent, '%')}</td>
+                        <td class="py-3 pr-4 text-[#c4b5fd]">${aStats ? `${aStats.bestProd.toFixed(1)} (T${aStats.bestTrial})` : '--'}</td>
+                        <td class="py-3 pr-4 text-[#7dd3fc]">${bStats ? `${bStats.bestProd.toFixed(1)} (T${bStats.bestTrial})` : '--'}</td>
+                        <td class="py-3 pr-4 font-semibold ${getGapClass(bestGap)}">${renderDelta(bestGap)}</td>
+                        <td class="py-3 pr-4 font-semibold ${getGapClass(bestGap)}">${renderDelta(bestGapPercent, '%')}</td>
+                    </tr>
                 `;
             }).join('');
         }
