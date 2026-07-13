@@ -504,6 +504,39 @@
         const actualOutputTarget = 1600;
         const actualBaseline = { prep: 15.10, arrange: 16.00, machine: 1.25, inspec: 5.00, pack: 5.50 };
 
+        function toNumber(value, fallback = 0) {
+            const number = typeof value === 'string' ? Number(value.replace(/,/g, '').trim()) : Number(value);
+            return Number.isFinite(number) ? number : fallback;
+        }
+
+        function normalizeRecord(key, raw) {
+            if (!raw || typeof raw !== 'object' || String(key).startsWith('_')) return null;
+            const cycle = raw.cycle_detail || {};
+            const layout = raw.layout || {};
+            return {
+                ...raw,
+                trial: String(raw.trial ?? String(key).split('__')[0] ?? '').trim(),
+                shift: String(raw.shift ?? String(key).split('__')[1] ?? 'A').trim().toUpperCase(),
+                prod: toNumber(raw.prod),
+                eff: toNumber(raw.eff),
+                total: toNumber(raw.total),
+                man: toNumber(raw.man),
+                cycle_detail: {
+                    prep: toNumber(cycle.prep), arrange: toNumber(cycle.arrange), machine: toNumber(cycle.machine),
+                    inspec: toNumber(cycle.inspec), pack: toNumber(cycle.pack)
+                },
+                layout: {
+                    prep: toNumber(layout.prep), block: toNumber(layout.block), inspec: toNumber(layout.inspec),
+                    pack: toNumber(layout.pack), op: toNumber(layout.op)
+                }
+            };
+        }
+
+        function isTrialRecord(key) {
+            const record = db[key];
+            return record && typeof record === 'object' && Number.isFinite(Number(record.prod)) && record.cycle_detail;
+        }
+
         const popup = document.getElementById('iterDropdown');
         const icon = document.getElementById('dropdownIcon');
         let isOpen = false;
@@ -540,7 +573,11 @@
                 const response = await fetch(fetchUrl);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-                db = await response.json();
+                const payload = await response.json();
+                if (payload.error) throw new Error(payload.error);
+                db = Object.fromEntries(Object.entries(payload)
+                    .map(([key, value]) => [key, normalizeRecord(key, value)])
+                    .filter(([, value]) => value !== null && Object.prototype.hasOwnProperty.call(value, 'prod')));
 
                 if (db.error) {
                     throw new Error("หลังบ้านแจ้งข้อผิดพลาด: " + db.error);
@@ -554,9 +591,7 @@
 
                 // คำนวณค่า Efficiency Rate ใหม่จากสูตรทางวิศวกรรมที่ถูกต้อง (Productivity / 84) * 100
                 Object.keys(db).forEach(k => {
-                    if (db[k] && db[k].prod !== undefined) {
-                        db[k].eff = (db[k].prod / targetProductivity) * 100;
-                    }
+                    db[k].eff = (db[k].prod / targetProductivity) * 100;
                 });
 
                 initializeDashboardFromSheets();
@@ -566,7 +601,7 @@
         }
 
         function initializeDashboardFromSheets() {
-            const allSheetKeys = Object.keys(db);
+            const allSheetKeys = Object.keys(db).filter(k => isTrialRecord(k));
             allSheetKeys.sort((a, b) => parseInt(a) - parseInt(b));
 
             keys.length = 0;
@@ -1292,7 +1327,7 @@
         }
 
         function initializeDashboardFromSheets() {
-            const allSheetKeys = Object.keys(db).filter(k => String(k || '').trim() !== '' && !String(k || '').startsWith('_'));
+            const allSheetKeys = Object.keys(db).filter(k => isTrialRecord(k));
             allSheetKeys.sort((a, b) => {
                 const aTrial = getTrialLabel(a);
                 const bTrial = getTrialLabel(b);
