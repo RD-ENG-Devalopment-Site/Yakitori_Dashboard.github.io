@@ -1274,7 +1274,13 @@
                         <div class="mt-2 h-1.5 rounded-full border border-[#323248] bg-[#11111b] overflow-hidden">
                             <div class="h-full rounded-full progress-bar-striped" style="width:${Math.min(latestPercent, 100)}%; background:${accent.solid}; opacity:${accent.barOpacity}"></div>
                         </div>
-                        <div class="mt-2 text-[10px] text-[#ffc700]">Best ${stats.bestProd.toFixed(1)} · T${stats.bestTrial} · ${bestPercent.toFixed(1)}%</div>
+                        <div class="mt-2 flex items-center justify-between gap-2 text-[10px]">
+                            <span class="text-[#ffc700] font-bold uppercase tracking-[0.12em]">Best · T${stats.bestTrial}</span>
+                            <span class="text-[#ffc700] font-semibold">${stats.bestProd.toFixed(1)} · ${bestPercent.toFixed(1)}%</span>
+                        </div>
+                        <div class="mt-1 h-1 rounded-full border border-[#4d3e0a] bg-[#11111b] overflow-hidden">
+                            <div class="h-full rounded-full" style="width:${Math.min(bestPercent, 100)}%; background:linear-gradient(90deg, #a67c00, #ffc700)"></div>
+                        </div>
                     </div>
                 `;
             };
