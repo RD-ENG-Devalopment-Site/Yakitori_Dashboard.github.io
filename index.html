@@ -1100,9 +1100,22 @@
         }
 
         function normalizeSheetData(db) {
-            const records = Array.isArray(db?._records) && db._records.length
+            const sourceRecords = Array.isArray(db?._records) && db._records.length
                 ? db._records
                 : Object.entries(db || {}).map(([trial, item]) => ({ trial, ...item }));
+
+            // A revised Trial/Shift is appended as a new sheet row. Keep the last
+            // entry for each pair so stale revisions cannot become the displayed best.
+            const recordsByTrialShift = new Map();
+            sourceRecords.forEach(item => {
+                const trial = String(item?.trial ?? '').trim();
+                if (!isNumericTrial(trial)) return;
+                const shift = String(item?.shift ?? 'A').trim().toUpperCase() || 'A';
+                const recordKey = `${trial}__${shift}`;
+                recordsByTrialShift.delete(recordKey);
+                recordsByTrialShift.set(recordKey, item);
+            });
+            const records = Array.from(recordsByTrialShift.values());
 
             return records
                 .map(item => {
@@ -1170,9 +1183,27 @@
         }
 
         function getStats(records, summary = null) {
-            if (!records.length && Number(summary?.count) === 0) {
-                return null;
+            const sorted = sortTrials(records);
+
+            // Prefer the normalized raw rows. GAS summaries may be cached and can
+            // include older revisions of the same Trial/Shift.
+            if (sorted.length) {
+                const latest = sorted[sorted.length - 1];
+                const best = sorted.reduce((acc, item) => (!acc || item.prod > acc.prod ? item : acc), null);
+                return {
+                    latest,
+                    best,
+                    latestProd: Number(latest.prod) || 0,
+                    latestTrial: String(latest.trial || ''),
+                    latestShift: String(latest.shift || '').toUpperCase(),
+                    bestProd: Number(best.prod) || 0,
+                    bestTrial: String(best.trial || ''),
+                    bestShift: String(best.shift || '').toUpperCase(),
+                    count: sorted.length
+                };
             }
+
+            if (Number(summary?.count) === 0) return null;
 
             if (summary && (
                 summary.latestProd !== undefined ||
@@ -1199,21 +1230,7 @@
                 };
             }
 
-            const sorted = sortTrials(records);
-            if (!sorted.length) return null;
-            const latest = sorted[sorted.length - 1];
-            const best = sorted.reduce((acc, item) => (!acc || item.prod > acc.prod ? item : acc), null);
-            return {
-                latest,
-                best,
-                latestProd: Number(latest.prod) || 0,
-                latestTrial: String(latest.trial || ''),
-                latestShift: String(latest.shift || '').toUpperCase(),
-                bestProd: Number(best.prod) || 0,
-                bestTrial: String(best.trial || ''),
-                bestShift: String(best.shift || '').toUpperCase(),
-                count: sorted.length
-            };
+            return null;
         }
 
         function buildProgressEntries(results) {
