@@ -186,8 +186,28 @@ function clearSheetDataRows_(sheet) {
   return lastRow - 1;
 }
 
+function dedupeRecordsByTrialAndShift_(records) {
+  var byKey = {};
+  var orderedKeys = [];
+
+  (records || []).forEach(function(record) {
+    if (!record) return;
+    var trial = String(record.trial || "").trim();
+    if (!trial || !isFinite(Number(trial))) return;
+    var key = trial + "__" + normalizeShift_(record.shift, "A");
+    var priorIndex = orderedKeys.indexOf(key);
+    if (priorIndex !== -1) orderedKeys.splice(priorIndex, 1);
+    byKey[key] = record;
+    orderedKeys.push(key);
+  });
+
+  return orderedKeys.map(function(key) {
+    return byKey[key];
+  });
+}
+
 function summarizeRecords_(records) {
-  var sorted = (records || []).slice().sort(function(a, b) {
+  var sorted = dedupeRecordsByTrialAndShift_(records).sort(function(a, b) {
     return Number(a.trial) - Number(b.trial);
   });
   if (!sorted.length) {
@@ -232,29 +252,10 @@ function summarizeRecordsByShift_(records) {
   return result;
 }
 
-function applyFixedSummaryOverrides_(db, context) {
-  if (!db || !context) return db;
-
-  if (context.line === "BL23G") {
-    db._summaryByShift = db._summaryByShift || {};
-    db._summaryByShift.A = {
-      latestProd: db._summaryByShift.A && db._summaryByShift.A.latestProd !== undefined ? db._summaryByShift.A.latestProd : 0,
-      latestTrial: db._summaryByShift.A && db._summaryByShift.A.latestTrial !== undefined ? db._summaryByShift.A.latestTrial : "",
-      latestShift: "A",
-      bestProd: 109.1,
-      bestTrial: "52",
-      bestShift: "A",
-      count: db._summaryByShift.A && db._summaryByShift.A.count !== undefined ? db._summaryByShift.A.count : 0
-    };
-    db._summaryByShiftA = db._summaryByShift.A;
-  }
-
-  return db;
-}
-
-function attachSummaryFields_(db, records, context) {
-  var overall = summarizeRecords_(records);
-  var byShift = summarizeRecordsByShift_(records);
+function attachSummaryFields_(db, records) {
+  var normalizedRecords = dedupeRecordsByTrialAndShift_(records);
+  var overall = summarizeRecords_(normalizedRecords);
+  var byShift = summarizeRecordsByShift_(normalizedRecords);
 
   db.latestProd = overall.latestProd;
   db.latestTrial = overall.latestTrial;
@@ -266,7 +267,6 @@ function attachSummaryFields_(db, records, context) {
   db._summaryByShift = byShift;
   db._summaryByShiftA = byShift.A;
   db._summaryByShiftB = byShift.B;
-  applyFixedSummaryOverrides_(db, context);
   return db;
 }
 
@@ -550,8 +550,9 @@ function getJsonStream(e) {
       }
     }
 
+    bl23Records = dedupeRecordsByTrialAndShift_(bl23Records);
     bl23Db._records = bl23Records;
-    attachSummaryFields_(bl23Db, bl23Records, { line: "BL23G" });
+    attachSummaryFields_(bl23Db, bl23Records);
     return ContentService.createTextOutput(JSON.stringify(bl23Db))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -583,8 +584,9 @@ function getJsonStream(e) {
       }
     }
 
+    gizzardRecords = dedupeRecordsByTrialAndShift_(gizzardRecords);
     gizzardDb._records = gizzardRecords;
-    attachSummaryFields_(gizzardDb, gizzardRecords, { line: gizzardLine });
+    attachSummaryFields_(gizzardDb, gizzardRecords);
     return ContentService.createTextOutput(JSON.stringify(gizzardDb))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -664,8 +666,9 @@ function getJsonStream(e) {
     };
   }
 
+  records = dedupeRecordsByTrialAndShift_(records);
   db._records = records;
-  attachSummaryFields_(db, records, { line: sheetName });
+  attachSummaryFields_(db, records);
   return ContentService.createTextOutput(JSON.stringify(db))
     .setMimeType(ContentService.MimeType.JSON);
 }
