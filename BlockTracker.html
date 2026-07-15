@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Block Tracker | Project APEX Flow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="yakitori-runtime.js?v=20260617-04"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap');
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Sarabun', sans-serif; background: #151521; color: #a1a5b7; }
+    .font-en { font-family: 'Inter', sans-serif; }
+    .card { background: linear-gradient(145deg, rgba(37,37,55,.98), rgba(25,25,38,.98)); }
+    .control { background:#171724; border:1px solid #37374d; color:#f5f5f7; }
+    .control:focus { outline:none; border-color:#009ef7; box-shadow:0 0 0 3px rgba(0,158,247,.12); }
+    .block { transition: transform .18s ease, box-shadow .18s ease; }
+    .block:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,.26); }
+    .block-running { background:linear-gradient(135deg,#009ef7,#2467c3); border-color:#4ab8ff; }
+    .block-waiting { background:linear-gradient(135deg,#7860cf,#4b3b9c); border-color:#a58cff; }
+    .block-hold { background:linear-gradient(135deg,#c14c65,#8d2841); border-color:#fa7791; }
+    .block-done { background:linear-gradient(135deg,#198b69,#11614c); border-color:#50cd89; }
+    .status-dot { width:8px; height:8px; border-radius:999px; display:inline-block; }
+    .pulse { animation:pulse 1.65s infinite; }
+    dialog { background: transparent; border: 0; padding: 1rem; max-width: 760px; width: 100%; }
+    dialog::backdrop { background: rgba(4, 5, 12, .72); backdrop-filter: blur(4px); }
+    @keyframes pulse { 50% { opacity:.42; transform:scale(.72); } }
+    ::-webkit-scrollbar { width:7px; height:7px; } ::-webkit-scrollbar-thumb { background:#3a3a51; border-radius:8px; }
+  </style>
+</head>
+<body>
+  <main class="min-h-screen min-w-0 p-4 md:p-7">
+      <nav class="mb-6 flex items-center border-b border-[#343447] bg-[#1b1b28] px-5" aria-label="Page navigation">
+        <a href="index.html" class="border-b-4 border-transparent px-4 py-4 text-sm font-bold text-white transition hover:border-[#009ef7] hover:text-[#70c8ff]">HOME</a>
+        <span class="border-b-4 border-[#f1416c] px-4 py-4 text-sm font-bold text-white">Block Tracker</span>
+      </nav>
+      <header class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 class="font-en text-2xl font-bold tracking-tight text-white md:text-3xl">Block Tracker</h1>
+          <p class="mt-1 text-sm text-[#8c90a6]">ทะเบียนจำนวนบล็อคที่ใช้งานบนไลน์ผลิต และบล็อคสำรองพร้อมใช้งาน</p>
+        </div>
+      </header>
+
+      <section class="card rounded-2xl border border-[#323248] p-4 md:p-6">
+        <div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div><h2 class="font-en text-lg font-bold text-white">Block Inventory Register</h2><p class="text-sm text-[#85899e]">สรุปจำนวนบล็อคแยกตามรุ่นและสถานะการใช้งาน</p></div>
+          <div class="flex flex-wrap gap-3 text-xs"><span><i class="status-dot mr-1.5 bg-[#009ef7]"></i>ใช้งานบนไลน์</span><span><i class="status-dot mr-1.5 bg-[#e15a76]"></i>เสียหาย</span><span><i class="status-dot mr-1.5 bg-[#50cd89]"></i>พร้อมใช้งาน</span></div>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-[#38384d]">
+          <table class="w-full min-w-[1120px] border-collapse text-center text-sm">
+            <thead class="bg-[#202033] text-white">
+              <tr class="border-b border-[#45455a] text-xs uppercase tracking-wide"><th rowspan="2" class="border-r border-[#45455a] px-3 py-4">ลำดับ</th><th rowspan="2" class="border-r border-[#45455a] px-5 py-4 text-left">รูป</th><th rowspan="2" class="border-r border-[#45455a] px-5 py-4 text-left">ชื่อบล็อค</th><th colspan="3" class="border-r border-[#45455a] px-4 py-3 text-[#78caff]">จำนวนบล็อคที่ใช้งานบนไลน์</th><th colspan="3" class="border-r border-[#45455a] px-4 py-3 text-[#80e4ae]">จำนวนบล็อคที่ไม่ได้ใช้งาน</th><th rowspan="2" class="px-5 py-4">รวม</th></tr>
+              <tr class="text-[11px] text-[#b9bdd0]"><th class="border-r border-[#45455a] px-3 py-3">จำนวนบล็อค</th><th class="border-r border-[#45455a] px-3 py-3">เปลี่ยนสายพาน</th><th class="border-r border-[#45455a] px-3 py-3">พร้อมใช้งาน</th><th class="border-r border-[#45455a] px-3 py-3">จำนวนบล็อค</th><th class="border-r border-[#45455a] px-3 py-3">เปลี่ยนสายพาน</th><th class="border-r border-[#45455a] px-3 py-3">พร้อมใช้งาน</th></tr>
+            </thead>
+            <tbody id="inventoryTable" class="divide-y divide-[#35354a] bg-[#191927]"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="hidden">
+        <article class="card overflow-hidden rounded-2xl border border-[#323248]">
+          <div class="flex items-center justify-between border-b border-[#323248] px-5 py-4"><div><h2 class="font-en font-bold text-white">รายการบล็อค</h2><p class="text-xs text-[#85899e]">เลือกดูรายการตามไลน์ผลิตและกะ</p></div><span id="recordCount" class="rounded-full bg-[#26364d] px-2.5 py-1 text-xs text-[#77c9ff]">0 models</span></div>
+          <div class="overflow-x-auto"><table class="w-full min-w-[620px] text-left text-sm"><thead class="bg-[#1a1a28] text-[11px] uppercase tracking-wider text-[#74788f]"><tr><th class="px-5 py-3">ชื่อบล็อค</th><th class="px-4 py-3">ไลน์ / กะ</th><th class="px-4 py-3 text-center">ใช้งาน</th><th class="px-4 py-3 text-center">สำรอง</th><th class="px-5 py-3 text-center">รวม</th></tr></thead><tbody id="stationTable" class="divide-y divide-[#303044]"></tbody></table></div>
+        </article>
+      </section>
+  </main>
+  <dialog id="blockDialog">
+    <form id="blockForm" class="card max-h-[90vh] overflow-y-auto rounded-2xl border border-[#42425b] p-5 shadow-2xl md:p-7">
+      <div class="flex items-start justify-between gap-4"><div><p class="text-xs font-bold uppercase tracking-[.18em] text-[#009ef7]">Data Recording</p><h2 id="formTitle" class="mt-1 font-en text-2xl font-bold text-white">บันทึกข้อมูลบล็อค</h2><p class="mt-1 text-sm text-[#8c90a6]">กรอกจำนวนบล็อคและแนบรูปประกอบได้</p></div><button type="button" id="closeDialog" class="rounded-lg px-2 py-1 text-xl text-[#a1a5b7] hover:bg-[#303044] hover:text-white">×</button></div>
+      <input type="hidden" id="editIndex">
+      <div class="mt-6 grid gap-4 md:grid-cols-2">
+        <label class="text-sm font-medium text-white">ชื่อบล็อค<input id="name" required class="control mt-2 w-full rounded-xl px-3 py-2.5" placeholder="เช่น Tail Block (S18)"></label>
+        <label class="text-sm font-medium text-white">รูปบล็อค<input id="image" type="file" accept="image/*" class="control mt-2 block w-full rounded-xl p-2 text-xs"></label>
+        <label class="text-sm font-medium text-white">ไลน์ผลิต<select id="line" class="control mt-2 w-full rounded-xl px-3 py-2.5"><option>Line A</option><option>Line B</option></select></label>
+        <label class="text-sm font-medium text-white">กะ<select id="shift" class="control mt-2 w-full rounded-xl px-3 py-2.5"><option value="A">Shift A</option><option value="B">Shift B</option></select></label>
+      </div>
+      <div class="mt-6 grid gap-5 md:grid-cols-2"><fieldset class="rounded-xl border border-[#35445b] p-4"><legend class="px-2 text-sm font-bold text-[#78caff]">ใช้งานบนไลน์ผลิต</legend><div class="grid grid-cols-3 gap-3"><label class="text-xs text-[#a1a5b7]">จำนวน<input id="inUse" type="number" min="0" required class="control mt-1.5 w-full rounded-lg px-2 py-2 text-white"></label><label class="text-xs text-[#a1a5b7]">เปลี่ยนสายพาน<input id="inUseChange" type="number" min="0" required class="control mt-1.5 w-full rounded-lg px-2 py-2 text-white"></label><label class="text-xs text-[#a1a5b7]">พร้อมใช้<input id="inUseReady" type="number" min="0" required class="control mt-1.5 w-full rounded-lg px-2 py-2 text-white"></label></div></fieldset><fieldset class="rounded-xl border border-[#365343] p-4"><legend class="px-2 text-sm font-bold text-[#80e4ae]">ไม่ได้ใช้งาน</legend><div class="grid grid-cols-3 gap-3"><label class="text-xs text-[#a1a5b7]">จำนวน<input id="idle" type="number" min="0" required class="control mt-1.5 w-full rounded-lg px-2 py-2 text-white"></label><label class="text-xs text-[#a1a5b7]">เปลี่ยนสายพาน<input id="idleChange" type="number" min="0" required class="control mt-1.5 w-full rounded-lg px-2 py-2 text-white"></label><label class="text-xs text-[#a1a5b7]">พร้อมใช้<input id="idleReady" type="number" min="0" required class="control mt-1.5 w-full rounded-lg px-2 py-2 text-white"></label></div></fieldset></div>
+      <div class="mt-6 flex justify-end gap-3"><button type="button" id="cancelDialog" class="rounded-xl border border-[#45455a] px-4 py-2.5 text-sm font-semibold text-[#c1c4d2] hover:bg-[#303044]">ยกเลิก</button><button class="rounded-xl bg-[#009ef7] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1688cf]">บันทึกข้อมูล</button></div>
+    </form>
+  </dialog>
+  <script>
+    const defaultBlocks = [
+      { no:1, name:'Tail Block (S18)', line:'Line A', shift:'A', inUse:13, inUseChange:1, inUseReady:12, idle:0, idleChange:1, idleReady:0 },
+      { no:2, name:'Tail Block (R15)', line:'Line A', shift:'A', inUse:10, inUseChange:0, inUseReady:10, idle:3, idleChange:1, idleReady:2 },
+      { no:3, name:'Gizzard Block (S18)', line:'Line B', shift:'B', inUse:12, inUseChange:2, inUseReady:10, idle:4, idleChange:0, idleReady:4 },
+      { no:4, name:'Gizzard Block (R15)', line:'Line B', shift:'B', inUse:8, inUseChange:0, inUseReady:8, idle:2, idleChange:0, idleReady:2 }
+    ];
+    let blocks = JSON.parse(localStorage.getItem('apex-block-tracker') || 'null') || defaultBlocks;
+    const el = id => document.getElementById(id);
+    function filtered() { return blocks; }
+    function render() {
+      const data=filtered(), total=x=>x.inUseReady+x.idleReady, totalBlocks=data.reduce((a,x)=>a+total(x),0), inUse=data.reduce((a,x)=>a+x.inUse,0), ready=data.reduce((a,x)=>a+x.inUseReady+x.idleReady,0), change=data.reduce((a,x)=>a+x.inUseChange+x.idleChange,0);
+      el('inventoryTable').innerHTML=data.map(x => `<tr class="hover:bg-white/[.025]"><td class="border-r border-[#35354a] px-3 py-5 font-en text-[#a1a5b7]">${x.no}</td><td class="border-r border-[#35354a] px-5 py-4"><div class="flex h-12 w-16 items-center justify-center rounded-lg border border-dashed border-[#4a4a60] bg-[#202033] text-xl text-[#74788f]">▣</div></td><td class="border-r border-[#35354a] px-5 py-4 text-left font-semibold text-white">${x.name}</td><td class="border-r border-[#35354a] px-3 py-4 font-en font-bold text-[#6fc6ff]">${x.inUse}</td><td class="border-r border-[#35354a] px-3 py-4 font-en font-bold text-[#ff8ba2]">${x.inUseChange}</td><td class="border-r border-[#35354a] px-3 py-4 font-en font-bold text-[#7ae3a7]">${x.inUseReady}</td><td class="border-r border-[#35354a] px-3 py-4 font-en font-bold text-[#c9cddd]">${x.idle}</td><td class="border-r border-[#35354a] px-3 py-4 font-en font-bold text-[#ff8ba2]">${x.idleChange}</td><td class="border-r border-[#35354a] px-3 py-4 font-en font-bold text-[#7ae3a7]">${x.idleReady}</td><td class="px-5 py-4 font-en text-lg font-extrabold text-white">${total(x)}</td></tr>`).join('');
+      el('stationTable').innerHTML=data.map(x => `<tr class="hover:bg-white/[.025]"><td class="px-5 py-3.5 font-semibold text-white">${x.name}</td><td class="px-4 py-3.5 text-[#a1a5b7]">${x.line} <span class="text-[#62667c]">/</span> Shift ${x.shift}</td><td class="font-en px-4 py-3.5 text-center font-bold text-[#6fc6ff]">${x.inUse}</td><td class="font-en px-4 py-3.5 text-center font-bold text-[#7ae3a7]">${x.idle}</td><td class="font-en px-5 py-3.5 text-center font-bold text-white">${total(x)}</td></tr>`).join('');
+      el('recordCount').textContent=`${data.length} models`;
+    }
+    const dialog=el('blockDialog'), fields=['name','line','shift','inUse','inUseChange','inUseReady','idle','idleChange','idleReady'];
+    function openForm(index='') {
+      el('blockForm').reset(); el('editIndex').value=index;
+      el('formTitle').textContent=index===''?'บันทึกข้อมูลบล็อค':'แก้ไขข้อมูลบล็อค';
+      if(index!=='') fields.forEach(key=>el(key).value=blocks[index][key]);
+      dialog.showModal();
+    }
+    const baseRender=render;
+    render=function() {
+      baseRender();
+      const data=filtered().map(b=>b.onLineUsed!==undefined?b:{no:b.no,name:b.name,onLineUsed:b.inUse||0,onLineDamaged:b.inUseChange||0,spareAvailable:b.idle||0,spareDamaged:b.idleChange||0});
+      const inventoryHead=document.querySelector('#inventoryTable').closest('table').querySelector('thead');
+      inventoryHead.innerHTML=`<tr class="border-b border-[#45455a] text-xs uppercase tracking-wide"><th class="border-r border-[#45455a] px-3 py-4">ลำดับ</th><th class="border-r border-[#45455a] px-5 py-4">รูปบล็อค</th><th class="border-r border-[#45455a] px-5 py-4 text-left">ชื่อบล็อค</th><th colspan="2" class="border-r border-[#45455a] px-4 py-3 text-[#78caff]">จำนวนบล็อคบนไลน์ผลิต</th><th colspan="2" class="border-r border-[#45455a] px-4 py-3 text-[#80e4ae]">จำนวนบล็อคอะไหล่</th><th rowspan="2" class="px-4 py-3 text-[#ffc700]">รวมจำนวนบล็อค</th></tr><tr class="text-[11px] text-[#b9bdd0]"><th colspan="3" class="border-r border-[#45455a] px-3 py-3"></th><th class="border-r border-[#45455a] px-3 py-3">ใช้งาน</th><th class="border-r border-[#45455a] px-3 py-3">เสียหาย</th><th class="border-r border-[#45455a] px-3 py-3">จำนวนที่มี</th><th class="border-r border-[#45455a] px-3 py-3">เสียหาย</th></tr>`;
+      el('inventoryTable').innerHTML=data.map(x=>{const total=x.onLineUsed+x.onLineDamaged+x.spareAvailable+x.spareDamaged;return `<tr class="hover:bg-white/[.025]"><td class="border-r border-[#35354a] px-3 py-5 font-en text-[#a1a5b7]">${x.no}</td><td class="border-r border-[#35354a] px-5 py-3">${x.image?`<img src="${x.image}" alt="${x.name}" class="h-14 w-20 rounded-lg object-cover">`:`<div class="flex h-14 w-20 items-center justify-center rounded-lg border border-dashed border-[#4a4a60] bg-[#202033] text-xs text-[#777b90]">ไม่มีรูป</div>`}</td><td class="border-r border-[#35354a] px-5 py-4 text-left font-semibold text-white">${x.name}</td><td class="border-r border-[#35354a] px-3 py-4 font-en font-bold text-[#6fc6ff]">${x.onLineUsed}</td><td class="border-r border-[#35354a] px-3 py-4 font-en font-bold text-[#ff8ba2]">${x.onLineDamaged}</td><td class="border-r border-[#35354a] px-3 py-4 font-en font-bold text-[#7ae3a7]">${x.spareAvailable}</td><td class="border-r border-[#35354a] px-3 py-4 font-en font-bold text-[#ff8ba2]">${x.spareDamaged}</td><td class="px-4 py-4 font-en text-lg font-extrabold text-[#ffd15c]">${total}</td></tr>`;}).join('');
+      const totals={onLineUsed:data.reduce((sum,x)=>sum+x.onLineUsed,0),onLineDamaged:data.reduce((sum,x)=>sum+x.onLineDamaged,0),spareAvailable:data.reduce((sum,x)=>sum+x.spareAvailable,0),spareDamaged:data.reduce((sum,x)=>sum+x.spareDamaged,0)}; totals.all=totals.onLineUsed+totals.onLineDamaged+totals.spareAvailable+totals.spareDamaged;
+      const inventoryTable=el('inventoryTable').closest('table'); let inventoryFooter=inventoryTable.querySelector('tfoot'); if(!inventoryFooter){inventoryFooter=document.createElement('tfoot');inventoryTable.appendChild(inventoryFooter);} inventoryFooter.innerHTML=`<tr class="border-t border-[#4a4a60] bg-[#1d2b32]"><td colspan="3" class="border-r border-[#3a4a4e] px-5 py-3 text-right font-bold text-white">รวมทั้งหมด</td><td class="border-r border-[#3a4a4e] px-3 py-3 font-en font-extrabold text-[#6fc6ff]">${totals.onLineUsed}</td><td class="border-r border-[#3a4a4e] px-3 py-3 font-en font-extrabold text-[#ff8ba2]">${totals.onLineDamaged}</td><td class="border-r border-[#3a4a4e] px-3 py-3 font-en text-lg font-extrabold text-[#7ae3a7]">${totals.spareAvailable}</td><td class="border-r border-[#3a4a4e] px-3 py-3 font-en font-extrabold text-[#ff8ba2]">${totals.spareDamaged}</td><td class="px-4 py-3 font-en text-lg font-extrabold text-[#ffd15c]">${totals.all}</td></tr>`;
+      const summaryTable=document.querySelector('#stationTable').closest('table');
+      summaryTable.querySelector('thead').innerHTML=`<tr><th class="px-5 py-3">ชื่อบล็อค</th><th class="px-4 py-3 text-center">บนไลน์: ใช้งาน</th><th class="px-4 py-3 text-center">บนไลน์: เสียหาย</th><th class="px-4 py-3 text-center">อะไหล่: มี</th><th class="px-4 py-3 text-center">อะไหล่: เสียหาย</th><th class="manage-header px-5 py-3 text-center">จัดการ</th></tr>`;
+      el('stationTable').innerHTML=data.map(x=>`<tr class="hover:bg-white/[.025]"><td class="px-5 py-3.5 font-semibold text-white">${x.name}</td><td class="px-4 py-3.5 text-center font-en font-bold text-[#6fc6ff]">${x.onLineUsed}</td><td class="px-4 py-3.5 text-center font-en font-bold text-[#ff8ba2]">${x.onLineDamaged}</td><td class="px-4 py-3.5 text-center font-en font-bold text-[#7ae3a7]">${x.spareAvailable}</td><td class="px-4 py-3.5 text-center font-en font-bold text-[#ff8ba2]">${x.spareDamaged}</td></tr>`).join('');
+      const headerRow=document.querySelector('#stationTable').closest('table').querySelector('thead tr');
+      if(!headerRow.querySelector('.manage-header')) { const th=document.createElement('th'); th.className='manage-header px-5 py-3 text-center'; th.textContent='จัดการ'; headerRow.appendChild(th); }
+      document.querySelectorAll('#inventoryTable tr').forEach((row,i)=>{
+        if(data[i].image) row.children[1].innerHTML=`<img src="${data[i].image}" alt="${data[i].name}" class="h-12 w-16 rounded-lg object-cover">`;
+      });
+      document.querySelectorAll('#stationTable tr').forEach((row,i)=>{
+        const cell=document.createElement('td'); cell.className='px-5 py-3.5 text-center';
+        cell.innerHTML=`<a href="BlockTrackerRecord.html" class="rounded-lg bg-[#26364d] px-2.5 py-1.5 text-xs font-semibold text-[#8fd0ff] hover:bg-[#344b69]">บันทึก / แก้ไข</a>`;
+        row.appendChild(cell);
+      });
+    };
+    el('closeDialog').addEventListener('click',()=>dialog.close());
+    el('cancelDialog').addEventListener('click',()=>dialog.close());
+    el('blockForm').addEventListener('submit', async event => {
+      event.preventDefault(); const index=el('editIndex').value, existing=index===''?{}:blocks[index], record={...existing,no:index===''?blocks.length+1:existing.no};
+      fields.forEach(key=>record[key]=['inUse','inUseChange','inUseReady','idle','idleChange','idleReady'].includes(key)?Number(el(key).value):el(key).value);
+      const file=el('image').files[0];
+      if(file) record.image=await new Promise(resolve=>{const reader=new FileReader(); reader.onload=()=>resolve(reader.result); reader.readAsDataURL(file);});
+      if(index==='') blocks.push(record); else blocks[index]=record;
+      localStorage.setItem('apex-block-tracker',JSON.stringify(blocks)); dialog.close(); render();
+    });
+    el('stationTable').addEventListener('click',event=>{const button=event.target.closest('.edit-btn'); if(button) openForm(Number(button.dataset.index));});
+    async function loadBlockTrackerFromGas(){if(!window.YakitoriRuntime)return;try{const response=await fetch(window.YakitoriRuntime.buildApiUrl('',{action:'read_block_tracker'}),{cache:'no-store'});const body=await response.json();if(!body.records||!body.records.length)return;const localImages=new Map(blocks.map(record=>[record.recordId,record.image]));blocks=body.records.map((record,index)=>({no:index+1,...record,image:localImages.get(record.recordId)}));localStorage.setItem('apex-block-tracker',JSON.stringify(blocks));render();}catch(error){console.warn('Block Tracker sync unavailable',error);}}
+    render();loadBlockTrackerFromGas();
+  </script>
+</body>
+</html>
