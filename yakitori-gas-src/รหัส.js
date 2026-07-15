@@ -25,6 +25,14 @@ function doPost(e) {
       return jsonOutput_(saveBreakdownRecord_(request.payload || {}));
     }
 
+    if (action === "record_block_tracker") {
+      return jsonOutput_(saveBlockTrackerRecord_(request.payload || {}));
+    }
+
+    if (action === "delete_block_tracker") {
+      return jsonOutput_(deleteBlockTrackerRecord_(request.payload || {}));
+    }
+
     if (action === "create_breakdown_sheet") {
       return jsonOutput_(createBreakdownSheet_());
     }
@@ -72,6 +80,7 @@ var GZ40G_SOURCE_SHEET = "GZ40gS18_DataLog";
 var GZ40G_SHIFT_B_SHEET = "GZ40gS18_ShiftB_DataLog";
 var GZ40G_TARGET_PRODUCTIVITY = 84;
 var BREAKDOWN_LOG_SHEET = "MachineBreakdownLog";
+var BLOCK_TRACKER_SHEET = "BlockTracker_DataLog";
 
 function ensureBreakdownLogSheet_(ss) {
   return ensureSheet_(ss, BREAKDOWN_LOG_SHEET, [
@@ -376,8 +385,55 @@ function buildBl23gRow_(payload, shift) {
   ];
 }
 
+function normalizeAuditHeader_(value) {
+  return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function findAuditHeaderColumn_(headers, names) {
+  for (var i = 0; i < headers.length; i++) {
+    var header = normalizeAuditHeader_(headers[i]);
+    for (var j = 0; j < names.length; j++) {
+      if (header === names[j]) return i + 1;
+    }
+  }
+  return 0;
+}
+
+function ensureRecordAuditColumns_(sheet) {
+  var lastColumn = Math.max(sheet.getLastColumn(), 1);
+  var headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+  var recordDateColumn = findAuditHeaderColumn_(headers, ["recorddate", "date"]);
+  var createdAtColumn = findAuditHeaderColumn_(headers, ["createdat", "submittedat", "timestamp", "updatedat"]);
+
+  if (!recordDateColumn) {
+    recordDateColumn = sheet.getLastColumn() + 1;
+    sheet.getRange(1, recordDateColumn).setValue("recordDate");
+  }
+  if (!createdAtColumn) {
+    createdAtColumn = sheet.getLastColumn() + 1;
+    sheet.getRange(1, createdAtColumn).setValue("createdAt");
+  }
+
+  return {
+    recordDateColumn: recordDateColumn,
+    createdAtColumn: createdAtColumn
+  };
+}
+
+function readAuditCell_(row, column) {
+  if (!column || column < 1) return "";
+  var value = row[column - 1];
+  if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+  return String(value || "").trim();
+}
+
 function parseBl23gSheet_(sheet, defaultShift, db, records) {
   var data = sheet.getDataRange().getValues();
+  var headers = data.length ? data[0] : [];
+  var recordDateColumn = findAuditHeaderColumn_(headers, ["recorddate", "date"]);
+  var createdAtColumn = findAuditHeaderColumn_(headers, ["createdat", "submittedat", "timestamp", "updatedat"]);
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
     var trialKey = row[0] ? row[0].toString().trim() : "";
@@ -407,6 +463,8 @@ function parseBl23gSheet_(sheet, defaultShift, db, records) {
       op: Number(row[13]) || 0
     };
     var calculatedEff = (productivity / BL23G_TARGET_PRODUCTIVITY) * 100;
+    var recordDate = readAuditCell_(row, recordDateColumn);
+    var createdAt = readAuditCell_(row, createdAtColumn);
 
     db[recordKey] = {
       trial: trialKey,
@@ -416,7 +474,8 @@ function parseBl23gSheet_(sheet, defaultShift, db, records) {
       eff: Number(calculatedEff),
       man: totalMan,
       total: totalOutput,
-      recordDate: "",
+      recordDate: recordDate,
+      createdAt: createdAt,
       status: "",
       ct_total: Number(row[6]) || 0,
       layout: layout,
@@ -432,7 +491,8 @@ function parseBl23gSheet_(sheet, defaultShift, db, records) {
       eff: Number(calculatedEff),
       man: totalMan,
       total: totalOutput,
-      recordDate: "",
+      recordDate: recordDate,
+      createdAt: createdAt,
       status: ""
     });
   }
@@ -440,6 +500,9 @@ function parseBl23gSheet_(sheet, defaultShift, db, records) {
 
 function parseGizzardSheet_(sheet, defaultShift, db, records, lineLabel, targetProductivity) {
   var data = sheet.getDataRange().getValues();
+  var headers = data.length ? data[0] : [];
+  var recordDateColumn = findAuditHeaderColumn_(headers, ["recorddate", "date"]);
+  var createdAtColumn = findAuditHeaderColumn_(headers, ["createdat", "submittedat", "timestamp", "updatedat"]);
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
     var trialKey = row[0] ? row[0].toString().trim() : "";
@@ -475,6 +538,8 @@ function parseGizzardSheet_(sheet, defaultShift, db, records, lineLabel, targetP
     };
     var calculatedEff = (productivity / targetProductivity) * 100;
     var line = lineLabel;
+    var recordDate = readAuditCell_(row, recordDateColumn);
+    var createdAt = readAuditCell_(row, createdAtColumn);
 
     db[recordKey] = {
       trial: trialKey,
@@ -484,7 +549,8 @@ function parseGizzardSheet_(sheet, defaultShift, db, records, lineLabel, targetP
       eff: Number(calculatedEff),
       man: totalMan,
       total: totalOutput,
-      recordDate: "",
+      recordDate: recordDate,
+      createdAt: createdAt,
       status: "",
       ct_total: Number(row[6 + dataOffset]) || 0,
       layout: layout,
@@ -500,7 +566,8 @@ function parseGizzardSheet_(sheet, defaultShift, db, records, lineLabel, targetP
       eff: Number(calculatedEff),
       man: totalMan,
       total: totalOutput,
-      recordDate: "",
+      recordDate: recordDate,
+      createdAt: createdAt,
       status: ""
     });
   }
@@ -516,6 +583,11 @@ function getJsonStream(e) {
   var requestedAction = e && e.parameter && e.parameter.action
     ? String(e.parameter.action).trim().toLowerCase()
     : "";
+
+  if (requestedAction === "read_block_tracker") {
+    return ContentService.createTextOutput(JSON.stringify(readBlockTrackerRecords_()))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 
   if (e && e.parameter && e.parameter.sheet) {
     sheetName = e.parameter.sheet.toString().trim();
@@ -792,7 +864,11 @@ function saveExternalRecord_(payload) {
       throw new Error("BL23G source sheet not found: " + bl23Config.sourceSheet);
     }
 
+    var blAuditColumns = ensureRecordAuditColumns_(targetSheet);
+    var blNextRow = targetSheet.getLastRow() + 1;
     targetSheet.appendRow(buildBl23gRow_(payload, shift));
+    targetSheet.getRange(blNextRow, blAuditColumns.recordDateColumn).setValue(valueOrEmpty_(payload.recordDate || payload.date));
+    targetSheet.getRange(blNextRow, blAuditColumns.createdAtColumn).setValue(now.toISOString());
     return {
       status: "success",
       message: "Record saved to " + targetSheetName,
@@ -813,7 +889,11 @@ function saveExternalRecord_(payload) {
       throw new Error("Source sheet not found: " + gSourceSheetName);
     }
 
+    var gAuditColumns = ensureRecordAuditColumns_(gTargetSheet);
+    var gNextRow = gTargetSheet.getLastRow() + 1;
     gTargetSheet.appendRow(buildBl23gRow_(payload, gShift));
+    gTargetSheet.getRange(gNextRow, gAuditColumns.recordDateColumn).setValue(valueOrEmpty_(payload.recordDate || payload.date));
+    gTargetSheet.getRange(gNextRow, gAuditColumns.createdAtColumn).setValue(now.toISOString());
 
     return {
       status: "success",
@@ -961,6 +1041,90 @@ function saveBreakdownRecord_(payload) {
     message: "Breakdown saved to " + sheetName,
     sheet: sheetName
   };
+}
+
+function getBlockTrackerSheet_() {
+  var ss = SpreadsheetApp.openById(BL23G_M1_SPREADSHEET_ID);
+  return ensureSheet_(ss, BLOCK_TRACKER_SHEET, [
+    "Record ID",
+    "Recorded At",
+    "Block Name",
+    "On Line Used",
+    "On Line Damaged",
+    "Spare Available",
+    "Spare Damaged",
+    "Image Reference",
+    "Updated At"
+  ]);
+}
+
+function saveBlockTrackerRecord_(payload) {
+  var sheet = getBlockTrackerSheet_();
+  var now = new Date().toISOString();
+  var recordId = String(payload.recordId || payload.id || "").trim();
+  if (!recordId) {
+    recordId = "BT-" + Utilities.getUuid();
+  }
+
+  var row = [
+    recordId,
+    valueOrEmpty_(payload.recordedAt || now),
+    valueOrEmpty_(payload.name || payload.blockName),
+    Number(payload.onLineUsed) || 0,
+    Number(payload.onLineDamaged) || 0,
+    Number(payload.spareAvailable) || 0,
+    Number(payload.spareDamaged) || 0,
+    valueOrEmpty_(payload.imageReference),
+    now
+  ];
+  var lastRow = sheet.getLastRow();
+  var ids = lastRow > 1 ? sheet.getRange(2, 1, lastRow - 1, 1).getValues() : [];
+  for (var i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]).trim() === recordId) {
+      sheet.getRange(i + 2, 1, 1, row.length).setValues([row]);
+      return { status: "success", operation: "updated", recordId: recordId, sheet: BLOCK_TRACKER_SHEET };
+    }
+  }
+  sheet.appendRow(row);
+  return { status: "success", operation: "created", recordId: recordId, sheet: BLOCK_TRACKER_SHEET };
+}
+
+function deleteBlockTrackerRecord_(payload) {
+  var recordId = String(payload.recordId || payload.id || "").trim();
+  if (!recordId) throw new Error("recordId is required");
+  var sheet = getBlockTrackerSheet_();
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return { status: "success", operation: "not_found", recordId: recordId };
+  var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]).trim() === recordId) {
+      sheet.deleteRow(i + 2);
+      return { status: "success", operation: "deleted", recordId: recordId, sheet: BLOCK_TRACKER_SHEET };
+    }
+  }
+  return { status: "success", operation: "not_found", recordId: recordId };
+}
+
+function readBlockTrackerRecords_() {
+  var sheet = getBlockTrackerSheet_();
+  var values = sheet.getDataRange().getValues();
+  var records = [];
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    if (!row[0]) continue;
+    records.push({
+      recordId: String(row[0]),
+      recordedAt: valueOrEmpty_(row[1]),
+      name: valueOrEmpty_(row[2]),
+      onLineUsed: Number(row[3]) || 0,
+      onLineDamaged: Number(row[4]) || 0,
+      spareAvailable: Number(row[5]) || 0,
+      spareDamaged: Number(row[6]) || 0,
+      imageReference: valueOrEmpty_(row[7]),
+      updatedAt: valueOrEmpty_(row[8])
+    });
+  }
+  return { status: "success", sheet: BLOCK_TRACKER_SHEET, records: records };
 }
 
 function saveData(formData) {

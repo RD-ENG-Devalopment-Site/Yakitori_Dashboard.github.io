@@ -553,6 +553,10 @@
             });
         }
 
+        function getRecordUpdateTime(record) {
+            return String(record?.createdAt || record?.recordDate || '').trim();
+        }
+
         function formatDateDisplayFromDate(date) {
             if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '--';
             return date.toLocaleString('th-TH', {
@@ -614,7 +618,7 @@
                     };
                 }
 
-                const freshness = getRelativeFreshness(stats.latest.recordDate);
+                const freshness = getRelativeFreshness(getRecordUpdateTime(stats.latest));
                 let statusKey = 'ready';
                 let status = 'พร้อมใช้งาน';
                 let detail = `ล่าสุด Trial ${stats.latest.trial} / Shift ${stats.latest.shift || 'A'}`;
@@ -657,8 +661,8 @@
         }
 
         function compareRecordRecency(a, b) {
-            const aDate = parseRecordDateValue(a?.latest?.recordDate);
-            const bDate = parseRecordDateValue(b?.latest?.recordDate);
+            const aDate = parseRecordDateValue(getRecordUpdateTime(a?.latest));
+            const bDate = parseRecordDateValue(getRecordUpdateTime(b?.latest));
             const aTime = aDate ? aDate.getTime() : 0;
             const bTime = bDate ? bDate.getTime() : 0;
             if (aTime !== bTime) return bTime - aTime;
@@ -744,9 +748,9 @@
             const insights = buildDashboardInsights(results);
             const statusRows = buildSheetStatusRows(results);
             const overallStatus = getOverallSystemStatus(statusRows);
-            const timestampAvailable = Boolean(parseRecordDateValue(insights.latestRecord?.latest?.recordDate));
+            const timestampAvailable = Boolean(parseRecordDateValue(getRecordUpdateTime(insights.latestRecord?.latest)));
             const latestTime = timestampAvailable
-                ? formatDateTimeDisplay(insights.latestRecord?.latest?.recordDate)
+                ? formatDateTimeDisplay(getRecordUpdateTime(insights.latestRecord?.latest))
                 : formatDateDisplayFromDate(lastDashboardRefreshAt);
             const latestLine = insights.latestRecord
                 ? getExperimentalDisplayName(insights.latestRecord.line)
@@ -840,7 +844,7 @@
                                         <td class="py-3 pr-4 ${prodClass} font-semibold">${item.deltaProd >= 0 ? '+' : ''}${item.deltaProd.toFixed(1)}</td>
                                         <td class="py-3 pr-4 ${effClass} font-semibold">${item.deltaEff >= 0 ? '+' : ''}${item.deltaEff.toFixed(2)}%</td>
                                         <td class="py-3 pr-4 ${totalClass} font-semibold">${item.deltaTotal >= 0 ? '+' : ''}${item.deltaTotal.toLocaleString()}</td>
-                                        <td class="py-3 pr-4 text-[#a1a5b7]">${formatDateTimeDisplay(item.latest.recordDate)}</td>
+                                        <td class="py-3 pr-4 text-[#a1a5b7]">${formatDateTimeDisplay(getRecordUpdateTime(item.latest))}</td>
                                     </tr>
                                 `;
                             }).join('') : `
@@ -1218,6 +1222,7 @@
                     man: Number(item?.man) || 0,
                     total: Number(item?.total) || 0,
                     recordDate: String(item?.recordDate ?? '').trim(),
+                    createdAt: String(item?.createdAt ?? '').trim(),
                     status: String(item?.status ?? '').trim(),
                     cycle: {
                         prep: Number(detail?.cycle_detail?.prep ?? detail?.prep ?? detail?.prepareRm) || 0,
