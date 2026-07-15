@@ -33,8 +33,55 @@
             overflow: hidden;
         }
         .sidebar-dropdown.open {
-            max-height: 400px; 
+            max-height: 400px;
             opacity: 1;
+        }
+
+        #appSidebar {
+            width: 280px;
+            overflow: hidden;
+            transition: width 0.25s ease, border-color 0.25s ease;
+        }
+        #appSidebar > * {
+            min-width: 280px;
+            transition: opacity 0.18s ease, transform 0.25s ease;
+        }
+        #sidebarToggle {
+            position: fixed;
+            bottom: 16px;
+            left: 232px;
+            z-index: 40;
+            width: 32px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #474761;
+            border-radius: 8px;
+            background: #2b2b40;
+            color: #e4e6ef;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+            transition: left 0.25s ease, background-color 0.2s ease, color 0.2s ease;
+        }
+        #sidebarToggle:hover {
+            background: #323248;
+            color: #009ef7;
+        }
+        body.sidebar-collapsed #appSidebar {
+            width: 0;
+            border-right-color: transparent;
+        }
+        body.sidebar-collapsed #appSidebar > * {
+            opacity: 0;
+            transform: translateX(-20px);
+            pointer-events: none;
+        }
+        body.sidebar-collapsed #sidebarToggle {
+            left: 12px;
+        }
+        @media (max-width: 640px) {
+            #sidebarToggle { left: 232px; }
+            body.sidebar-collapsed #sidebarToggle { left: 10px; }
         }
         
         .progress-bar-striped {
@@ -46,7 +93,7 @@
 </head>
 <body class="flex h-screen w-full">
 
-    <aside class="w-[280px] bg-[#1a1d27] border-r border-[#323248] flex flex-col h-full flex-shrink-0 z-20">
+    <aside id="appSidebar" class="bg-[#1a1d27] border-r border-[#323248] flex flex-col h-full flex-shrink-0 z-20">
         <div class="h-[70px] flex items-center px-6 border-b border-[#323248]">
             <div class="flex items-center gap-3">
                 <img
@@ -90,12 +137,11 @@
                 </a>
             </div>
             <div>
-                <a href="#" aria-label="Block Tracker (coming soon)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
+                <a href="BlockTracker.html" aria-label="Block Tracker" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#ffc700]" viewBox="0 0 16 16">
                         <path d="M2 1h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zm0 1v12h12V2H2zm2 2h3v3H4V4zm0 5h3v3H4V9zm5-5h3v3H9V4zm0 5h3v3H9V9z"/>
                     </svg>
                     <span class="font-medium text-sm">Block Tracker</span>
-                    <span class="ml-auto text-[9px] uppercase tracking-[0.14em] text-[#6b7280]">Soon</span>
                 </a>
             </div>
             <div>
@@ -119,6 +165,10 @@
                 <div id="menu-data-recording" class="sidebar-dropdown pl-9 pr-2 py-1 space-y-1">
                     <a href="DataRecordingApproval.html" target="_blank" class="block px-3 py-2 rounded-md text-[13px] text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white hover:translate-x-1 transition-all border-l-2 border-transparent hover:border-[#50cd89]">Improvement records</a>
                     <a href="MachineBreakdownLog.html" target="_blank" class="block px-3 py-2 rounded-md text-[13px] text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white hover:translate-x-1 transition-all border-l-2 border-transparent hover:border-[#ffc700]">Machine Breakdown Records</a>
+                    <a href="#" aria-label="Block Tracker Recording (coming soon)" class="flex items-center justify-between px-3 py-2 rounded-md text-[13px] text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white hover:translate-x-1 transition-all border-l-2 border-transparent hover:border-[#009ef7]">
+                        <span>Block Tracker Recording</span>
+                        <span class="text-[9px] uppercase tracking-[0.14em] text-[#6b7280]">Soon</span>
+                    </a>
                 </div>
             </div>
 
@@ -173,6 +223,12 @@
             </div>
         </div>
     </aside>
+
+    <button id="sidebarToggle" type="button" onclick="toggleSidebar()" aria-label="Close navigation" title="Close navigation">
+        <svg id="sidebarToggleIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+    </button>
 
     <main class="flex-1 flex flex-col h-full overflow-hidden relative">
         
@@ -293,6 +349,37 @@
             }
         }
 
+        function setSidebarCollapsed(collapsed) {
+            document.body.classList.toggle('sidebar-collapsed', collapsed);
+            const button = document.getElementById('sidebarToggle');
+            const icon = document.getElementById('sidebarToggleIcon');
+            if (!button || !icon) return;
+
+            button.setAttribute('aria-label', collapsed ? 'Open navigation' : 'Close navigation');
+            button.title = collapsed ? 'Open navigation' : 'Close navigation';
+            icon.innerHTML = collapsed
+                ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>'
+                : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>';
+
+            try {
+                localStorage.setItem('apex-sidebar-collapsed', collapsed ? 'true' : 'false');
+            } catch (error) {
+                // Browser privacy settings may disable local storage; the toggle still works for this session.
+            }
+        }
+
+        function toggleSidebar() {
+            setSidebarCollapsed(!document.body.classList.contains('sidebar-collapsed'));
+        }
+
+        function initializeSidebarToggle() {
+            try {
+                setSidebarCollapsed(localStorage.getItem('apex-sidebar-collapsed') === 'true');
+            } catch (error) {
+                setSidebarCollapsed(false);
+            }
+        }
+
         const lineConfigs = [
             { prefix: 'blm1', label: 'BL23G R15 (M1)', sheet: 'BL23gR15_M1_DataLog', projectKey: 'BL23G_M1', target: 130, color: '#a78bfa' },
             { prefix: 'bl', label: 'BL23G R15 (M2)', sheet: 'BL23gR15_DataLog', projectKey: 'BL23G_M2', target: 130, color: '#8b5cf6' },
@@ -306,6 +393,7 @@
         let lastDashboardRefreshAt = null;
 
         window.onload = function() {
+            initializeSidebarToggle();
             ensureDashboardChrome();
             startHeaderClock();
             setActiveShiftFilter('all');
