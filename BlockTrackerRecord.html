@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บันทึกข้อมูล | Block Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="yakitori-runtime.js?v=20260617-04"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap');
+    body{font-family:Sarabun,sans-serif;background:radial-gradient(circle at top left,rgba(0,158,247,.12),transparent 36%),radial-gradient(circle at top right,rgba(80,205,137,.06),transparent 32%),#11111d;color:#a1a5b7}.font-en{font-family:Inter,sans-serif}.card{background:linear-gradient(145deg,rgba(35,35,53,.98),rgba(22,22,35,.98))}.control{background:#151522;border:1px solid #37374d;color:#fff}.control:focus{outline:none;border-color:#009ef7;box-shadow:0 0 0 3px rgba(0,158,247,.12)}.gate-backdrop{background:radial-gradient(circle at 50% 38%,rgba(0,158,247,.08),transparent 28%),rgba(12,12,24,.97)}
+  </style>
+</head>
+<body>
+  <div id="accessGate" class="gate-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+    <section class="card w-full max-w-[505px] rounded-2xl border border-[#39394e] p-7 shadow-2xl md:p-9">
+      <p class="text-xs font-bold uppercase tracking-[.28em] text-[#009ef7]">Access Gate</p>
+      <h1 class="font-en mt-3 text-3xl font-extrabold tracking-tight text-white">Data Recording</h1>
+      <p class="mt-2 text-base leading-relaxed text-[#aab0c5]">ก่อนเข้าหน้าบันทึกข้อมูล ต้องใส่รหัสผ่านเพื่อปลดล็อกหน้าฟอร์ม และสิทธิ์นี้จะอยู่ในแท็บปัจจุบันเท่านั้น</p>
+      <form id="accessForm" class="mt-7 space-y-4">
+        <label class="block text-sm font-semibold text-white">Password<input id="accessPassword" type="password" required autocomplete="current-password" class="control mt-2 w-full rounded-xl px-4 py-3" placeholder="กรอกรหัสผ่าน"></label>
+        <p id="accessError" class="hidden rounded-lg border border-[#f1416c]/30 bg-[#f1416c]/10 px-3 py-2 text-sm text-[#ff9bae]">รหัสผ่านไม่ถูกต้อง</p>
+        <button class="w-full rounded-xl bg-[#009ef7] px-5 py-3.5 font-bold text-white transition hover:bg-[#1688cf]">ปลดล็อกหน้า Data Recording</button>
+      </form>
+    </section>
+  </div>
+  <main id="recordApp" class="hidden mx-auto min-h-screen max-w-[1480px] p-4 md:p-10">
+    <header class="card mb-7 rounded-2xl border border-[#314257] p-6 md:p-9"><div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between"><div><p class="text-xs font-bold uppercase tracking-[.28em] text-[#009ef7]">Internal Factory Tool</p><h1 class="font-en mt-3 text-3xl font-extrabold tracking-tight text-white md:text-4xl">Data Recording</h1><p class="mt-2 text-base text-[#adb2c8]">บันทึกและติดตามจำนวนบล็อคบนไลน์ผลิต รวมถึงบล็อคอะไหล่</p></div><div class="flex flex-wrap gap-2 lg:justify-end"><span class="rounded-full border border-[#075985] bg-[#062d4a] px-4 py-1.5 text-xs font-bold uppercase tracking-[.18em] text-[#10b8ff]">Record Only</span><span class="rounded-full border border-[#4c3b97] bg-[#251e51] px-4 py-1.5 text-xs font-bold uppercase tracking-[.18em] text-[#9b7cff]">Block Tracker</span><span class="rounded-full border border-[#80631c] bg-[#3c3109] px-4 py-1.5 text-xs font-bold uppercase tracking-[.18em] text-[#ffc700]">Inventory Log</span></div></div></header>
+    <section class="card rounded-2xl border border-[#36364c] p-5 md:p-7">
+      <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><h2 class="text-2xl font-bold text-white">บันทึกข้อมูลบล็อค</h2><p class="mt-1 text-sm text-[#aab0c5]">กรอกข้อมูลให้ครบถ้วนก่อนบันทึก ระบบจะใช้ข้อมูลนี้แสดงผลใน Block Tracker</p></div><span class="w-fit rounded-full border border-[#075985] bg-[#062d4a] px-4 py-1.5 text-xs font-bold uppercase tracking-[.18em] text-[#10b8ff]">Record</span></div>
+      <form id="recordForm">
+        <input id="editIndex" type="hidden">
+        <div class="grid gap-5 xl:grid-cols-[1fr_1fr_1.5fr_1.5fr]">
+          <fieldset class="rounded-xl border border-[#3b3b55] p-4"><legend class="px-2 text-base font-bold text-white">ชื่อบล็อค</legend><label class="block text-sm text-[#b3b7c9]">ชื่อรายการ<input id="name" required class="control mt-2 w-full rounded-xl px-3 py-3" placeholder="เช่น Tail Block (S18)"></label><label class="mt-3 block text-sm text-[#b3b7c9]">วันที่–เวลาบันทึก<input id="recordedAtDisplay" readonly class="control mt-2 w-full cursor-default rounded-xl px-3 py-3 text-[#b9d7ee]"></label></fieldset>
+          <fieldset class="rounded-xl border border-[#3b3b55] p-4"><legend class="px-2 text-base font-bold text-white">ไฟล์รูปบล็อค</legend><label class="block text-sm text-[#b3b7c9]">เลือกรูป<input id="image" type="file" accept="image/*" class="control mt-2 block w-full rounded-xl p-2 text-xs"></label><p class="mt-2 text-xs text-[#777b90]">รองรับไฟล์รูปภาพ</p></fieldset>
+          <fieldset class="rounded-xl border border-[#354d6b] p-4"><legend class="px-2 text-base font-bold text-[#78caff]">จำนวนบล็อคบนไลน์ผลิต</legend><div class="grid grid-cols-2 gap-3"><label class="text-sm text-[#b3b7c9]">จำนวนที่ใช้งาน<input id="onLineUsed" type="number" min="0" required class="control mt-2 w-full rounded-xl px-3 py-3"></label><label class="text-sm text-[#b3b7c9]">เสียหาย<input id="onLineDamaged" type="number" min="0" required class="control mt-2 w-full rounded-xl px-3 py-3"></label></div></fieldset>
+          <fieldset class="rounded-xl border border-[#365343] p-4"><legend class="px-2 text-base font-bold text-[#80e4ae]">จำนวนบล็อคอะไหล่</legend><div class="grid grid-cols-2 gap-3"><label class="text-sm text-[#b3b7c9]">จำนวนที่มี<input id="spareAvailable" type="number" min="0" required class="control mt-2 w-full rounded-xl px-3 py-3"></label><label class="text-sm text-[#b3b7c9]">เสียหาย<input id="spareDamaged" type="number" min="0" required class="control mt-2 w-full rounded-xl px-3 py-3"></label></div></fieldset>
+        </div>
+        <div class="mt-6 flex justify-end gap-3"><button id="resetBtn" type="button" class="rounded-xl border border-[#45455a] px-4 py-2.5 text-sm font-semibold text-[#c1c4d2] hover:bg-[#303044]">ล้างฟอร์ม</button><button class="rounded-xl bg-[#009ef7] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1688cf]">บันทึกข้อมูล</button></div>
+      </form>
+    </section>
+    <section class="card mt-6 overflow-hidden rounded-2xl border border-[#36364c]"><div class="border-b border-[#343447] px-5 py-4"><h2 class="font-en font-bold text-white">รายการที่บันทึกแล้ว</h2></div><div class="overflow-x-auto"><table class="w-full min-w-[820px] text-left text-sm"><thead class="bg-[#1a1a28] text-xs text-[#898da1]"><tr><th class="px-5 py-3">รูป</th><th class="px-5 py-3">ชื่อบล็อค</th><th class="px-4 py-3 text-center">บนไลน์: ใช้งาน</th><th class="px-4 py-3 text-center">บนไลน์: เสียหาย</th><th class="px-4 py-3 text-center">อะไหล่: มี</th><th class="px-4 py-3 text-center">อะไหล่: เสียหาย</th><th class="px-5 py-3 text-center">จัดการ</th></tr></thead><tbody id="recordTable" class="divide-y divide-[#303044]"></tbody></table></div></section>
+  </main>
+  <script>
+    const defaults=[{no:1,recordId:'BT-TAIL-S18',name:'Tail Block (S18)',onLineUsed:13,onLineDamaged:1,spareAvailable:0,spareDamaged:1},{no:2,recordId:'BT-TAIL-R15',name:'Tail Block (R15)',onLineUsed:10,onLineDamaged:0,spareAvailable:3,spareDamaged:1},{no:3,recordId:'BT-GZ-S18',name:'Gizzard Block (S18)',onLineUsed:12,onLineDamaged:2,spareAvailable:4,spareDamaged:0},{no:4,recordId:'BT-GZ-R15',name:'Gizzard Block (R15)',onLineUsed:8,onLineDamaged:0,spareAvailable:2,spareDamaged:0}];
+    const saved=JSON.parse(localStorage.getItem('apex-block-tracker')||'null');
+    let blocks=saved&&saved[0]&&'onLineUsed'in saved[0]?saved:defaults;
+    const $=id=>document.getElementById(id), fields=['name','onLineUsed','onLineDamaged','spareAvailable','spareDamaged'];
+    const accessGate=$('accessGate'), recordApp=$('recordApp');
+    function unlockRecordPage(){sessionStorage.setItem('apex-block-tracker-access','granted');accessGate.classList.add('hidden');recordApp.classList.remove('hidden');}
+    $('accessForm').addEventListener('submit',event=>{event.preventDefault();if($('accessPassword').value==='Apex2026'){unlockRecordPage();}else{$('accessError').classList.remove('hidden');$('accessPassword').select();}});
+    if(sessionStorage.getItem('apex-block-tracker-access')==='granted')unlockRecordPage();
+    function save(){localStorage.setItem('apex-block-tracker',JSON.stringify(blocks));}
+    function formatRecordedAt(value){return new Intl.DateTimeFormat('th-TH',{dateStyle:'medium',timeStyle:'medium'}).format(new Date(value));}
+    function refreshRecordedAtDisplay(value){$('recordedAtDisplay').value=formatRecordedAt(value||new Date());}
+    function ensureRecordId(record){if(!record.recordId)record.recordId='BT-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);return record.recordId;}
+    async function syncRecord(record){ensureRecordId(record);if(!window.YakitoriRuntime)return;await window.YakitoriRuntime.postToAppsScript('record_block_tracker',{recordId:record.recordId,recordedAt:record.recordedAt||new Date().toISOString(),name:record.name,onLineUsed:record.onLineUsed,onLineDamaged:record.onLineDamaged,spareAvailable:record.spareAvailable,spareDamaged:record.spareDamaged,imageReference:record.image?'Stored locally in browser':''});}
+    async function deleteRemoteRecord(recordId){if(!window.YakitoriRuntime||!recordId)return;await window.YakitoriRuntime.postToAppsScript('delete_block_tracker',{recordId:recordId});}
+    function render(){const input=(value,i,field,color)=>`<input type="number" min="0" value="${value}" data-i="${i}" data-field="${field}" class="quick-edit w-20 rounded-lg border border-[#3b3b55] bg-[#151522] px-2 py-1.5 text-center font-en font-bold ${color} focus:border-[#009ef7] focus:outline-none">`; $('recordTable').innerHTML=blocks.map((b,i)=>`<tr><td class="px-5 py-3">${b.image?`<img src="${b.image}" alt="${b.name}" class="h-10 w-14 rounded-lg object-cover">`:'<span class="text-xs text-[#777b90]">ไม่มีรูป</span>'}</td><td class="px-5 py-3.5 font-semibold text-white">${b.name}</td><td class="px-4 py-3.5 text-center">${input(b.onLineUsed,i,'onLineUsed','text-[#6fc6ff]')}</td><td class="px-4 py-3.5 text-center">${input(b.onLineDamaged,i,'onLineDamaged','text-[#ff8ba2]')}</td><td class="px-4 py-3.5 text-center">${input(b.spareAvailable,i,'spareAvailable','text-[#7ae3a7]')}</td><td class="px-4 py-3.5 text-center">${input(b.spareDamaged,i,'spareDamaged','text-[#ff8ba2]')}</td><td class="px-5 py-3.5 text-center"><button class="edit rounded-lg bg-[#26364d] px-2.5 py-1.5 text-xs text-[#8fd0ff]" data-i="${i}">แก้ไขชื่อ/รูป</button><button class="delete ml-2 rounded-lg bg-[#442431] px-2.5 py-1.5 text-xs text-[#ff9baa]" data-i="${i}">ลบ</button></td></tr>`).join('');}
+    function edit(i){const b=blocks[i];$('editIndex').value=i;fields.forEach(k=>$(k).value=b[k]);refreshRecordedAtDisplay(b.recordedAt);window.scrollTo({top:0,behavior:'smooth'});}
+    $('recordForm').addEventListener('submit',async e=>{e.preventDefault();const index=$('editIndex').value,old=index===''?{}:blocks[index],b={...old,no:index===''?blocks.length+1:old.no};ensureRecordId(b);b.recordedAt=old.recordedAt||new Date().toISOString();fields.forEach(k=>b[k]=k==='name'?$(k).value:Number($(k).value));const file=$('image').files[0];if(file)b.image=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.readAsDataURL(file);});if(index==='')blocks.push(b);else blocks[index]=b;save();await syncRecord(b);$('recordForm').reset();$('editIndex').value='';refreshRecordedAtDisplay();render();});
+    async function loadRemoteRecords(){if(!window.YakitoriRuntime)return;try{const response=await fetch(window.YakitoriRuntime.buildApiUrl('',{action:'read_block_tracker'}),{cache:'no-store'});const body=await response.json();if(!body.records||!body.records.length)return;const localImages=new Map(blocks.map(b=>[b.recordId,b.image]));blocks=body.records.map((b,i)=>({...b,no:i+1,image:localImages.get(b.recordId)}));save();render();}catch(error){console.warn('Block Tracker sync unavailable',error);}}
+    $('resetBtn').addEventListener('click',()=>{$('recordForm').reset();$('editIndex').value='';refreshRecordedAtDisplay();});$('recordTable').addEventListener('click',e=>{const i=Number(e.target.dataset.i);if(e.target.classList.contains('edit'))edit(i);if(e.target.classList.contains('delete')&&confirm('ลบรายการนี้?')){const recordId=blocks[i].recordId;blocks.splice(i,1);blocks.forEach((b,j)=>b.no=j+1);save();deleteRemoteRecord(recordId);render();}});$('recordTable').addEventListener('change',e=>{if(!e.target.classList.contains('quick-edit'))return;const i=Number(e.target.dataset.i),field=e.target.dataset.field,value=Math.max(0,Number(e.target.value)||0);blocks[i][field]=value;blocks[i].recordedAt=blocks[i].recordedAt||new Date().toISOString();ensureRecordId(blocks[i]);e.target.value=value;save();syncRecord(blocks[i]);});refreshRecordedAtDisplay();setInterval(()=>{if($('editIndex').value==='')refreshRecordedAtDisplay();},1000);render();loadRemoteRecords();
+  </script>
+</body>
+</html>
