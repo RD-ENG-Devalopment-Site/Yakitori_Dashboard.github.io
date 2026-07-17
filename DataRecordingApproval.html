@@ -515,6 +515,9 @@
             event.preventDefault();
 
             const form = event.currentTarget;
+            // Rebuild the routing fields at submit time so a stale hidden value
+            // cannot send M1/M2 records to the wrong dataset.
+            syncProjectDataset();
             const data = Object.fromEntries(new FormData(form).entries());
             const metrics = calculateMetrics();
             const payload = {

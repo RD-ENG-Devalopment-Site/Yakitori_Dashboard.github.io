@@ -17,6 +17,10 @@ function doPost(e) {
       return jsonOutput_(saveExternalRecord_(request.payload || {}));
     }
 
+    if (action === "validate_record_route") {
+      return jsonOutput_(resolveRecordRoute_(request.payload || {}));
+    }
+
     if (action === "approve_record") {
       return jsonOutput_(saveApprovalRecord_(request.payload || {}));
     }
@@ -417,6 +421,66 @@ function ensureRecordAuditColumns_(sheet) {
   return {
     recordDateColumn: recordDateColumn,
     createdAtColumn: createdAtColumn
+  };
+}
+
+function inferBl23gProjectKey_(payload) {
+  var line = normalizeLine_(payload && payload.line);
+  var requestedSheet = String(payload && (payload.sheet || payload.targetSheet) || "").trim().toUpperCase();
+  var projectKey = String(payload && payload.projectKey || "").trim().toUpperCase();
+  var m1Sheets = [BL23G_M1_SOURCE_SHEET, BL23G_M1_SHIFT_B_SHEET].map(function (name) {
+    return String(name).trim().toUpperCase();
+  });
+  var m2Sheets = [BL23G_SOURCE_SHEET, BL23G_SHIFT_B_SHEET].map(function (name) {
+    return String(name).trim().toUpperCase();
+  });
+
+  var lineKey = line === BL23G_M1_PROJECT_KEY || line === BL23G_M2_PROJECT_KEY ? line : "";
+  var sheetKey = m1Sheets.indexOf(requestedSheet) !== -1
+    ? BL23G_M1_PROJECT_KEY
+    : (m2Sheets.indexOf(requestedSheet) !== -1 ? BL23G_M2_PROJECT_KEY : "");
+
+  if (lineKey && sheetKey && lineKey !== sheetKey) {
+    throw new Error("BL23G routing conflict: line=" + line + ", sheet=" + requestedSheet);
+  }
+
+  // Visible line/dataset selections are authoritative. projectKey remains a
+  // compatibility fallback for older clients that did not send both fields.
+  return lineKey || sheetKey ||
+    (projectKey === BL23G_M1_PROJECT_KEY ? BL23G_M1_PROJECT_KEY : BL23G_M2_PROJECT_KEY);
+}
+
+function resolveRecordRoute_(payload) {
+  var line = normalizeLine_(payload && payload.line);
+  var requestedSheet = String(payload && (payload.sheet || payload.targetSheet) || "").trim();
+  var shift = normalizeShift_(payload && payload.shift);
+
+  if (line === "BL23G" || line === BL23G_M1_PROJECT_KEY || line === BL23G_M2_PROJECT_KEY || isBl23gSheetName_(requestedSheet)) {
+    var bl23ProjectKey = inferBl23gProjectKey_(payload);
+    var bl23Config = getBl23gProjectConfig_(bl23ProjectKey);
+    return {
+      status: "success",
+      projectKey: bl23ProjectKey,
+      shift: shift,
+      sheet: shift === "B" ? bl23Config.shiftBSheet : bl23Config.sourceSheet
+    };
+  }
+
+  if (line === "GZ30G" || line === "GZ40G" || isGizzardSheetName_(requestedSheet)) {
+    var isGz40 = line === "GZ40G" || isGz40gSheetName_(requestedSheet);
+    return {
+      status: "success",
+      projectKey: isGz40 ? "GZ40G" : "GZ30G",
+      shift: shift,
+      sheet: resolveGizzardSheetName_(isGz40 ? GZ40G_SOURCE_SHEET : GZ30G_SOURCE_SHEET, shift)
+    };
+  }
+
+  return {
+    status: "success",
+    projectKey: line,
+    shift: shift,
+    sheet: requestedSheet || "APEX_Flow_Records"
   };
 }
 
@@ -846,17 +910,17 @@ function buildBreakdownFeed_(sheet) {
 }
 
 function saveExternalRecord_(payload) {
-  var projectKey = String(payload.projectKey || "").trim().toUpperCase();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var line = normalizeLine_(payload.line);
   var requestedSheet = String(payload.sheet || payload.targetSheet || "").trim();
   var now = new Date();
 
   if (line === "BL23G" || line === BL23G_M1_PROJECT_KEY || line === BL23G_M2_PROJECT_KEY || isBl23gSheetName_(requestedSheet)) {
-    var bl23Config = getBl23gProjectConfig_(projectKey || (line === BL23G_M1_PROJECT_KEY ? BL23G_M1_PROJECT_KEY : BL23G_M2_PROJECT_KEY));
+    var bl23Route = resolveRecordRoute_(payload);
+    var bl23Config = getBl23gProjectConfig_(bl23Route.projectKey);
     ss = bl23Config.spreadsheet;
-    var shift = normalizeShift_(payload.shift);
-    var targetSheetName = shift === "B" ? bl23Config.shiftBSheet : bl23Config.sourceSheet;
+    var shift = bl23Route.shift;
+    var targetSheetName = bl23Route.sheet;
     var targetSheet = targetSheetName === bl23Config.shiftBSheet
       ? ensureShiftBSheetCopy_(ss, bl23Config.sourceSheet, bl23Config.shiftBSheet)
       : ss.getSheetByName(bl23Config.sourceSheet);
