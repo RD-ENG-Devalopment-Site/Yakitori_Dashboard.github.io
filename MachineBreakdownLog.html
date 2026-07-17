@@ -38,6 +38,17 @@
             background: linear-gradient(180deg, rgba(21, 21, 33, .96), rgba(21, 21, 33, .88));
             backdrop-filter: blur(10px);
         }
+        .machine-option {
+            background: #151521;
+            border: 1px solid #323248;
+            transition: border-color .18s ease, background .18s ease, transform .18s ease;
+        }
+        .machine-option:hover { border-color: #5e6278; transform: translateY(-1px); }
+        .machine-option.is-selected {
+            background: rgba(255, 199, 0, .10);
+            border-color: #ffc700;
+            box-shadow: 0 0 0 1px rgba(255, 199, 0, .16);
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
@@ -131,6 +142,32 @@
                     </label>
 
                     <div class="space-y-3 md:col-span-2">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-sm text-white block">เลือกเครื่องจักรที่เกิด Breakdown <span class="text-[#f1416c]">*</span></span>
+                            <span class="text-xs text-[#a1a5b7]">ทั้งหมด 4 เครื่อง</span>
+                        </div>
+                        <div id="machineOptions" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button type="button" class="machine-option rounded-xl px-4 py-4 text-left" data-machine="M1">
+                                <span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-[#50cd89]"></span><strong class="text-white">M1</strong></span>
+                                <span class="block mt-2 text-sm text-[#a1a5b7]">Skewer Yakitori Machine 1</span>
+                            </button>
+                            <button type="button" class="machine-option rounded-xl px-4 py-4 text-left" data-machine="M2">
+                                <span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-[#50cd89]"></span><strong class="text-white">M2</strong></span>
+                                <span class="block mt-2 text-sm text-[#a1a5b7]">Skewer Yakitori Machine 2</span>
+                            </button>
+                            <button type="button" class="machine-option rounded-xl px-4 py-4 text-left" data-machine="M3">
+                                <span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-[#ffc700]"></span><strong class="text-white">M3</strong></span>
+                                <span class="block mt-2 text-sm text-[#a1a5b7]">Skewer Yakitori Machine 3</span>
+                            </button>
+                            <button type="button" class="machine-option rounded-xl px-4 py-4 text-left" data-machine="M4">
+                                <span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-[#ffc700]"></span><strong class="text-white">M4</strong></span>
+                                <span class="block mt-2 text-sm text-[#a1a5b7]">Skewer Yakitori Machine 4</span>
+                            </button>
+                        </div>
+                        <input type="hidden" name="station" value="M1">
+                    </div>
+
+                    <div class="space-y-3 md:col-span-2 legacy-machine-fields">
                         <span class="text-sm text-white block">เวอร์ชันเครื่องจักร</span>
                         <div class="grid grid-cols-1 gap-3">
                             <label class="field rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer">
@@ -320,6 +357,12 @@
             GZ40G: 84,
             GZ30G: 69
         };
+        const machineCatalog = {
+            M1: 'Skewer Yakitori Machine 1',
+            M2: 'Skewer Yakitori Machine 2',
+            M3: 'Skewer Yakitori Machine 3',
+            M4: 'Skewer Yakitori Machine 4'
+        };
         const lineDisplayMap = {
             BL23G: 'สินค้า BL 23G',
             GZ40G: 'สินค้า Gizzard 40G',
@@ -338,9 +381,47 @@
         }
 
         function getBreakdownScopeLabel(entry) {
+            const station = String(entry?.station || '').trim();
+            if (station) return `${station} / ${entry?.machineArea || machineCatalog[station] || '--'}`;
             const machineVersion = String(entry?.machineVersion || '').trim();
             const conveyorPosition = String(entry?.conveyorPosition || '').trim();
             return [machineVersion, conveyorPosition].filter(Boolean).join(' / ') || '--';
+        }
+
+        function selectMachine(machineId) {
+            const machineName = machineCatalog[machineId];
+            if (!machineName) return;
+
+            const form = document.getElementById('breakdownForm');
+            const station = form?.querySelector('[name="station"]');
+            const machineArea = form?.querySelector('[name="machineArea"]');
+            const machineVersion = form?.querySelector('[name="machineVersion"]:checked');
+            const conveyorPosition = form?.querySelector('[name="conveyorPosition"]:checked');
+
+            if (station) station.value = machineId;
+            if (machineArea) {
+                machineArea.value = `${machineId} — ${machineName}`;
+                machineArea.readOnly = true;
+                machineArea.classList.add('opacity-80', 'cursor-not-allowed');
+            }
+            if (machineVersion) machineVersion.value = 'Skewer Yakitori Machine';
+            if (conveyorPosition) conveyorPosition.value = machineId;
+
+            document.querySelectorAll('[data-machine]').forEach(button => {
+                const selected = button.dataset.machine === machineId;
+                button.classList.toggle('is-selected', selected);
+                button.setAttribute('aria-pressed', String(selected));
+            });
+        }
+
+        function initializeMachineSelector() {
+            document.querySelectorAll('[name="machineVersion"], [name="conveyorPosition"]').forEach(input => {
+                input.closest('.legacy-machine-fields, .space-y-3')?.classList.add('hidden');
+            });
+            document.querySelectorAll('[data-machine]').forEach(button => {
+                button.addEventListener('click', () => selectMachine(button.dataset.machine));
+            });
+            selectMachine('M1');
         }
 
         function resolveBreakdownEventId(entry, index = 0) {
@@ -654,6 +735,7 @@
                 );
                 form.reset();
                 setDefaultDate();
+                selectMachine('M1');
                 calculateBreakdownMetrics();
             } catch (error) {
                 pushStatus(`Breakdown log failed: ${error.message || error}`, 'error');
@@ -667,6 +749,7 @@
             const form = document.getElementById('breakdownForm');
             form.reset();
             setDefaultDate();
+            selectMachine('M1');
             calculateBreakdownMetrics();
             pushStatus('Breakdown form cleared.', 'info');
         }
@@ -688,6 +771,7 @@
         document.getElementById('breakdownFilterMachine')?.addEventListener('change', renderAllBreakdownEvents);
         document.getElementById('breakdownFilterStatus')?.addEventListener('change', renderAllBreakdownEvents);
 
+        initializeMachineSelector();
         setDefaultDate();
         calculateBreakdownMetrics();
         renderBreakdownHistory();
