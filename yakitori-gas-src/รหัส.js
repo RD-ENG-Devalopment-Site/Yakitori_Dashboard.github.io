@@ -33,6 +33,10 @@ function doPost(e) {
       return jsonOutput_(saveBlockTrackerRecord_(request.payload || {}));
     }
 
+    if (action === "upsert_machine_layout") {
+      return jsonOutput_(saveMachineLayoutRecord_(request.payload || {}));
+    }
+
     if (action === "delete_block_tracker") {
       return jsonOutput_(deleteBlockTrackerRecord_(request.payload || {}));
     }
@@ -85,6 +89,19 @@ var GZ40G_SHIFT_B_SHEET = "GZ40gS18_ShiftB_DataLog";
 var GZ40G_TARGET_PRODUCTIVITY = 84;
 var BREAKDOWN_LOG_SHEET = "MachineBreakdownLog";
 var BLOCK_TRACKER_SHEET = "BlockTracker_DataLog";
+var MACHINE_LAYOUT_SPREADSHEET_ID = "1o1dAQCU6mp43qzJcgst2wn5xH5-ILjMZ4nqrO5Txjhg";
+var MACHINE_LAYOUT_SHEET = "MachineLayout_DataLog";
+var MACHINE_LAYOUT_HEADERS = [
+  "machine_id",
+  "machine_name",
+  "conveyor_name",
+  "product_name",
+  "installed_at",
+  "machine_status",
+  "last_breakdown_at",
+  "breakdown_detail",
+  "updated_at"
+];
 
 function ensureBreakdownLogSheet_(ss) {
   return ensureSheet_(ss, BREAKDOWN_LOG_SHEET, [
@@ -650,6 +667,11 @@ function getJsonStream(e) {
 
   if (requestedAction === "read_block_tracker") {
     return ContentService.createTextOutput(JSON.stringify(readBlockTrackerRecords_()))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  if (requestedAction === "read_machine_layout") {
+    return ContentService.createTextOutput(JSON.stringify(readMachineLayoutRecords_()))
       .setMimeType(ContentService.MimeType.JSON);
   }
 
@@ -1393,6 +1415,127 @@ function ensureSheet_(ss, sheetName, headers) {
   }
 
   return sheet;
+}
+
+function ensureMachineLayoutSheet_() {
+  var ss = SpreadsheetApp.openById(MACHINE_LAYOUT_SPREADSHEET_ID);
+  return ensureSheet_(ss, MACHINE_LAYOUT_SHEET, MACHINE_LAYOUT_HEADERS);
+}
+
+function parseMachineLayoutDate_(value) {
+  var text = String(value || "").trim();
+  if (!text) return "";
+
+  var localMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (localMatch) {
+    return new Date(
+      Number(localMatch[1]),
+      Number(localMatch[2]) - 1,
+      Number(localMatch[3]),
+      Number(localMatch[4] || 0),
+      Number(localMatch[5] || 0),
+      Number(localMatch[6] || 0)
+    );
+  }
+
+  var parsed = new Date(text);
+  return isNaN(parsed.getTime()) ? text : parsed;
+}
+
+function formatMachineLayoutDate_(value, includeSeconds) {
+  if (Object.prototype.toString.call(value) !== "[object Date]" || isNaN(value.getTime())) {
+    return valueOrEmpty_(value);
+  }
+
+  return Utilities.formatDate(
+    value,
+    Session.getScriptTimeZone() || "Asia/Bangkok",
+    includeSeconds ? "yyyy-MM-dd HH:mm:ss" : "yyyy-MM-dd HH:mm"
+  );
+}
+
+function saveMachineLayoutRecord_(payload) {
+  var machineId = String(payload.machine_id || "").trim();
+  if (!machineId) throw new Error("machine_id is required");
+
+  var allowedStatuses = ["running", "idle", "maintenance", "fault"];
+  var machineStatus = String(payload.machine_status || "idle").trim().toLowerCase();
+  if (allowedStatuses.indexOf(machineStatus) === -1) {
+    throw new Error("Invalid machine_status: " + machineStatus);
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+
+  try {
+    var sheet = ensureMachineLayoutSheet_();
+    var targetRow = sheet.getLastRow() + 1;
+    var isUpdate = false;
+
+    if (sheet.getLastRow() > 1) {
+      var machineIds = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getDisplayValues();
+      for (var index = 0; index < machineIds.length; index++) {
+        if (String(machineIds[index][0] || "").trim() === machineId) {
+          targetRow = index + 2;
+          isUpdate = true;
+          break;
+        }
+      }
+    }
+
+    var updatedAt = new Date();
+    var row = [
+      machineId,
+      String(payload.machine_name || "").trim(),
+      String(payload.conveyor_name || "").trim(),
+      String(payload.product_name || "").trim(),
+      parseMachineLayoutDate_(payload.installed_at),
+      machineStatus,
+      parseMachineLayoutDate_(payload.last_breakdown_at),
+      String(payload.breakdown_detail || "").trim(),
+      updatedAt
+    ];
+
+    sheet.getRange(targetRow, 1, 1, MACHINE_LAYOUT_HEADERS.length).setValues([row]);
+    SpreadsheetApp.flush();
+
+    return {
+      status: "success",
+      operation: isUpdate ? "updated" : "created",
+      machine_id: machineId,
+      row: targetRow,
+      updated_at: formatMachineLayoutDate_(updatedAt, true)
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function readMachineLayoutRecords_() {
+  var sheet = ensureMachineLayoutSheet_();
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) {
+    return { status: "success", records: [] };
+  }
+
+  var values = sheet.getRange(2, 1, lastRow - 1, MACHINE_LAYOUT_HEADERS.length).getValues();
+  var records = values
+    .filter(function (row) { return String(row[0] || "").trim() !== ""; })
+    .map(function (row) {
+      return {
+        machine_id: String(row[0] || "").trim(),
+        machine_name: valueOrEmpty_(row[1]),
+        conveyor_name: valueOrEmpty_(row[2]),
+        product_name: valueOrEmpty_(row[3]),
+        installed_at: formatMachineLayoutDate_(row[4], false),
+        machine_status: String(row[5] || "idle").trim().toLowerCase(),
+        last_breakdown_at: formatMachineLayoutDate_(row[6], false),
+        breakdown_detail: valueOrEmpty_(row[7]),
+        updated_at: formatMachineLayoutDate_(row[8], true)
+      };
+    });
+
+  return { status: "success", records: records };
 }
 
 function valueOrEmpty_(value) {
