@@ -3,6 +3,8 @@
  * Presentation only: no data binding, calculation, routing, or API behavior.
  */
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap");
+
 :root {
     --m1-bg: #151521;
     --m1-bg-deep: #11111b;
@@ -44,6 +46,7 @@ body.m1-theme h4,
 body.m1-theme h5,
 body.m1-theme h6 {
     color: var(--m1-text);
+    font-family: "Sarabun", "Noto Sans Thai", Tahoma, sans-serif;
 }
 
 body.m1-theme .bg-card,
