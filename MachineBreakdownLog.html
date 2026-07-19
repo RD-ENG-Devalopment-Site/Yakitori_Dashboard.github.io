@@ -50,11 +50,15 @@
             box-shadow: 0 0 0 1px rgba(255, 199, 0, .16);
         }
     </style>
+    <link rel="stylesheet" href="yakitori-m1-theme.css?v=20260719-01">
+    <link rel="stylesheet" href="recording-workspace-theme.css?v=20260719-01">
 </head>
-<body class="min-h-screen p-4 md:p-8">
+<body class="m1-theme m1-form recording-workspace recording-breakdown min-h-screen p-4 md:p-8">
     <script src="yakitori-runtime.js?v=20260617-04"></script>
+    <script src="yakitori-recording-auth.js?v=20260719-01"></script>
+    <script>window.YakitoriAuth.requireSession();</script>
 
-    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center login-backdrop p-4">
+    <div id="loginScreen" class="hidden fixed inset-0 z-50 flex items-center justify-center login-backdrop p-4">
         <div class="w-full max-w-md card rounded-2xl border border-[#323248] shadow-2xl p-6 md:p-8">
             <div class="mb-6">
                 <p class="text-xs uppercase tracking-[0.28em] text-[#ffc700] font-bold">Access Gate</p>
@@ -90,8 +94,8 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap gap-3">
-                    <a href="DataRecordingApproval.html" class="px-4 py-3 rounded-xl bg-[#2b2b40] text-white font-semibold hover:bg-[#323248] transition">
-                        Back to Data Recording
+                    <a href="DataRecordingHub.html" class="px-4 py-3 rounded-xl bg-[#2b2b40] text-white font-semibold hover:bg-[#323248] transition">
+                        Recording Hub
                     </a>
                     <a href="MachineBreakdownEvents.html" class="px-4 py-3 rounded-xl bg-[#009ef7] text-white font-semibold hover:opacity-90 transition">
                         Event Table
@@ -777,7 +781,7 @@
         renderBreakdownHistory();
         renderAllBreakdownEvents();
 
-        if (sessionStorage.getItem('yakitori-breakdown-auth') === 'true') {
+        if (window.YakitoriAuth.isAuthenticated()) {
             unlockedPassword = ACCESS_PASSWORD;
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
@@ -787,6 +791,7 @@
             renderBreakdownHistory();
             prepareBreakdownStorage();
             renderAllBreakdownEvents();
+            window.YakitoriAuth.mountSessionControls();
         }
     </script>
 </body>

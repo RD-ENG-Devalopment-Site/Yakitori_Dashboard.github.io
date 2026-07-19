@@ -6,13 +6,16 @@
   <title>บันทึกข้อมูล | Block Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="yakitori-runtime.js?v=20260617-04"></script>
+  <script src="yakitori-recording-auth.js?v=20260719-01"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap');
     body{font-family:Sarabun,sans-serif;background:radial-gradient(circle at top left,rgba(0,158,247,.12),transparent 36%),radial-gradient(circle at top right,rgba(80,205,137,.06),transparent 32%),#11111d;color:#a1a5b7}.font-en{font-family:Inter,sans-serif}.card{background:linear-gradient(145deg,rgba(35,35,53,.98),rgba(22,22,35,.98))}.control{background:#151522;border:1px solid #37374d;color:#fff}.control:focus{outline:none;border-color:#009ef7;box-shadow:0 0 0 3px rgba(0,158,247,.12)}.gate-backdrop{background:radial-gradient(circle at 50% 38%,rgba(0,158,247,.08),transparent 28%),rgba(12,12,24,.97)}
   </style>
+  <link rel="stylesheet" href="yakitori-m1-theme.css?v=20260719-01">
+  <link rel="stylesheet" href="recording-workspace-theme.css?v=20260719-01">
 </head>
-<body>
-  <div id="accessGate" class="gate-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+<body class="m1-theme m1-form recording-workspace recording-block">
+  <div id="accessGate" class="hidden gate-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
     <section class="card w-full max-w-[505px] rounded-2xl border border-[#39394e] p-7 shadow-2xl md:p-9">
       <p class="text-xs font-bold uppercase tracking-[.28em] text-[#009ef7]">Access Gate</p>
       <h1 class="font-en mt-3 text-3xl font-extrabold tracking-tight text-white">Data Recording</h1>
@@ -25,7 +28,7 @@
     </section>
   </div>
   <main id="recordApp" class="hidden mx-auto min-h-screen max-w-[1480px] p-4 md:p-10">
-    <header class="card mb-7 rounded-2xl border border-[#314257] p-6 md:p-9"><div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between"><div><p class="text-xs font-bold uppercase tracking-[.28em] text-[#009ef7]">Internal Factory Tool</p><h1 class="font-en mt-3 text-3xl font-extrabold tracking-tight text-white md:text-4xl">Data Recording</h1><p class="mt-2 text-base text-[#adb2c8]">บันทึกและติดตามจำนวนบล็อคบนไลน์ผลิต รวมถึงบล็อคอะไหล่</p></div><div class="flex flex-wrap gap-2 lg:justify-end"><span class="rounded-full border border-[#075985] bg-[#062d4a] px-4 py-1.5 text-xs font-bold uppercase tracking-[.18em] text-[#10b8ff]">Record Only</span><span class="rounded-full border border-[#4c3b97] bg-[#251e51] px-4 py-1.5 text-xs font-bold uppercase tracking-[.18em] text-[#9b7cff]">Block Tracker</span><span class="rounded-full border border-[#80631c] bg-[#3c3109] px-4 py-1.5 text-xs font-bold uppercase tracking-[.18em] text-[#ffc700]">Inventory Log</span></div></div></header>
+    <header class="card mb-7 rounded-2xl border border-[#314257] p-6 md:p-9"><div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between"><div><p class="text-xs font-bold uppercase tracking-[.28em] text-[#009ef7]">Internal Factory Tool</p><h1 class="font-en mt-3 text-3xl font-extrabold tracking-tight text-white md:text-4xl">Data Recording</h1><p class="mt-2 text-base text-[#adb2c8]">บันทึกและติดตามจำนวนบล็อคบนไลน์ผลิต รวมถึงบล็อคอะไหล่</p></div><div class="flex flex-wrap gap-2 lg:justify-end"><a href="DataRecordingHub.html" class="rounded-full border border-[#323248] bg-[#2b2b40] px-4 py-1.5 text-xs font-bold text-white transition hover:border-[#50cd89]">Recording Hub</a><span class="rounded-full border border-[#075985] bg-[#062d4a] px-4 py-1.5 text-xs font-bold uppercase tracking-[.18em] text-[#10b8ff]">Record Only</span><span class="rounded-full border border-[#4c3b97] bg-[#251e51] px-4 py-1.5 text-xs font-bold uppercase tracking-[.18em] text-[#9b7cff]">Block Tracker</span><span class="rounded-full border border-[#80631c] bg-[#3c3109] px-4 py-1.5 text-xs font-bold uppercase tracking-[.18em] text-[#ffc700]">Inventory Log</span></div></div></header>
     <section class="card rounded-2xl border border-[#36364c] p-5 md:p-7">
       <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><h2 class="text-2xl font-bold text-white">บันทึกข้อมูลบล็อค</h2><p class="mt-1 text-sm text-[#aab0c5]">กรอกข้อมูลให้ครบถ้วนก่อนบันทึก ระบบจะใช้ข้อมูลนี้แสดงผลใน Block Tracker</p></div><span class="w-fit rounded-full border border-[#075985] bg-[#062d4a] px-4 py-1.5 text-xs font-bold uppercase tracking-[.18em] text-[#10b8ff]">Record</span></div>
       <form id="recordForm">
@@ -49,7 +52,7 @@
     const accessGate=$('accessGate'), recordApp=$('recordApp');
     function unlockRecordPage(){sessionStorage.setItem('apex-block-tracker-access','granted');accessGate.classList.add('hidden');recordApp.classList.remove('hidden');}
     $('accessForm').addEventListener('submit',event=>{event.preventDefault();if($('accessPassword').value==='Apex2026'){unlockRecordPage();}else{$('accessError').classList.remove('hidden');$('accessPassword').select();}});
-    if(sessionStorage.getItem('apex-block-tracker-access')==='granted')unlockRecordPage();
+    if(window.YakitoriAuth.isAuthenticated()){unlockRecordPage();window.YakitoriAuth.mountSessionControls();}else{window.YakitoriAuth.requireSession();}
     function save(){localStorage.setItem('apex-block-tracker',JSON.stringify(blocks));}
     function formatRecordedAt(value){return new Intl.DateTimeFormat('th-TH',{dateStyle:'medium',timeStyle:'medium'}).format(new Date(value));}
     function refreshRecordedAtDisplay(value){$('recordedAtDisplay').value=formatRecordedAt(value||new Date());}

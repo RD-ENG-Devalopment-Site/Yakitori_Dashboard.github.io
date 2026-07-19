@@ -39,11 +39,15 @@
             backdrop-filter: blur(10px);
         }
     </style>
+    <link rel="stylesheet" href="yakitori-m1-theme.css?v=20260719-01">
+    <link rel="stylesheet" href="recording-workspace-theme.css?v=20260719-01">
 </head>
-<body class="min-h-screen p-4 md:p-8">
+<body class="m1-theme m1-form recording-workspace recording-improvement min-h-screen p-4 md:p-8">
     <script src="yakitori-runtime.js?v=20260617-04"></script>
+    <script src="yakitori-recording-auth.js?v=20260719-01"></script>
+    <script>window.YakitoriAuth.requireSession();</script>
 
-    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center login-backdrop p-4">
+    <div id="loginScreen" class="hidden fixed inset-0 z-50 flex items-center justify-center login-backdrop p-4">
         <div class="w-full max-w-md card rounded-2xl border border-[#323248] shadow-2xl p-6 md:p-8">
             <div class="mb-6">
                 <p class="text-xs uppercase tracking-[0.28em] text-[#009ef7] font-bold">Access Gate</p>
@@ -80,6 +84,7 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap gap-2">
+                    <a href="DataRecordingHub.html" class="rounded-full border border-[#323248] bg-[#2b2b40] px-3 py-1 text-xs font-bold text-white transition hover:border-[#009ef7]">Recording Hub</a>
                     <span class="pill text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#009ef7] font-bold">Record Only</span>
                     <span class="pill text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#8b5cf6] font-bold">Shift A / B</span>
                     <span class="pill text-xs uppercase tracking-[0.2em] px-3 py-1 rounded-full text-[#ffc700] font-bold">Breakdown Log</span>
@@ -642,7 +647,7 @@
         syncShiftRule();
         calculateMetrics();
 
-        if (sessionStorage.getItem('yakitori-data-record-auth') === 'true') {
+        if (window.YakitoriAuth.isAuthenticated()) {
             unlockedPassword = ACCESS_PASSWORD;
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
@@ -651,6 +656,7 @@
             syncProjectDataset();
             syncShiftRule();
             calculateMetrics();
+            window.YakitoriAuth.mountSessionControls();
         }
     </script>
 </body>

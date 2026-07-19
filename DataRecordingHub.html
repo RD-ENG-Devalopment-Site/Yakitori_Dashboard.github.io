@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>Data Recording Hub - Project APEX Flow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="yakitori-m1-theme.css?v=20260719-01">
+  <script src="yakitori-runtime.js?v=20260617-04"></script>
+  <script src="yakitori-recording-auth.js?v=20260719-01"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap');
+    body { font-family: 'Sarabun', sans-serif; }
+    .font-en { font-family: 'Inter', sans-serif; }
+    .hub-shell { background: #14141f; }
+    .hub-shell::before { content: ''; position: fixed; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% -18%, rgba(0,158,247,.08), transparent 34%); }
+    .hub-card { background: #1b1b29; border: 1px solid #2b2b3d; }
+    .record-card { display: flex; height: 100%; flex-direction: column; transition: transform .18s ease, border-color .18s ease, background-color .18s ease; }
+    .record-card:hover { transform: translateY(-2px); border-color: #44445c; background: #1e1e2d; }
+    .record-card::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 2px; background: var(--accent); opacity: .8; }
+    .login-panel { position: relative; background: #1b1b29; box-shadow: 0 24px 70px rgba(0,0,0,.28); }
+    .login-panel::before { content: ''; position: absolute; inset: 0 0 auto; height: 2px; border-radius: 18px 18px 0 0; background: #009ef7; }
+    #hubPassword { background: #151521; border-color: #303044; box-shadow: none; }
+    #hubPassword:focus { border-color: #009ef7; box-shadow: 0 0 0 3px rgba(0,158,247,.08); }
+    .login-submit { background: #009ef7; box-shadow: none; }
+    .login-submit:hover { background: #118bd0; }
+    .record-meta { background: rgba(15,15,25,.45); border: 1px solid #2d2d41; }
+    .record-meta-row { min-height: 50px; }
+    .record-meta-row:first-child { min-height: 64px; }
+    .record-meta-row + .record-meta-row { border-top: 1px solid #29293b; }
+    .system-state { display: inline-flex; align-items: center; gap: .45rem; font-weight: 700; }
+    .system-state::before { content: ''; width: .45rem; height: .45rem; border-radius: 999px; background: currentColor; box-shadow: 0 0 8px currentColor; }
+    .record-card > .record-meta { width: 100%; }
+    .record-card > .record-meta + div { margin-top: auto; }
+    @media (min-width: 1024px) {
+      .record-card > h3 { min-height: 58px; }
+      .record-card > h3 + p { min-height: 76px !important; }
+    }
+  </style>
+</head>
+<body class="m1-theme hub-shell min-h-screen text-[#a1a5b7]">
+  <div id="loginView" class="min-h-screen flex items-center justify-center p-5">
+    <section class="login-panel w-full max-w-[450px] rounded-[18px] border border-[#2b2b3d] p-7 md:p-9">
+      <div class="mb-7">
+        <div class="flex items-center gap-3">
+          <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#009ef7]/25 bg-[#009ef7]/8 text-[#009ef7]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1"/></svg>
+          </div>
+          <p class="font-en text-[11px] font-bold uppercase tracking-[.24em] text-[#009ef7]">Project APEX Flow</p>
+        </div>
+        <h1 class="font-en mt-5 text-[30px] font-bold tracking-[-.025em] text-white">Data Recording Hub</h1>
+      </div>
+      <form id="loginForm" class="space-y-4">
+        <label class="block text-sm font-semibold text-white">รหัสผ่านกลาง
+          <input id="hubPassword" type="password" required autocomplete="current-password" class="mt-2 w-full rounded-xl border px-4 py-3.5 text-white outline-none transition" placeholder="กรอกรหัสผ่าน">
+        </label>
+        <p id="loginError" class="hidden rounded-xl border border-[#f1416c]/30 bg-[#f1416c]/10 px-4 py-3 text-sm text-[#ff8eaa]">รหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบแล้วลองอีกครั้ง</p>
+        <button class="login-submit w-full rounded-xl px-5 py-3.5 font-bold text-white transition">เข้าสู่ระบบ</button>
+      </form>
+      <div class="mt-6 flex items-center justify-between border-t border-[#2b2b3d] pt-5 text-xs text-[#71758a]">
+        <span>Session 8 ชั่วโมง</span>
+        <a href="index.html" class="font-semibold hover:text-white">กลับหน้า Main</a>
+      </div>
+    </section>
+  </div>
+
+  <main id="hubView" class="hidden min-h-screen">
+    <header class="border-b border-[#2b2b40] bg-[#1e1e2d]/95 px-5 py-4 backdrop-blur md:px-9">
+      <div class="mx-auto flex max-w-[1180px] items-center justify-between gap-4">
+        <div>
+          <p class="font-en text-[10px] font-bold uppercase tracking-[.28em] text-[#009ef7]">Internal Factory Tool</p>
+          <h1 class="font-en mt-1 text-xl font-extrabold text-white md:text-2xl">Data Recording Hub</h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="hidden text-right sm:block"><p class="text-xs text-[#7e8299]">Session คงเหลือ</p><p id="sessionTime" class="font-en text-sm font-bold text-[#50cd89]">--:--</p></div>
+          <button id="logoutBtn" class="rounded-lg border border-[#f1416c]/35 bg-[#f1416c]/10 px-4 py-2 text-sm font-bold text-[#ff8eaa] hover:bg-[#f1416c]/20">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="mx-auto max-w-[1180px] px-5 py-10 md:px-9 md:py-14">
+      <div class="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+        <div>
+          <p class="font-en text-xs font-bold uppercase tracking-[.28em] text-[#8b5cf6]">Recording Workspace</p>
+          <h2 class="font-en mt-2 text-3xl font-bold tracking-[-.02em] text-white">เลือกงานที่ต้องการบันทึก</h2>
+          <p class="mt-2 max-w-2xl text-[15px] leading-6">สลับใช้งานทั้งสามระบบได้โดยไม่ต้องกรอกรหัสซ้ำ</p>
+        </div>
+        <a href="index.html" class="w-fit rounded-xl border border-[#3b3b55] bg-[#232335] px-5 py-3 text-sm font-bold text-white hover:border-[#009ef7]">กลับหน้า Main</a>
+      </div>
+
+      <div class="mt-8 grid gap-4 lg:grid-cols-3">
+        <a href="DataRecordingApproval.html" class="record-card hub-card relative overflow-hidden rounded-2xl p-6" style="--accent:#009ef7">
+          <div class="grid h-12 w-12 place-items-center rounded-xl bg-[#009ef7]/12 text-[#009ef7]"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3h8l3 3v15H5V3h3Z"/><path d="M8 3v5h8V3M8 13h8M8 17h5"/></svg></div>
+          <p class="font-en mt-6 text-xs font-bold uppercase tracking-[.22em] text-[#009ef7]">Process Improvement</p>
+          <h3 class="font-en mt-2 text-2xl font-extrabold text-white">Improvement Records</h3>
+          <p class="mt-3 min-h-[52px] leading-relaxed">บันทึก Trial, Cycle Time, Manpower และ Productivity ของแต่ละ Dashboard</p>
+          <div class="record-meta mt-5 overflow-hidden rounded-xl text-sm">
+            <div class="record-meta-row flex items-start justify-between gap-4 px-4 py-3"><span>รายการล่าสุด</span><strong id="improvementLatest" class="max-w-[62%] text-right text-white">กำลังตรวจสอบ</strong></div>
+            <div class="record-meta-row flex items-start justify-between gap-4 px-4 py-3"><span>เวลาล่าสุด</span><strong id="improvementTime" class="max-w-[62%] text-right text-[#c8cad6]">--</strong></div>
+            <div class="record-meta-row flex items-start justify-between gap-4 px-4 py-3"><span>สถานะระบบ</span><span id="improvementStatus" class="system-state text-[#ffc700]">กำลังตรวจสอบ</span></div>
+          </div>
+          <div class="mt-6 flex items-center justify-between border-t border-[#323248] pt-5"><span class="text-sm font-bold text-white">เปิดหน้าบันทึก</span><span class="text-xl text-[#009ef7]">→</span></div>
+        </a>
+
+        <a href="MachineBreakdownLog.html" class="record-card hub-card relative overflow-hidden rounded-2xl p-6" style="--accent:#ffc700">
+          <div class="grid h-12 w-12 place-items-center rounded-xl bg-[#ffc700]/12 text-[#ffc700]"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 9 16H3L12 3Z"/><path d="M12 9v4M12 16h.01"/></svg></div>
+          <p class="font-en mt-6 text-xs font-bold uppercase tracking-[.22em] text-[#ffc700]">Machine Reliability</p>
+          <h3 class="font-en mt-2 text-2xl font-extrabold text-white">Machine Breakdown Records</h3>
+          <p class="mt-3 min-h-[52px] leading-relaxed">บันทึกเหตุขัดข้อง เครื่องจักร ตำแหน่ง Downtime และสถานะการแก้ไข</p>
+          <div class="record-meta mt-5 overflow-hidden rounded-xl text-sm">
+            <div class="record-meta-row flex items-start justify-between gap-3 px-4 py-3"><span class="shrink-0">รายการล่าสุด</span><strong id="breakdownLatest" class="whitespace-nowrap text-right text-[13px] text-white">กำลังตรวจสอบ</strong></div>
+            <div class="record-meta-row flex items-start justify-between gap-4 px-4 py-3"><span>เวลาล่าสุด</span><strong id="breakdownTime" class="max-w-[62%] text-right text-[#c8cad6]">--</strong></div>
+            <div class="record-meta-row flex items-start justify-between gap-4 px-4 py-3"><span>สถานะระบบ</span><span id="breakdownStatus" class="system-state text-[#ffc700]">กำลังตรวจสอบ</span></div>
+          </div>
+          <div class="mt-6 flex items-center justify-between border-t border-[#323248] pt-5"><span class="text-sm font-bold text-white">เปิดหน้าบันทึก</span><span class="text-xl text-[#ffc700]">→</span></div>
+        </a>
+
+        <a href="BlockTrackerRecord.html" class="record-card hub-card relative overflow-hidden rounded-2xl p-6" style="--accent:#50cd89">
+          <div class="grid h-12 w-12 place-items-center rounded-xl bg-[#50cd89]/12 text-[#50cd89]"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></div>
+          <p class="font-en mt-6 text-xs font-bold uppercase tracking-[.22em] text-[#50cd89]">Inventory Control</p>
+          <h3 class="font-en mt-2 text-2xl font-extrabold text-white">Block Tracker Records</h3>
+          <p class="mt-3 min-h-[52px] leading-relaxed">บันทึกจำนวน Block บนไลน์ อะไหล่สำรอง และรายการที่เสียหาย</p>
+          <div class="record-meta mt-5 overflow-hidden rounded-xl text-sm">
+            <div class="record-meta-row flex items-start justify-between gap-4 px-4 py-3"><span>รายการล่าสุด</span><strong id="blockLatest" class="max-w-[62%] text-right text-white">กำลังตรวจสอบ</strong></div>
+            <div class="record-meta-row flex items-start justify-between gap-4 px-4 py-3"><span>เวลาล่าสุด</span><strong id="blockTime" class="max-w-[62%] text-right text-[#c8cad6]">--</strong></div>
+            <div class="record-meta-row flex items-start justify-between gap-4 px-4 py-3"><span>สถานะระบบ</span><span id="blockStatus" class="system-state text-[#ffc700]">กำลังตรวจสอบ</span></div>
+          </div>
+          <div class="mt-6 flex items-center justify-between border-t border-[#323248] pt-5"><span class="text-sm font-bold text-white">เปิดหน้าบันทึก</span><span class="text-xl text-[#50cd89]">→</span></div>
+        </a>
+      </div>
+
+      <div class="hub-card mt-7 flex flex-col gap-4 rounded-2xl p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-3"><span class="h-2.5 w-2.5 rounded-full bg-[#50cd89] shadow-[0_0_12px_rgba(80,205,137,.7)]"></span><div><p class="font-bold text-white">Central session พร้อมใช้งาน</p><p class="text-sm">Session นี้ใช้ร่วมกันระหว่างหน้าบันทึกทั้งสามระบบ</p></div></div>
+        <p class="text-sm text-[#7e8299]">Central session · 8 ชั่วโมง</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const loginView = document.getElementById('loginView');
+    const hubView = document.getElementById('hubView');
+    const loginError = document.getElementById('loginError');
+    let timerId;
+
+    const metadataTargets = {
+      improvement: ['improvementLatest', 'improvementTime', 'improvementStatus'],
+      breakdown: ['breakdownLatest', 'breakdownTime', 'breakdownStatus'],
+      block: ['blockLatest', 'blockTime', 'blockStatus']
+    };
+
+    function formatRecordTime(value) {
+      if (!value) return '--';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      return new Intl.DateTimeFormat('th-TH', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: 'Asia/Bangkok'
+      }).format(date);
+    }
+
+    function setMetadata(type, { latest = 'ยังไม่มีข้อมูล', time = '--', status = 'ยังไม่มีข้อมูล', tone = 'empty' } = {}) {
+      const ids = metadataTargets[type];
+      document.getElementById(ids[0]).textContent = latest;
+      document.getElementById(ids[1]).textContent = formatRecordTime(time);
+      const statusNode = document.getElementById(ids[2]);
+      statusNode.textContent = status;
+      statusNode.className = `system-state ${tone === 'ready' ? 'text-[#50cd89]' : tone === 'local' ? 'text-[#009ef7]' : tone === 'error' ? 'text-[#f1416c]' : 'text-[#ffc700]'}`;
+    }
+
+    function latestByDate(records, dateFields) {
+      return [...records].sort((a, b) => {
+        const read = record => dateFields.reduce((value, field) => value || record?.[field], '');
+        return new Date(read(b) || 0) - new Date(read(a) || 0);
+      })[0];
+    }
+
+    function latestTrial(records) {
+      return [...records].filter(record => record && record.trial !== 'เดิม').sort((a, b) => {
+        const dateGap = new Date(b.createdAt || b.recordDate || 0) - new Date(a.createdAt || a.recordDate || 0);
+        if (dateGap) return dateGap;
+        return (Number(b.trial) || 0) - (Number(a.trial) || 0);
+      })[0];
+    }
+
+    async function readJson(url) {
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    }
+
+    async function loadImprovementMetadata() {
+      try {
+        const body = await readJson(window.YakitoriRuntime.buildApiUrl('BL23gR15_DataLog'));
+        const records = Array.isArray(body._records) ? body._records : Object.values(body).filter(value => value && typeof value === 'object' && 'trial' in value);
+        const latest = latestTrial(records);
+        if (!latest) return setMetadata('improvement');
+        setMetadata('improvement', {
+          latest: `Trial ${latest.trial} / Shift ${latest.shift || '-'}`,
+          time: latest.createdAt || latest.recordDate,
+          status: 'พร้อมใช้งาน',
+          tone: 'ready'
+        });
+      } catch (error) {
+        console.warn('Improvement metadata unavailable', error);
+        setMetadata('improvement', { latest: 'เชื่อมต่อข้อมูลไม่ได้', status: 'ติดต่อระบบไม่ได้', tone: 'error' });
+      }
+    }
+
+    function readLocalRecords(key) {
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || '[]');
+        return Array.isArray(value) ? value : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    async function loadBreakdownMetadata() {
+      const local = latestByDate(readLocalRecords('yakitori-breakdown-history'), ['updatedAt', 'createdAt', 'breakdownDate']);
+      if (local) setMetadata('breakdown', {
+        latest: `${local.eventId || local.breakdownId || 'Breakdown'} · ${local.breakdownStatus || local.status || 'Open'}`,
+        time: local.updatedAt || local.createdAt || local.breakdownDate,
+        status: 'ข้อมูลในเครื่อง',
+        tone: 'local'
+      });
+      try {
+        const body = await readJson(window.YakitoriRuntime.buildApiUrl('', { action: 'read_breakdown' }));
+        const records = body.records || body._records || [];
+        const latest = latestByDate(records, ['updatedAt', 'createdAt', 'breakdownDate']);
+        if (!latest) return local || setMetadata('breakdown');
+        setMetadata('breakdown', {
+          latest: `${latest.eventId || latest.breakdownId || 'Breakdown'} · ${latest.breakdownStatus || latest.status || 'Open'}`,
+          time: latest.updatedAt || latest.createdAt || latest.breakdownDate,
+          status: 'พร้อมใช้งาน',
+          tone: 'ready'
+        });
+      } catch (error) {
+        console.warn('Breakdown metadata unavailable', error);
+        if (!local) setMetadata('breakdown', { latest: 'เชื่อมต่อข้อมูลไม่ได้', status: 'ติดต่อระบบไม่ได้', tone: 'error' });
+      }
+    }
+
+    async function loadBlockMetadata() {
+      const local = latestByDate(readLocalRecords('apex-block-tracker'), ['updatedAt', 'recordedAt']);
+      if (local) setMetadata('block', {
+        latest: local.name || local.recordId || 'Block record',
+        time: local.updatedAt || local.recordedAt,
+        status: 'ข้อมูลในเครื่อง',
+        tone: 'local'
+      });
+      try {
+        const body = await readJson(window.YakitoriRuntime.buildApiUrl('', { action: 'read_block_tracker' }));
+        const records = body.records || body._records || [];
+        const latest = latestByDate(records, ['updatedAt', 'recordedAt']);
+        if (!latest) return local || setMetadata('block');
+        setMetadata('block', {
+          latest: latest.name || latest.recordId || 'Block record',
+          time: latest.updatedAt || latest.recordedAt,
+          status: 'พร้อมใช้งาน',
+          tone: 'ready'
+        });
+      } catch (error) {
+        console.warn('Block Tracker metadata unavailable', error);
+        if (!local) setMetadata('block', { latest: 'เชื่อมต่อข้อมูลไม่ได้', status: 'ติดต่อระบบไม่ได้', tone: 'error' });
+      }
+    }
+
+    function loadRecordingMetadata() {
+      if (!window.YakitoriRuntime) {
+        Object.keys(metadataTargets).forEach(type => setMetadata(type, { latest: 'ไม่พบ Runtime', status: 'ระบบไม่พร้อม', tone: 'error' }));
+        return;
+      }
+      Promise.allSettled([loadImprovementMetadata(), loadBreakdownMetadata(), loadBlockMetadata()]);
+    }
+
+    function formatRemaining(milliseconds) {
+      const totalMinutes = Math.max(0, Math.ceil(milliseconds / 60000));
+      return `${String(Math.floor(totalMinutes / 60)).padStart(2, '0')}:${String(totalMinutes % 60).padStart(2, '0')} ชม.`;
+    }
+
+    function updateSessionClock() {
+      const remaining = window.YakitoriAuth.getRemainingMs();
+      if (!remaining) {
+        clearInterval(timerId);
+        showLogin();
+        return;
+      }
+      document.getElementById('sessionTime').textContent = formatRemaining(remaining);
+    }
+
+    function showHub() {
+      loginView.classList.add('hidden');
+      hubView.classList.remove('hidden');
+      updateSessionClock();
+      clearInterval(timerId);
+      timerId = setInterval(updateSessionClock, 30000);
+      loadRecordingMetadata();
+    }
+
+    function showLogin() {
+      hubView.classList.add('hidden');
+      loginView.classList.remove('hidden');
+      document.getElementById('hubPassword').focus();
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!window.YakitoriAuth.login(document.getElementById('hubPassword').value)) {
+        loginError.classList.remove('hidden');
+        document.getElementById('hubPassword').select();
+        return;
+      }
+      loginError.classList.add('hidden');
+      document.getElementById('hubPassword').value = '';
+      const returnUrl = window.YakitoriAuth.consumeReturnUrl();
+      if (returnUrl) {
+        location.href = returnUrl;
+        return;
+      }
+      showHub();
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      window.YakitoriAuth.logout();
+      showLogin();
+    });
+
+    window.YakitoriAuth.isAuthenticated() ? showHub() : showLogin();
+  </script>
+</body>
+</html>
