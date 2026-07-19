@@ -67,6 +67,12 @@
             background: #323248;
             color: #009ef7;
         }
+        .sidebar-build-info {
+            flex: 0 0 auto;
+        }
+        .sidebar-build-info .build-version {
+            color: #50cd89;
+        }
         body.sidebar-collapsed #appSidebar {
             width: 0;
             border-right-color: transparent;
@@ -217,6 +223,11 @@
                 </a>
             </div>
         </div>
+        <footer class="sidebar-build-info border-t border-[#323248] px-6 py-4 pr-16">
+            <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#6b7280]">Web Dashboard</p>
+            <p id="dashboardBuildVersion" class="build-version mt-1 text-xs font-bold">Version checking...</p>
+            <p id="dashboardBuildUpdated" class="mt-1 text-[11px] text-[#7e8299]">Latest update checking...</p>
+        </footer>
     </aside>
 
     <button id="sidebarToggle" type="button" onclick="toggleSidebar()" aria-label="Close navigation" title="Close navigation">
@@ -391,6 +402,7 @@
             initializeSidebarToggle();
             ensureDashboardChrome();
             startHeaderClock();
+            refreshDashboardBuildInfo();
             setActiveShiftFilter('all');
             renderDashboardData();
             setInterval(renderDashboardData, 5000);
@@ -545,6 +557,31 @@
                 hour: '2-digit',
                 minute: '2-digit'
             });
+        }
+
+        function setDashboardBuildInfo(version, updatedAt) {
+            const versionEl = document.getElementById('dashboardBuildVersion');
+            const updatedEl = document.getElementById('dashboardBuildUpdated');
+            if (versionEl) versionEl.textContent = version;
+            if (updatedEl) updatedEl.textContent = updatedAt;
+        }
+
+        async function refreshDashboardBuildInfo() {
+            const fallbackDate = new Date(document.lastModified || Date.now());
+            setDashboardBuildInfo('Build local-preview', `Updated ${formatHeaderDateTime(fallbackDate)}`);
+            try {
+                const response = await fetch('./build-info.json', {
+                    cache: 'no-store',
+                });
+                if (!response.ok) throw new Error(`build info ${response.status}`);
+                const buildInfo = await response.json();
+                const buildDate = new Date(buildInfo?.builtAt || Date.now());
+                const datePart = buildDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' }).replaceAll('-', '.');
+                const workflowPart = String(buildInfo?.build || '').trim();
+                setDashboardBuildInfo(`Build ${datePart}${workflowPart ? `.WF${workflowPart}` : ''}`, `Updated ${formatHeaderDateTime(buildDate)}`);
+            } catch (error) {
+                console.warn('Dashboard build metadata unavailable', error);
+            }
         }
 
         function getRecordUpdateTime(record) {
