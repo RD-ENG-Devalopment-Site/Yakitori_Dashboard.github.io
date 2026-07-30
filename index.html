@@ -74,19 +74,62 @@
             color: #50cd89;
         }
         body.sidebar-collapsed #appSidebar {
-            width: 0;
-            border-right-color: transparent;
+            width: 64px;
         }
         body.sidebar-collapsed #appSidebar > * {
-            opacity: 0;
-            transform: translateX(-20px);
-            pointer-events: none;
+            min-width: 64px;
+            opacity: 1;
+            transform: none;
+        }
+        body.sidebar-collapsed #appSidebar > div:first-child {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+        body.sidebar-collapsed #appSidebar > div:first-child .flex > div {
+            display: none;
+        }
+        body.sidebar-collapsed #appSidebar > .flex-1 {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+        body.sidebar-collapsed #appSidebar > .flex-1 > p,
+        body.sidebar-collapsed #appSidebar .sidebar-dropdown,
+        body.sidebar-collapsed #appSidebar .sidebar-build-info {
+            display: none;
+        }
+        body.sidebar-collapsed #appSidebar > .flex-1 > div > a,
+        body.sidebar-collapsed #appSidebar > .flex-1 > div > button {
+            width: 48px;
+            min-height: 42px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 0;
+            padding-right: 0;
+            justify-content: center;
+            gap: 0;
+        }
+        body.sidebar-collapsed #appSidebar > .flex-1 > div > a > span,
+        body.sidebar-collapsed #appSidebar > .flex-1 > div > button span,
+        body.sidebar-collapsed #appSidebar > .flex-1 > div > button > svg:last-child {
+            display: none;
+        }
+        body.sidebar-collapsed #appSidebar > .flex-1 > div > button > div {
+            gap: 0;
         }
         body.sidebar-collapsed #sidebarToggle {
-            left: 12px;
+            left: 16px;
         }
         @media (max-width: 640px) {
             #sidebarToggle { left: 232px; }
+            body.sidebar-collapsed #appSidebar {
+                width: 0;
+                border-right-color: transparent;
+            }
+            body.sidebar-collapsed #appSidebar > * {
+                opacity: 0;
+                transform: translateX(-20px);
+                pointer-events: none;
+            }
             body.sidebar-collapsed #sidebarToggle { left: 10px; }
         }
         
@@ -400,6 +443,11 @@
             const icon = document.getElementById('sidebarToggleIcon');
             if (!button || !icon) return;
 
+            if (collapsed) {
+                document.querySelectorAll('#appSidebar .sidebar-dropdown.open').forEach(menu => menu.classList.remove('open'));
+                document.querySelectorAll('#appSidebar [id^="icon-"]').forEach(menuIcon => menuIcon.classList.remove('rotate-180'));
+            }
+
             button.setAttribute('aria-label', collapsed ? 'Open navigation' : 'Close navigation');
             button.title = collapsed ? 'Open navigation' : 'Close navigation';
             icon.innerHTML = collapsed
@@ -423,6 +471,15 @@
             } catch (error) {
                 setSidebarCollapsed(false);
             }
+        }
+
+        function initializeSidebarLabels() {
+            document.querySelectorAll('#appSidebar a, #appSidebar button').forEach(item => {
+                if (item.title) return;
+                const label = item.querySelector('span.font-medium')?.textContent.trim()
+                    || item.getAttribute('aria-label');
+                if (label) item.title = label;
+            });
         }
 
         const appRouterState = {
@@ -576,6 +633,7 @@
         let lastDashboardRefreshAt = null;
 
         window.onload = function() {
+            initializeSidebarLabels();
             initializeSidebarToggle();
             initializeAppRouter();
             ensureDashboardChrome();
