@@ -73,6 +73,9 @@ var BL23G_M2_PROJECT_KEY = "BL23G_M2";
 var BL23G_M1_SPREADSHEET_ID = "1o1dAQCU6mp43qzJcgst2wn5xH5-ILjMZ4nqrO5Txjhg";
 var BL23G_M1_SOURCE_SHEET = "BL23gR15_M1_DataLog";
 var BL23G_M1_SHIFT_B_SHEET = "BL23gR15_M1_ShiftB_DataLog";
+var BBSKIN_R12_PROJECT_KEY = "BBSKINR12";
+var BBSKIN_R12_SHIFT_A_SHEET = "BBSKINR12_DataLog_Shift A";
+var BBSKIN_R12_SHIFT_B_SHEET = "BBSKINR12_DataLog_Shift B";
 var GZ30G_SOURCE_SHEET = "GZ30gR15_DataLog";
 var GZ30G_SHIFT_B_SHEET = "GZ30gR15_ShiftB_DataLog";
 var GZ30G_TARGET_PRODUCTIVITY = 69;
@@ -155,6 +158,16 @@ function isGz40gSheetName_(sheetName) {
 
 function isGizzardSheetName_(sheetName) {
   return isGz30gSheetName_(sheetName) || isGz40gSheetName_(sheetName);
+}
+
+function isBbSkinProject_(line, sheetName) {
+  var normalizedLine = normalizeLine_(line);
+  var normalizedSheet = String(sheetName || "").trim().toUpperCase();
+  return normalizedLine === BBSKIN_R12_PROJECT_KEY || normalizedSheet.indexOf("BBSKINR12_") === 0;
+}
+
+function resolveBbSkinSheetName_(shift) {
+  return normalizeShift_(shift) === "B" ? BBSKIN_R12_SHIFT_B_SHEET : BBSKIN_R12_SHIFT_A_SHEET;
 }
 
 function isBreakdownSheetName_(sheetName) {
@@ -899,6 +912,27 @@ function saveExternalRecord_(payload) {
       status: "success",
       message: "Record saved to " + gTargetSheetName,
       sheet: gTargetSheetName
+    };
+  }
+
+  if (isBbSkinProject_(line, requestedSheet)) {
+    var bbShift = normalizeShift_(payload.shift);
+    var bbTargetSheetName = resolveBbSkinSheetName_(bbShift);
+    var bbTargetSheet = ss.getSheetByName(bbTargetSheetName);
+    if (!bbTargetSheet) {
+      throw new Error("BB SKIN sheet not found: " + bbTargetSheetName);
+    }
+
+    var bbAuditColumns = ensureRecordAuditColumns_(bbTargetSheet);
+    var bbNextRow = bbTargetSheet.getLastRow() + 1;
+    bbTargetSheet.appendRow(buildBl23gRow_(payload, bbShift));
+    bbTargetSheet.getRange(bbNextRow, bbAuditColumns.recordDateColumn).setValue(valueOrEmpty_(payload.recordDate || payload.date));
+    bbTargetSheet.getRange(bbNextRow, bbAuditColumns.createdAtColumn).setValue(now.toISOString());
+
+    return {
+      status: "success",
+      message: "Record saved to " + bbTargetSheetName,
+      sheet: bbTargetSheetName
     };
   }
 
