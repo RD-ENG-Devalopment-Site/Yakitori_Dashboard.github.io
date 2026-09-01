@@ -285,7 +285,8 @@
             {
                 rank: 5, type: 'BOILED NECK SKIN', thName: '(หนังคอต้ม)', vol: 25628.40, share: '5.3%', color: 'bg-[#323248]',
                 details: [
-                    { name: 'HERB YTR BOILED NECK SKIN 40 G S18', machine: true }
+                    { name: 'HERB YTR BOILED NECK SKIN 40 G S18', machine: true },
+                    { name: 'HERB FED YTR NECK SKIN 40 G R15', machine: true }
                 ]
             },
             {
@@ -459,11 +460,14 @@
                 ]
             },
             {
-                month: 'SEP', total: 17184.00, topProduct: 'BL 23 G BLACK INNER', topVol: 8820,
+                month: 'SEP', total: 39590.60, topProduct: 'HERB FED YTR BOILED BB SKIN 25 G 12R (IF)', topVol: 16815,
                 details: [
-                    { name: 'HERB YTR BL 23 G R15 (BLACK INNER BOX)', vol: 8820.00 },
-                    { name: 'YTR 35 G BOILED BB SKIN F15', vol: 5292.00 },
-                    { name: 'YTR HEART HALF CUT 40 G F15', vol: 3072.00 }
+                    { name: 'HERB FED YTR BOILED BB SKIN 25 G 12R (IF)', vol: 16815.00, machine: true },
+                    { name: 'HERB FED YTR BB+YAGEN 40 G R15', vol: 11440.00, machine: false },
+                    { name: 'HERB FED YTR NECK MEAT 30 G R15', vol: 4680.00, machine: false },
+                    { name: 'HERB FED YTR NECK SKIN 40 G R15', vol: 4060.00, machine: true },
+                    { name: 'HERB YTR GIZZARD 35 G TW18', vol: 2142.00, machine: false },
+                    { name: 'HERB YTR BL+SOFT BONE 40 G TW18', vol: 453.60, machine: false }
                 ]
             },
             {
@@ -483,8 +487,8 @@
 
         // ฟังก์ชันตรวจสอบความสามารถในการใช้เครื่อง (อ้างอิงจากรายชื่อสินค้าที่ไม่สามารถเสียบได้)
         const dashboardMeta = {
-            updatedAt: '2026-08-04',
-            source: 'August 2026 production plan + product type mapping'
+            updatedAt: '2026-09-01',
+            source: 'September 2026 production plan + product type mapping'
         };
 
         const filterState = {
