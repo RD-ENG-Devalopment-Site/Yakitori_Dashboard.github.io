@@ -82,6 +82,7 @@ var BL23G_M1_SPREADSHEET_ID = "1o1dAQCU6mp43qzJcgst2wn5xH5-ILjMZ4nqrO5Txjhg";
 var BL23G_M1_SOURCE_SHEET = "BL23gR15_M1_DataLog";
 var BL23G_M1_SHIFT_B_SHEET = "BL23gR15_M1_ShiftB_DataLog";
 var BBSKIN_R12_PROJECT_KEY = "BBSKINR12";
+var BBSKIN_R12_TARGET_PRODUCTIVITY = 71;
 var BBSKIN_R12_SPREADSHEET_ID = "1o1dAQCU6mp43qzJcgst2wn5xH5-ILjMZ4nqrO5Txjhg";
 var BBSKIN_R12_SHIFT_A_SHEET = "BBSKINR12_DataLog_Shift A";
 var BBSKIN_R12_SHIFT_B_SHEET = "BBSKINR12_DataLog_Shift B";
@@ -691,6 +692,27 @@ function getJsonStream(e) {
 
   if (e && e.parameter && e.parameter.sheet) {
     sheetName = e.parameter.sheet.toString().trim();
+  }
+
+  if (isBbSkinProject_(projectKey, sheetName)) {
+    var bbSpreadsheet = SpreadsheetApp.openById(BBSKIN_R12_SPREADSHEET_ID);
+    var bbDb = {};
+    var bbRecords = [];
+    var bbRequestedShift = String(e.parameter.shift || "").toUpperCase();
+    var bbShifts = bbRequestedShift === "A" || bbRequestedShift === "B"
+      ? [bbRequestedShift]
+      : (sheetName === BBSKIN_R12_SHIFT_A_SHEET ? ["A"]
+        : (sheetName === BBSKIN_R12_SHIFT_B_SHEET ? ["B"] : ["A", "B"]));
+    for (var bbIndex = 0; bbIndex < bbShifts.length; bbIndex++) {
+      var bbShift = bbShifts[bbIndex];
+      var bbSheetName = resolveBbSkinSheetName_(bbShift);
+      var bbSheet = bbSpreadsheet.getSheetByName(bbSheetName);
+      if (!bbSheet) return jsonOutput_({ error: "BB Skin sheet not found: " + bbSheetName });
+      parseGizzardSheet_(bbSheet, bbShift, bbDb, bbRecords, BBSKIN_R12_PROJECT_KEY, BBSKIN_R12_TARGET_PRODUCTIVITY);
+    }
+    bbDb._records = dedupeRecordsByTrialAndShift_(bbRecords);
+    attachSummaryFields_(bbDb, bbDb._records);
+    return jsonOutput_(bbDb);
   }
 
   if (requestedAction === "read_breakdown" || isBreakdownSheetName_(sheetName)) {
