@@ -108,13 +108,14 @@
                         <select name="line" class="field w-full rounded-xl px-4 py-3" onchange="syncProjectDataset(); calculateMetrics()">
                             <option value="BL23G_M1">BL 23G R15 Dashboard (M1)</option>
                             <option value="BL23G_M2" selected>BL 23G R15 Dashboard (M2)</option>
+                            <option value="BBSKINR12">BB SKIN 25G R12</option>
                             <option value="GZ40G">Gizzard 40G S18</option>
                             <option value="GZ30G">Gizzard 30G R15</option>
                         </select>
                     </label>
                     <label class="space-y-2">
                         <span class="text-sm text-white">Shift</span>
-                        <select name="shift" class="field w-full rounded-xl px-4 py-3">
+                        <select name="shift" class="field w-full rounded-xl px-4 py-3" onchange="syncProjectDataset()">
                             <option value="A">A</option>
                             <option value="B">B</option>
                         </select>
@@ -297,6 +298,7 @@
         const projectDatasets = {
             BL23G_M1: 'BL23gR15_M1_DataLog',
             BL23G_M2: 'BL23gR15_DataLog',
+            BBSKINR12: 'BBSKINR12_DataLog_Shift A',
             GZ40G: 'GZ40gS18_DataLog',
             GZ30G: 'GZ30gR15_DataLog'
         };
@@ -314,9 +316,13 @@
 
         function syncProjectDataset() {
             const line = document.querySelector('select[name="line"]')?.value || '';
+            const shift = document.querySelector('select[name="shift"]')?.value || 'A';
             const datasetField = document.getElementById('datasetField');
             const projectKeyField = document.getElementById('projectKeyField');
-            const dataset = projectDatasets[String(line).trim().toUpperCase()] || '';
+            const normalizedLine = String(line).trim().toUpperCase();
+            const dataset = normalizedLine === 'BBSKINR12'
+                ? `BBSKINR12_DataLog_Shift ${shift === 'B' ? 'B' : 'A'}`
+                : (projectDatasets[normalizedLine] || '');
             if (datasetField) datasetField.value = dataset;
             if (projectKeyField) projectKeyField.value = line;
         }
