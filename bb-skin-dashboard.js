@@ -6,6 +6,7 @@
         
         // 🌟 แก้ไขจุดที่ 1: ปรับเปลี่ยนตัวแปรเป้าหมายหลักวิศวกรรมกระบวนการเป็น 130
         const targetProductivity = 71; 
+        const idleTimeBaseline = Object.freeze({ prep: 0, arrange: 30, machine: 1.25, inspec: 10, pack: 10 });
         let actualBaseline = { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
 
         const popup = document.getElementById('iterDropdown');
@@ -527,7 +528,7 @@
             if (headerEl) headerEl.innerText = selectedHeader;
             const cycle = currentData.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
             const totalCurrent = Number(cycle.prep || 0) + Number(cycle.arrange || 0) + Number(cycle.machine || 0) + Number(cycle.inspec || 0) + Number(cycle.pack || 0);
-            const totalActual = Number(actualBaseline.prep) + Number(actualBaseline.arrange) + Number(actualBaseline.machine) + Number(actualBaseline.inspec) + Number(actualBaseline.pack);
+            const totalActual = Number(idleTimeBaseline.prep) + Number(idleTimeBaseline.arrange) + Number(idleTimeBaseline.machine) + Number(idleTimeBaseline.inspec) + Number(idleTimeBaseline.pack);
             const totalGap = totalCurrent - totalActual;
             const totalPercent = totalActual > 0 ? (totalGap / totalActual) * 100 : 0;
             const gapColor = totalGap > 0 ? 'text-[#f1416c]' : (totalGap < 0 ? 'text-[#50cd89]' : 'text-[#a1a5b7]');
@@ -536,27 +537,27 @@
             const rowsData = [
                 {
                     name: '1. เตรียม RM',
-                    actual: actualBaseline.prep,
+                    actual: idleTimeBaseline.prep,
                     current: Number(cycle.prep) || 0,
                 },
                 {
                     name: '2. เรียงเนื้อ (คอขวด)',
-                    actual: actualBaseline.arrange,
+                    actual: idleTimeBaseline.arrange,
                     current: Number(cycle.arrange) || 0,
                 },
                 {
                     name: '3. เข้าเครื่อง',
-                    actual: actualBaseline.machine,
+                    actual: idleTimeBaseline.machine,
                     current: Number(cycle.machine) || 0,
                 },
                 {
                     name: '4. เช็คสเปค',
-                    actual: actualBaseline.inspec,
+                    actual: idleTimeBaseline.inspec,
                     current: Number(cycle.inspec) || 0,
                 },
                 {
                     name: '5. PACKING',
-                    actual: actualBaseline.pack,
+                    actual: idleTimeBaseline.pack,
                     current: Number(cycle.pack) || 0,
                 },
                 {
