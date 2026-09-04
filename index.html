@@ -283,13 +283,18 @@
             </div>
 
             <div>
-                <a href="BB Skin Dashboard.html?v=20260904-01" target="_blank" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#50cd89]" viewBox="0 0 16 16">
-                        <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/>
-                    </svg>
-                    <span class="font-medium text-sm">BB SKIN DASHBOARD</span>
-                    <span class="ml-auto text-[9px] uppercase tracking-[0.14em] text-[#50cd89]">Live</span>
-                </a>
+                <button onclick="toggleMenu('menu-bb-skin', 'icon-bb-skin')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
+                    <div class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#50cd89]" viewBox="0 0 16 16">
+                            <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/>
+                        </svg>
+                        <span class="font-medium text-sm">BB SKIN DASHBOARD</span>
+                    </div>
+                    <svg id="icon-bb-skin" class="w-4 h-4 transition-transform duration-300 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="menu-bb-skin" class="sidebar-dropdown pl-9 pr-2 py-1 space-y-1">
+                    <a href="BB Skin Dashboard.html?v=20260904-01" target="_blank" class="block px-3 py-2 rounded-md text-[12px] whitespace-nowrap text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white hover:translate-x-1 transition-all border-l-2 border-transparent hover:border-[#50cd89]">BB SKIN 25G R12 Dashboard</a>
+                </div>
             </div>
             <div>
                 <a href="#" aria-label="YAGEN DASHBOARD (coming soon)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
