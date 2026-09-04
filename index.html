@@ -641,7 +641,11 @@
             { prefix: 'blm1', label: 'BL23G R15 (M1)', sheet: 'BL23gR15_M1_DataLog', projectKey: 'BL23G_M1', target: 130, color: '#a78bfa' },
             { prefix: 'bl', label: 'BL23G R15 (M2)', sheet: 'BL23gR15_DataLog', projectKey: 'BL23G_M2', target: 130, color: '#8b5cf6' },
             { prefix: 'giz', label: 'Gizzard 40G S18', sheet: 'GZ40gS18_DataLog', target: 84, color: '#009ef7' },
-            { prefix: 'gz30g', label: 'Gz 30G R15', sheet: 'GZ30gR15_DataLog', target: 69, color: '#ffc700' }
+            { prefix: 'gz30g', label: 'Gz 30G R15', sheet: 'GZ30gR15_DataLog', target: 69, color: '#ffc700' },
+            {
+                prefix: 'bbskin', label: 'BB SKIN 25G R12', projectKey: 'BBSKINR12', target: 71, color: '#50cd89',
+                sheetsByShift: { A: 'BBSKINR12_DataLog_Shift A', B: 'BBSKINR12_DataLog_Shift B' }
+            }
         ];
 
         let currentShiftFilter = 'all';
@@ -1653,7 +1657,7 @@
                         <div class="min-w-[170px] rounded-lg border border-dashed border-[#323248] bg-[#151521] px-3 py-2.5">
                             <div class="flex items-center justify-between gap-2">
                                 ${renderShiftBadge(shift)}
-                                <span class="text-[11px] text-[#6b7280]">No data</span>
+                                <span class="text-[11px] text-[#6b7280]">${config.failedShifts?.includes(shift) ? 'โหลดไม่สำเร็จ' : 'No data'}</span>
                             </div>
                             <div class="mt-3 text-sm font-semibold text-[#6b7280]">--</div>
                         </div>
@@ -1710,19 +1714,6 @@
                             </div>
                         `;
                     }).join('')}
-                    <div class="grid ${visibleShifts.length === 2 ? 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]' : 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)]'} gap-3 items-stretch px-4 py-3 border-b border-[#2b2b40] last:border-b-0">
-                        <div class="flex flex-col justify-center min-w-[150px] py-1">
-                            <div class="flex items-center gap-2 text-white font-bold text-sm"><span class="w-2 h-2 rounded-full bg-[#50cd89]"></span>BB SKIN</div>
-                            <div class="mt-1 text-[11px] text-[#6b7280]">Planning</div>
-                        </div>
-                        <div class="rounded-lg border border-dashed border-[#323248] bg-[#151521] px-3 py-2.5 flex items-center justify-between gap-3" style="grid-column: span ${visibleShifts.length};">
-                            <div>
-                                <div class="text-sm font-semibold text-[#a1a5b7]">รอเริ่มเก็บข้อมูล</div>
-                                <div class="mt-1 text-[11px] text-[#6b7280]">ยังไม่มี Target และข้อมูล Productivity สำหรับแสดงผล</div>
-                            </div>
-                            <span class="text-[10px] uppercase tracking-[0.16em] font-bold text-[#50cd89]">Planning</span>
-                        </div>
-                    </div>
                     <div class="grid ${visibleShifts.length === 2 ? 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]' : 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)]'} gap-3 items-stretch px-4 py-3 last:border-b-0">
                         <div class="flex flex-col justify-center min-w-[150px] py-1">
                             <div class="flex items-center gap-2 text-white font-bold text-sm"><span class="w-2 h-2 rounded-full bg-[#f1416c]"></span>YAGEN</div>
@@ -1808,28 +1799,53 @@
             }).join('');
         }
 
-        async function renderDashboardData() {
-            const [results, breakdownFeed] = await Promise.all([
-                Promise.all(lineConfigs.map(async (config) => {
+        async function loadDashboardLine(config) {
+            const requests = config.sheetsByShift
+                ? Object.entries(config.sheetsByShift)
+                : [[null, config.sheet]];
+            const feeds = await Promise.all(requests.map(async ([shift, sheet]) => {
                 try {
                     const params = config.projectKey ? { projectKey: config.projectKey } : {};
-                    const response = await fetch(window.YakitoriRuntime.buildApiUrl(config.sheet, params), { cache: 'no-store' });
+                    if (shift) Object.assign(params, { shift, ts: Date.now() });
+                    const response = await fetch(window.YakitoriRuntime.buildApiUrl(sheet, params), {
+                        cache: 'no-store', signal: AbortSignal.timeout(30000)
+                    });
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const payload = await response.json();
+                    if (payload.error || payload.status === 'error') throw new Error(payload.error || payload.message || 'API error');
+                    let records = normalizeSheetData(payload);
+                    if (shift) {
+                        if (records.some(record => record.line !== config.projectKey || record.shift !== shift)) {
+                            throw new Error(`Unexpected line or shift in ${sheet}`);
+                        }
+                        records = records.map(record => {
+                            const prod = record.prod || (record.man ? record.total / record.man : 0);
+                            return { ...record, prod, eff: prod / config.target * 100 };
+                        });
+                    }
                     return {
-                        ...config,
-                        records: normalizeSheetData(payload),
+                        shift, records,
                         summary: normalizeSheetSummary(payload)
                     };
                 } catch (error) {
-                    console.error(`Failed to load ${config.sheet}`, error);
+                    console.error(`Failed to load ${sheet}`, error);
                     return {
-                        ...config,
-                        records: [],
+                        shift, failed: true, records: [],
                         summary: normalizeSheetSummary({})
                     };
                 }
-                })),
+            }));
+            return {
+                ...config,
+                records: feeds.flatMap(feed => feed.records),
+                summary: feeds.length === 1 ? feeds[0].summary : normalizeSheetSummary({}),
+                failedShifts: feeds.filter(feed => feed.failed).flatMap(feed => feed.shift ? [feed.shift] : ['A', 'B'])
+            };
+        }
+
+        async function renderDashboardData() {
+            const [results, breakdownFeed] = await Promise.all([
+                Promise.all(lineConfigs.map(loadDashboardLine)),
                 fetch(window.YakitoriRuntime.buildApiUrl('', { action: 'read_breakdown' }), { cache: 'no-store' })
                     .then(response => response.ok ? response.json() : { _records: [] })
                     .catch(error => {
