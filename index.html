@@ -376,10 +376,8 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/></svg>
                     </div>
                     <h3 class="text-white font-bold text-lg mb-1">BOILED BB SKIN</h3>
-                    <p class="text-xs text-[#a1a5b7] mb-4">มีแพลนติดตามกระบวนการในอนาคต</p>
-                    <span class="text-[#50cd89] text-sm font-bold flex items-center gap-1">
-                        เตรียม Dashboard <span class="rounded-full border border-[#50cd89]/40 px-2 py-0.5 text-[9px] tracking-wider">SOON</span>
-                    </span>
+                    <p id="bbskin-card-status" class="text-xs text-[#a1a5b7] mb-4" aria-live="polite">กำลังโหลดข้อมูล BB SKIN 25G R12</p>
+                    <a href="BB Skin Dashboard.html" class="text-[#50cd89] text-sm font-bold hover:text-white">ไปที่ Dashboard</a>
                 </div>
 
                 <div class="bg-card-gradient border border-[#323248] rounded-2xl p-6 shadow-lg border-t-4 border-t-[#f1416c]">
@@ -403,8 +401,8 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M13.442 2.558a.625.625 0 0 1 0 .884l-8.5 8.5a.625.625 0 0 1-.884 0l-3.5-3.5a.625.625 0 1 1 .884-.884l3.058 3.058 8.058-8.058a.625.625 0 0 1 .884 0z"/></svg>
                                 </div>
                                 <div>
-                                    <p class="text-[11px] text-[#a1a5b7] uppercase font-bold tracking-wider mb-0.5">Projects Active</p>
-                                    <h4 class="text-2xl font-bold text-white font-en">3 <span class="text-xs font-normal text-[#6b7280]">Live Lines</span></h4>
+                                    <p class="text-[11px] text-[#a1a5b7] font-bold mb-0.5">ไลน์/เครื่องที่มีข้อมูลในช่วงที่เลือก</p>
+                                    <h4 class="text-2xl font-bold text-white font-en"><span id="active-lines-display">--</span> <span class="text-xs font-normal text-[#6b7280]">รายการ (นับรวมกะครั้งเดียว)</span></h4>
                                 </div>
                             </div>
 
@@ -652,6 +650,9 @@
         let dashboardReady = false;
         let headerClockTimer = null;
         let lastDashboardRefreshAt = null;
+        let dashboardSnapshot = null;
+        let dashboardLoading = false;
+        let dateRange = { from: '', to: '' };
 
         window.onload = function() {
             initializeSidebarLabels();
@@ -711,10 +712,38 @@
                 `);
             }
 
+            const shiftBar = document.getElementById('shiftFilterBar');
+            if (shiftBar && !document.getElementById('dateFilterBar')) {
+                shiftBar.insertAdjacentHTML('afterend', `
+                    <div id="dateFilterBar" class="flex flex-wrap items-end gap-3 mb-4 text-xs">
+                        <label class="text-[#a1a5b7]">ตั้งแต่วันที่<input id="dateFrom" type="date" class="block mt-1 rounded-lg border border-[#323248] bg-[#151521] text-white px-3 py-2"></label>
+                        <label class="text-[#a1a5b7]">ถึงวันที่<input id="dateTo" type="date" class="block mt-1 rounded-lg border border-[#323248] bg-[#151521] text-white px-3 py-2"></label>
+                        <button id="clearDateRange" type="button" class="rounded-lg border border-[#323248] px-3 py-2 text-white">ทุกวันที่</button>
+                        <span id="dateRangeNote" class="w-full text-[#a1a5b7]" aria-live="polite">ทุกวันที่ · แสดงวันที่ของข้อมูลแต่ละกะ</span>
+                    </div>
+                `);
+                const applyDates = () => {
+                    const from = document.getElementById('dateFrom').value;
+                    const to = document.getElementById('dateTo').value;
+                    if (from && to && from > to) {
+                        document.getElementById('dateRangeNote').textContent = 'วันที่เริ่มต้องไม่เกินวันที่สิ้นสุด · ยังใช้ช่วงเดิม';
+                        return;
+                    }
+                    dateRange = { from, to };
+                    renderDashboardSnapshot();
+                };
+                ['dateFrom', 'dateTo'].forEach(id => document.getElementById(id).addEventListener('change', applyDates));
+                document.getElementById('clearDateRange').addEventListener('click', () => {
+                    document.getElementById('dateFrom').value = '';
+                    document.getElementById('dateTo').value = '';
+                    applyDates();
+                });
+            }
+
             document.querySelectorAll('[data-shift-filter]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     setActiveShiftFilter(btn.dataset.shiftFilter);
-                    renderDashboardData();
+                    renderDashboardSnapshot();
                 });
             });
 
@@ -1170,14 +1199,15 @@
                 ? activeLines.reduce((sum, item) => sum + item.currentStats.latest.prod, 0) / activeLines.length
                 : null;
 
-            const strongest = activeLines.reduce((best, item) => {
+            const rankedLines = activeLines.filter(item => item.target > 0);
+            const strongest = rankedLines.reduce((best, item) => {
                 if (!best) return item;
-                return item.currentStats.latest.prod > best.currentStats.latest.prod ? item : best;
+                return item.currentStats.latestProd / item.target > best.currentStats.latestProd / best.target ? item : best;
             }, null);
 
-            const weakest = activeLines.reduce((worst, item) => {
+            const weakest = rankedLines.reduce((worst, item) => {
                 if (!worst) return item;
-                return item.currentStats.latest.prod < worst.currentStats.latest.prod ? item : worst;
+                return item.currentStats.latestProd / item.target < worst.currentStats.latestProd / worst.target ? item : worst;
             }, null);
 
             const aLines = lines.filter(item => item.aStats);
@@ -1218,10 +1248,10 @@
             const shiftLabel = summary.currentShiftFilter === 'all' ? 'All Shift' : `Shift ${summary.currentShiftFilter}`;
             const avgColor = summary.avgLatest === null ? 'text-[#a1a5b7]' : 'text-white';
             const strongestLine = summary.strongest
-                ? `${summary.strongest.label} / ${formatMetricValue(summary.strongest.currentStats.latest.prod)}`
+                ? `${summary.strongest.label} / ${formatMetricValue(summary.strongest.currentStats.latestProd / summary.strongest.target * 100)}% ของ Target`
                 : '--';
             const weakestLine = summary.weakest
-                ? `${summary.weakest.label} / ${formatMetricValue(summary.weakest.currentStats.latest.prod)}`
+                ? `${summary.weakest.label} / ${formatMetricValue(summary.weakest.currentStats.latestProd / summary.weakest.target * 100)}% ของ Target`
                 : '--';
             const shiftGap = (summary.avgA !== null && summary.avgB !== null) ? (summary.avgB - summary.avgA) : null;
             const shiftLeader = shiftGap === null ? '--' : (shiftGap >= 0 ? 'Shift B lead' : 'Shift A lead');
@@ -1340,6 +1370,7 @@
             const totalDowntime = records.reduce((sum, item) => sum + (Number(item?.durationMin) || 0), 0);
             return {
                 total: records.length,
+                failed: Boolean(feed?.failed),
                 open: openItems.length,
                 totalDowntime,
                 latest: records[0] || null
@@ -1364,10 +1395,10 @@
             const shiftLabel = summary.currentShiftFilter === 'all' ? 'All Shift' : `Shift ${summary.currentShiftFilter}`;
             const avgColor = summary.avgLatest === null ? 'text-[#a1a5b7]' : 'text-white';
             const strongestLine = summary.strongest
-                ? `${summary.strongest.label} / ${formatMetricValue(summary.strongest.currentStats.latest.prod)}`
+                ? `${summary.strongest.label} / ${formatMetricValue(summary.strongest.currentStats.latestProd / summary.strongest.target * 100)}% ของ Target`
                 : '--';
             const weakestLine = summary.weakest
-                ? `${summary.weakest.label} / ${formatMetricValue(summary.weakest.currentStats.latest.prod)}`
+                ? `${summary.weakest.label} / ${formatMetricValue(summary.weakest.currentStats.latestProd / summary.weakest.target * 100)}% ของ Target`
                 : '--';
             const shiftGap = (summary.avgA !== null && summary.avgB !== null) ? (summary.avgB - summary.avgA) : null;
             const shiftLeader = shiftGap === null ? '--' : (shiftGap >= 0 ? 'Shift B lead' : 'Shift A lead');
@@ -1462,8 +1493,8 @@
                     </div>
                     <h3 class="text-sm font-bold text-white mb-1">Operational Follow-up</h3>
                     <div class="space-y-2 text-sm mb-4">
-                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Open breakdown</span><span class="${breakdown.open ? 'text-[#f1416c]' : 'text-[#50cd89]'} font-semibold text-right">${breakdown.open} event${breakdown.open === 1 ? '' : 's'}</span></div>
-                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Logged downtime</span><span class="text-[#ffc700] font-semibold">${formatMetricValue(breakdown.totalDowntime, 0)} min</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Open breakdown ในช่วงที่เลือก</span><span class="${breakdown.open ? 'text-[#f1416c]' : 'text-[#50cd89]'} font-semibold text-right">${breakdown.failed ? 'โหลดไม่สำเร็จ' : `${breakdown.open} events`}</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Downtime ในช่วง/กะที่เลือก</span><span class="text-[#ffc700] font-semibold">${breakdown.failed ? '--' : formatMetricValue(breakdown.totalDowntime, 0)} min</span></div>
                         <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Data gaps</span><span class="${missingFeeds ? 'text-[#ffc700]' : 'text-[#50cd89]'} font-semibold">${missingFeeds ? `${missingFeeds} feed${missingFeeds === 1 ? '' : 's'} missing` : 'Complete for selected shifts'}</span></div>
                         ${actionList.map((item, index) => `
                             <div class="flex items-start gap-2">
@@ -1556,7 +1587,41 @@
         }
 
         function sortTrials(items) {
-            return [...items].sort((a, b) => Number(a.trial) - Number(b.trial));
+            return [...items].sort((a, b) => {
+                const aDay = getProductionDay(a);
+                const bDay = getProductionDay(b);
+                if (aDay !== bDay) return aDay.localeCompare(bDay);
+                const aTime = parseRecordDateValue(a.createdAt)?.getTime() || 0;
+                const bTime = parseRecordDateValue(b.createdAt)?.getTime() || 0;
+                return aTime - bTime || Number(a.trial) - Number(b.trial);
+            });
+        }
+
+        function getProductionDay(record, breakdown = false) {
+            const raw = String((breakdown ? record?.breakdownDate || record?.recordDate : record?.recordDate) || '').trim();
+            if (!raw) return '';
+            const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            const local = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+            if (iso || local) {
+                let year = Number(iso ? iso[1] : local[3]);
+                if (year > 2400) year -= 543;
+                const month = Number(iso ? iso[2] : local[2]);
+                const day = Number(iso ? iso[3] : local[1]);
+                const check = new Date(Date.UTC(year, month - 1, day));
+                if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) return '';
+                return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            }
+            const date = parseRecordDateValue(raw);
+            if (!date) return '';
+            const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date);
+            const part = type => parts.find(p => p.type === type).value;
+            return `${part('year')}-${part('month')}-${part('day')}`;
+        }
+
+        function inDateRange(record, breakdown = false) {
+            if (!dateRange.from && !dateRange.to) return true;
+            const day = getProductionDay(record, breakdown);
+            return Boolean(day && (!dateRange.from || day >= dateRange.from) && (!dateRange.to || day <= dateRange.to));
         }
 
         function filterByShift(records, shift) {
@@ -1679,6 +1744,7 @@
                             <span class="text-xl font-bold font-en" style="color:${accent.text}">${stats.latestProd.toFixed(1)}</span>
                             <span class="text-[11px] text-[#a1a5b7]">${latestPercent.toFixed(1)}%</span>
                         </div>
+                        <div class="mt-1 text-[11px] text-[#a1a5b7]">วันที่ผลิต ${getProductionDay(stats.latest) || 'ไม่ระบุ (เรียงตามรอบเมื่อไม่มีวันที่)'}</div>
                         <div class="mt-2 h-1.5 rounded-full border border-[#323248] bg-[#11111b] overflow-hidden">
                             <div class="h-full rounded-full progress-bar-striped" style="width:${Math.min(latestPercent, 100)}%; background:${accent.solid}; opacity:${accent.barOpacity}"></div>
                         </div>
@@ -1686,6 +1752,7 @@
                             <span class="text-[#ffc700] font-bold uppercase tracking-[0.12em]">Best · T${stats.bestTrial}</span>
                             <span class="text-[#ffc700] font-semibold">${stats.bestProd.toFixed(1)} · ${bestPercent.toFixed(1)}%</span>
                         </div>
+                        <div class="mt-1 text-[10px] text-[#a1a5b7]">Best วันที่ ${getProductionDay(stats.best) || 'ไม่ระบุ'}</div>
                         <div class="mt-1 h-1 rounded-full border border-[#4d3e0a] bg-[#11111b] overflow-hidden">
                             <div class="h-full rounded-full" style="width:${Math.min(bestPercent, 100)}%; background:linear-gradient(90deg, #a67c00, #ffc700)"></div>
                         </div>
@@ -1844,29 +1911,72 @@
         }
 
         async function renderDashboardData() {
+            if (dashboardLoading) return;
+            dashboardLoading = true;
+            try {
             const [results, breakdownFeed] = await Promise.all([
                 Promise.all(lineConfigs.map(loadDashboardLine)),
-                fetch(window.YakitoriRuntime.buildApiUrl('', { action: 'read_breakdown' }), { cache: 'no-store' })
-                    .then(response => response.ok ? response.json() : { _records: [] })
+                fetch(window.YakitoriRuntime.buildApiUrl('', { action: 'read_breakdown' }), { cache: 'no-store', signal: AbortSignal.timeout(30000) })
+                    .then(async response => {
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        const feed = await response.json();
+                        if (feed.error || feed.status === 'error') throw new Error(feed.error || feed.message);
+                        return feed;
+                    })
                     .catch(error => {
                         console.warn('Failed to load breakdown feed', error);
-                        return { _records: [] };
+                        return { _records: [], failed: true };
                     })
             ]);
 
             lastDashboardRefreshAt = new Date();
+            dashboardSnapshot = { results, breakdownFeed };
+            renderDashboardSnapshot();
+            } finally {
+                dashboardLoading = false;
+            }
+        }
 
+        function renderDashboardSnapshot() {
+            if (!dashboardSnapshot) return;
+            const dated = Boolean(dateRange.from || dateRange.to);
+            const results = dashboardSnapshot.results.map(config => ({
+                ...config,
+                records: config.records.filter(record => inDateRange(record)),
+                summary: dated ? normalizeSheetSummary({}) : config.summary
+            }));
+            const rawBreakdowns = dashboardSnapshot.breakdownFeed._records || [];
+            const breakdownFeed = {
+                ...dashboardSnapshot.breakdownFeed,
+                _records: rawBreakdowns.filter(record => inDateRange(record, true) &&
+                    (currentShiftFilter === 'all' || String(record.shift || '').toUpperCase() === currentShiftFilter))
+            };
+            const unknownProduction = dashboardSnapshot.results.reduce((sum, config) => sum +
+                filterByShift(config.records, currentShiftFilter).filter(record => !getProductionDay(record)).length, 0);
+            const unknownBreakdowns = rawBreakdowns.filter(record => !getProductionDay(record, true)).length;
+            document.getElementById('dateRangeNote').textContent =
+                `${dated ? `${dateRange.from || 'เริ่มต้น'} ถึง ${dateRange.to || 'ล่าสุด'}` : 'ทุกวันที่'} · ใช้กับข้อมูลผลิตและ Downtime · ` +
+                `${dated ? 'ไม่รวม' : 'พบ'}ข้อมูลไม่ระบุวันที่: ผลิต ${unknownProduction}, Breakdown ${unknownBreakdowns} รายการ`;
             const progressSummary = renderProgressPanel(results);
+            const visibleLines = results.filter(config => getStats(filterByShift(config.records, currentShiftFilter),
+                currentShiftFilter === 'all' ? config.summary?.overall : config.summary?.byShift?.[currentShiftFilter]));
+            document.getElementById('active-lines-display').textContent = `${visibleLines.length} / ${results.length}`;
+            const bbskin = results.find(config => config.prefix === 'bbskin');
+            const shifts = currentShiftFilter === 'all' ? ['A', 'B'] : [currentShiftFilter];
+            const bbShifts = shifts.filter(shift => bbskin?.records.some(record => record.shift === shift));
+            const failed = shifts.filter(shift => bbskin?.failedShifts?.includes(shift));
+            document.getElementById('bbskin-card-status').textContent = bbShifts.length
+                ? `มีข้อมูล Shift ${bbShifts.join(', ')} ในช่วงที่เลือก${failed.length ? ` · โหลดกะ ${failed.join(', ')} ไม่สำเร็จ` : ''}`
+                : failed.length ? 'โหลดข้อมูลไม่สำเร็จในกะที่เลือก' : 'ยังไม่มีข้อมูลในช่วง/กะที่เลือก';
 
             renderFreshnessAndAlerts(results);
             renderRecentChanges(results);
             renderOverviewCards(results, breakdownFeed);
             renderComparePanel(results);
 
-            if (progressSummary.activeProjectsCount > 0) {
-                const avg = progressSummary.avgEffTotal / progressSummary.activeProjectsCount;
-                document.getElementById('avg-eff-display').innerHTML = `${avg.toFixed(1)}<span class=\"text-lg text-[#a1a5b7]\">%</span>`;
-            }
+            const avg = progressSummary.activeProjectsCount > 0
+                ? (progressSummary.avgEffTotal / progressSummary.activeProjectsCount).toFixed(1) : '--';
+            document.getElementById('avg-eff-display').innerHTML = `${avg}<span class="text-lg text-[#a1a5b7]">%</span>`;
         }
     </script>
 </body>
