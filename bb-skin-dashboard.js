@@ -66,7 +66,7 @@
         async function loadData() {
             const status = document.getElementById('dataStatus');
             const retry = document.getElementById('reloadData');
-            retry.disabled = true;
+            if (retry) retry.disabled = true;
             status.textContent = 'กำลังโหลดข้อมูล BB Skin…';
             clearDashboard('กำลังโหลดข้อมูล…');
             try {
@@ -107,9 +107,9 @@
             } catch (error) {
                 db = {}; keys = []; viewKeys = [];
                 clearDashboard('ไม่สามารถโหลดข้อมูลได้');
-                status.textContent = 'โหลดข้อมูลไม่สำเร็จ: ' + error.message + ' — กดโหลดใหม่เพื่อลองอีกครั้ง';
+                status.textContent = 'โหลดข้อมูลไม่สำเร็จ: ' + error.message + ' — โปรดลองรีเฟรชหน้าเว็บ';
             } finally {
-                retry.disabled = false;
+                if (retry) retry.disabled = false;
             }
         }
 
