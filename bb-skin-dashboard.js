@@ -4,8 +4,8 @@
         let db = {}; 
         let keys = [];
         
-        // 🌟 แก้ไขจุดที่ 1: ปรับเปลี่ยนตัวแปรเป้าหมายหลักวิศวกรรมกระบวนการเป็น 130
-        const targetProductivity = 71; 
+        const targetProductivity = 71;
+        const trendTargetProductivity = 120;
         const idleTimeBaseline = Object.freeze({ prep: 0, arrange: 30, machine: 1.25, inspec: 10, pack: 10 });
         let actualBaseline = { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
 
@@ -956,7 +956,7 @@
             id: 'gapLabelPlugin',
             afterDatasetsDraw(chart, args, plugins) {
                 const lineCtx = chart.ctx;
-                const targetLineY = chart.scales.y.getPixelForValue(targetProductivity);
+                const targetLineY = chart.scales.y.getPixelForValue(trendTargetProductivity);
                 lineCtx.save();
                 lineCtx.beginPath();
                 lineCtx.moveTo(chart.chartArea.left, targetLineY);
@@ -972,10 +972,10 @@
                 if (!point) return;
 
                 const value = chart.data.datasets[0].data[selectedDataIndex] || 0;
-                const diff = Math.abs(targetProductivity - value).toFixed(1); 
+                const diff = Math.abs(trendTargetProductivity - value).toFixed(1);
                 const x = point.x;
                 const y = point.y;
-                const targetY = chart.scales.y.getPixelForValue(targetProductivity);
+                const targetY = chart.scales.y.getPixelForValue(trendTargetProductivity);
 
                 ctx.save();
                 ctx.beginPath();
@@ -1023,8 +1023,7 @@
                             fill: true, tension: 0.2
                         },
                         {
-                            // 🌟 แก้ไขจุดที่ 2: ปรับเส้นประเป้าหมายสีแดง (Target Line) ของกราฟหลักเป็น 130
-                            label: 'เป้าหมาย', data: Array(chartLabels.length).fill(targetProductivity),
+                            label: 'เป้าหมายใหม่ 120', data: Array(chartLabels.length).fill(trendTargetProductivity),
                             borderColor: '#f1416c', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, fill: false
                         }
                     ]
@@ -1049,8 +1048,7 @@
                             }
                         }
                     },
-                    // 🌟 แก้ไขจุดที่ 3: ขยายสเกลค่าสูงสุดของแกน Y (Max Value) จากเดิม 120 ไปให้สอดคล้องกับเส้นเป้าหมาย 130
-                    scales: { y: { beginAtZero: true, suggestedMax: 80, grid: { color: '#2b2b40' } }, x: { offset: true, grid: { display: false } } }
+                    scales: { y: { beginAtZero: true, suggestedMax: 130, grid: { color: '#2b2b40' } }, x: { offset: true, grid: { display: false } } }
                 },
                 plugins: [gapLabelPlugin]
             });
