@@ -787,6 +787,7 @@
             if(!baseline || !selected) return;
 
             const rowsData = [
+                { name: 'Target ใหม่', target: 120, note: 'เป้าหมายใหม่ BB Skin' },
                 { name: 'G1', target: 71, note: 'เป้าหมายหลัก BB Skin' },
                 { name: 'G2', target: 69, note: 'เกณฑ์เปรียบเทียบ BB Skin' },
                 { name: 'G3', target: 65, note: 'เกณฑ์เปรียบเทียบ BB Skin' },
