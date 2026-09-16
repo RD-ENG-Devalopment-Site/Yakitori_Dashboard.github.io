@@ -806,11 +806,7 @@
             if(!baseline || !selected) return;
 
             const rowsData = [
-                { name: 'Target ใหม่', target: targetProductivity, note: 'เป้าหมายใหม่ BB Skin' },
-                { name: 'G1', target: 71, note: 'เป้าหมายหลัก BB Skin' },
-                { name: 'G2', target: 69, note: 'เกณฑ์เปรียบเทียบ BB Skin' },
-                { name: 'G3', target: 65, note: 'เกณฑ์เปรียบเทียบ BB Skin' },
-                { name: 'G4', target: 60, note: 'เกณฑ์เปรียบเทียบ BB Skin' }
+                { name: 'BB SKIN 25G R12', target: targetProductivity, note: 'Target ปัจจุบัน' }
             ];
 
             const baselineProd = Number(baseline.prod) || 0;
@@ -833,7 +829,7 @@
                 const selectedGapPct = row.target > 0 ? (selectedGap / row.target) * 100 : 0;
                 const baselineGapColor = baselineGap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
                 const selectedGapColor = selectedGap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
-                const rowBgStyle = row.name === 'Target ใหม่' ? 'bg-[rgba(80,205,137,0.03)]' : 'hover:bg-[#2b2b40]';
+                const rowBgStyle = 'bg-[rgba(80,205,137,0.03)]';
 
                 html += `<tr class="${rowBgStyle} transition duration-150">
                     <td class="p-3 text-white font-medium pl-4">${row.name}</td>
@@ -1034,7 +1030,7 @@
                             fill: true, tension: 0.2
                         },
                         {
-                            label: 'เป้าหมายใหม่ 120', data: Array(chartLabels.length).fill(targetProductivity),
+                            label: `Target ${targetProductivity}`, data: Array(chartLabels.length).fill(targetProductivity),
                             borderColor: '#f1416c', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, fill: false
                         }
                     ]
@@ -1182,7 +1178,7 @@
                     plugins: { legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8 } } },
                     scales: {
                         x: { grid: { display: false } },
-                        y: { beginAtZero: true, suggestedMax: 80, title: { display: true, text: "Productivity", color: "#a1a5b7", font: { size: 10 } }, grid: { color: "#2b2b40" } },
+                        y: { beginAtZero: true, suggestedMax: Math.max(130, targetProductivity + 10), title: { display: true, text: "Productivity", color: "#a1a5b7", font: { size: 10 } }, grid: { color: "#2b2b40" } },
                         y1: { beginAtZero: true, suggestedMax: 100, position: "right", grid: { display: false }, title: { display: true, text: "Efficiency (%)", color: "#a1a5b7", font: { size: 10 } } }
                     }
                 },
@@ -1190,13 +1186,10 @@
                     id: "targetLineSummary",
                     afterDraw: chart => {
                         const ctx = chart.ctx;
-                        const yG2 = chart.scales.y.getPixelForValue(69);
-                        const yG1 = chart.scales.y.getPixelForValue(targetProductivity);
+                        const targetY = chart.scales.y.getPixelForValue(targetProductivity);
                         const xAxis = chart.scales.x;
                         ctx.save();
-                        ctx.beginPath(); ctx.moveTo(xAxis.left, yG2); ctx.lineTo(xAxis.right, yG2);
-                        ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(241, 65, 108, 0.6)"; ctx.setLineDash([5, 5]); ctx.stroke();
-                        ctx.beginPath(); ctx.moveTo(xAxis.left, yG1); ctx.lineTo(xAxis.right, yG1);
+                        ctx.beginPath(); ctx.moveTo(xAxis.left, targetY); ctx.lineTo(xAxis.right, targetY);
                         ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(241, 65, 108, 1)"; ctx.setLineDash([]); ctx.stroke();
                         ctx.restore();
                     }
