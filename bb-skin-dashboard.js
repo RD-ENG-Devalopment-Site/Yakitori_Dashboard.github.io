@@ -4,9 +4,9 @@
         let db = {}; 
         let keys = [];
         
-        const targetProductivity = 71;
-        const trendTargetProductivity = 120;
-        const idleTimeBaseline = Object.freeze({ prep: 0, arrange: 30, machine: 1.25, inspec: 10, pack: 10 });
+        const targetProductivity = 120;
+        const actualOutputTarget = 1800;
+        const idleTimeBaseline = Object.freeze({ prep: 0, arrange: 18.75, machine: 1.25, inspec: 5, pack: 5 });
         let actualBaseline = { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
 
         const popup = document.getElementById('iterDropdown');
@@ -787,7 +787,7 @@
             if(!baseline || !selected) return;
 
             const rowsData = [
-                { name: 'Target ใหม่', target: 120, note: 'เป้าหมายใหม่ BB Skin' },
+                { name: 'Target ใหม่', target: targetProductivity, note: 'เป้าหมายใหม่ BB Skin' },
                 { name: 'G1', target: 71, note: 'เป้าหมายหลัก BB Skin' },
                 { name: 'G2', target: 69, note: 'เกณฑ์เปรียบเทียบ BB Skin' },
                 { name: 'G3', target: 65, note: 'เกณฑ์เปรียบเทียบ BB Skin' },
@@ -839,7 +839,7 @@
             tableSelectedKey = key;
             tableShiftFilter = getRecordShift(key);
             renderTable();
-            document.getElementById('header-actual-yield').textContent = Number(first.total).toLocaleString();
+            document.getElementById('header-actual-yield').textContent = actualOutputTarget.toLocaleString();
             gapComparisonKey = key;
             syncGapComparisonSelect();
             calculateExecutiveSummary(sameShift[0] || key, key);
@@ -849,18 +849,10 @@
             let titleText = isBaselineRecord(key)
                 ? 'กระบวนการเดิม'
                 : `ปรับปรุงกระบวนการครั้งที่ ${getTrialLabel(key)} / Shift ${getRecordShift(key)}`;
-            let roundLabel = isBaselineRecord(key)
-                ? '(เดิม)'
-                : `(ครั้งที่ ${getTrialLabel(key)} / Shift ${getRecordShift(key)})`;
-
             document.getElementById('selectedIterText').innerText = titleText;
-            
-            let totalOutput = data.total || 0;
-            let totalMan = data.man || 0;
-            document.getElementById('header-current-yield').innerHTML = `${totalOutput.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
-            document.getElementById('header-current-man').innerHTML = `${totalMan} <span class="text-xs font-normal text-[#6b7280]">คน</span>`;
-            document.getElementById('header-selected-round').innerText = roundLabel;
-            document.getElementById('header-man-round').innerText = roundLabel;
+
+            const totalOutput = Number(data.total) || 0;
+            const totalMan = Number(data.man) || 0;
 
             let cycle = data.cycle_detail || { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
             let layout = data.layout || { prep: 0, block: 0, inspec: 0, pack: 0, op: 0 };
@@ -956,7 +948,7 @@
             id: 'gapLabelPlugin',
             afterDatasetsDraw(chart, args, plugins) {
                 const lineCtx = chart.ctx;
-                const targetLineY = chart.scales.y.getPixelForValue(trendTargetProductivity);
+                const targetLineY = chart.scales.y.getPixelForValue(targetProductivity);
                 lineCtx.save();
                 lineCtx.beginPath();
                 lineCtx.moveTo(chart.chartArea.left, targetLineY);
@@ -972,10 +964,10 @@
                 if (!point) return;
 
                 const value = chart.data.datasets[0].data[selectedDataIndex] || 0;
-                const diff = Math.abs(trendTargetProductivity - value).toFixed(1);
+                const diff = Math.abs(targetProductivity - value).toFixed(1);
                 const x = point.x;
                 const y = point.y;
-                const targetY = chart.scales.y.getPixelForValue(trendTargetProductivity);
+                const targetY = chart.scales.y.getPixelForValue(targetProductivity);
 
                 ctx.save();
                 ctx.beginPath();
@@ -1023,7 +1015,7 @@
                             fill: true, tension: 0.2
                         },
                         {
-                            label: 'เป้าหมายใหม่ 120', data: Array(chartLabels.length).fill(trendTargetProductivity),
+                            label: 'เป้าหมายใหม่ 120', data: Array(chartLabels.length).fill(targetProductivity),
                             borderColor: '#f1416c', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, fill: false
                         }
                     ]

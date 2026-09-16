@@ -102,20 +102,12 @@
             
             <div class="flex flex-wrap gap-3">
                 <div class="bg-[#151521] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm">
-                    <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">ผลผลิตครั้งแรก (Actual)</p>
-                    <p class="text-xl font-bold text-white font-en"><span id="header-actual-yield">--</span> <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
+                    <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">ยอดผลิตเป้าหมาย (Actual)</p>
+                    <p class="text-xl font-bold text-white font-en"><span id="header-actual-yield">1,800</span> <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
                 </div>
                 <div class="bg-[#151521] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm">
                     <p class="text-[11px] text-[#a1a5b7] uppercase tracking-wider mb-1 font-semibold">ผลผลิตสูงสุด (Best Record)</p>
                     <p class="text-xl font-bold text-[#50cd89] font-en" id="header-max-yield">-- <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
-                </div>
-                <div class="bg-[#1e1e2d] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm border-b-2 border-b-[#009ef7]">
-                    <p class="text-[11px] text-[#009ef7] uppercase tracking-wider mb-1 font-bold">ผลผลิต <span id="header-selected-round">รอบล่าสุด</span></p>
-                    <p class="text-xl font-bold text-[#009ef7] font-en" id="header-current-yield">-- <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span></p>
-                </div>
-                <div class="bg-[#1e1e2d] border border-[#323248] rounded-lg px-4 py-2 min-w-[150px] shadow-sm border-b-2 border-b-[#8b5cf6]">
-                    <p class="text-[11px] text-[#8b5cf6] uppercase tracking-wider mb-1 font-bold">จำนวนพนักงาน <span id="header-man-round">รอบล่าสุด</span></p>
-                    <p class="text-xl font-bold text-[#8b5cf6] font-en" id="header-current-man">-- <span class="text-xs font-normal text-[#6b7280]">คน</span></p>
                 </div>
             </div>
         </div>
@@ -129,7 +121,7 @@
                 <div class="flex items-end gap-3 mt-1">
                     <h2 class="text-4xl font-bold text-white font-en" id="kpi-prod">--</h2>
                 </div>
-                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2" id="kpi-target-label">เป้าหมาย Target: 71 ไม้/คน/ชั่วโมง</p>
+                <p class="text-xs text-[#a1a5b7] mt-3 border-t border-[#323248] pt-2" id="kpi-target-label">เป้าหมาย Target: 120 ไม้/คน/ชั่วโมง</p>
             </div>
 
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#50cd89] shadow-lg">
@@ -492,7 +484,7 @@
                 <div class="bg-card rounded-xl p-6 border border-[#323248] shadow-lg flex flex-col">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-white font-bold text-sm">Productivity & Efficiency Journey (Focus: เดิม vs Best vs Target)</h3>
-                        <span class="text-xs text-[#f1416c] bg-[rgba(241,65,108,0.1)] px-2 py-1 rounded border border-[rgba(241,65,108,0.2)]" id="chart-target-badge">Target: 71 ไม้/คน/ชั่วโมง</span>
+                        <span class="text-xs text-[#f1416c] bg-[rgba(241,65,108,0.1)] px-2 py-1 rounded border border-[rgba(241,65,108,0.2)]" id="chart-target-badge">Target: 120 ไม้/คน/ชั่วโมง</span>
                     </div>
                     <div class="h-[250px] w-full relative flex-1">
                         <canvas id="prodJourneyChart"></canvas>
@@ -546,7 +538,7 @@
 
     </main>
 
-    <script src="yakitori-runtime.js?v=20260913-04"></script>
-<script src="bb-skin-dashboard.js?v=20260913-04"></script>
+    <script src="yakitori-runtime.js?v=20260916-01"></script>
+<script src="bb-skin-dashboard.js?v=20260916-01"></script>
 </body>
 </html>
