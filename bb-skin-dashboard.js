@@ -134,6 +134,7 @@
             selectedShiftFilter = 'all';
             syncShiftFilterSelect();
             refreshShiftView();
+            updateLatestHeaderMetrics();
 
             let defaultKey = getVisibleKeys().slice(-1)[0] || baselineKey || keys[keys.length - 1] || "เดิม";
             selectIteration(defaultKey); 
@@ -236,6 +237,24 @@
                 : trialA.localeCompare(trialB, 'th', { numeric: true });
 
             return trialCompare || getRecordShift(a).localeCompare(getRecordShift(b));
+        }
+
+        function hasCompleteHeaderMetrics(record) {
+            return Number(record?.total) > 0 && Number(record?.man) > 0;
+        }
+
+        function updateLatestHeaderMetrics() {
+            const latestKey = keys.slice().sort(compareRecordKeys).reverse().find(key => {
+                return !isBaselineRecord(key) && hasCompleteHeaderMetrics(db[key]);
+            });
+            const latest = latestKey ? db[latestKey] : null;
+            if (!latest) return;
+
+            const roundLabel = `(ครั้งที่ ${getTrialLabel(latestKey)} / Shift ${getRecordShift(latestKey)})`;
+            document.getElementById('header-current-yield').innerHTML = `${Number(latest.total).toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
+            document.getElementById('header-current-man').innerHTML = `${Number(latest.man).toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">คน</span>`;
+            document.getElementById('header-selected-round').innerText = roundLabel;
+            document.getElementById('header-man-round').innerText = roundLabel;
         }
 
         function getVisibleKeys() {
