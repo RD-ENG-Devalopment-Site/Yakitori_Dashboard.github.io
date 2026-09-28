@@ -158,7 +158,8 @@
 
         #menu-bl a,
         #menu-gizzard a,
-        #menu-bb-skin a {
+        #menu-bb-skin a,
+        #menu-neck-skin a {
             padding-top: 6px;
             padding-bottom: 6px;
             font-size: 11px;
@@ -298,9 +299,23 @@
                 </div>
             </div>
             <div>
+                <button onclick="toggleMenu('menu-neck-skin', 'icon-neck-skin')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
+                    <div class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#ffc700]" viewBox="0 0 16 16">
+                            <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/>
+                        </svg>
+                        <span class="font-medium text-sm">NECK SKIN DASHBOARD</span>
+                    </div>
+                    <svg id="icon-neck-skin" class="w-4 h-4 transition-transform duration-300 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="menu-neck-skin" class="sidebar-dropdown pl-9 pr-2 py-1 space-y-1">
+                    <a href="#" aria-label="NECK SKIN 40 G R15 Dashboard (coming soon)" class="block px-3 py-2 rounded-md text-[12px] whitespace-nowrap text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white hover:translate-x-1 transition-all border-l-2 border-transparent hover:border-[#ffc700]">NECK SKIN 40 G R15</a>
+                </div>
+            </div>
+            <div>
                 <a href="#" aria-label="YAGEN DASHBOARD (coming soon)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#a1a5b7] hover:bg-[#2b2b40] hover:text-white transition group">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-[#f1416c]" viewBox="0 0 16 16">
-                        <path d="M1 13h2V8H1v5zm4 0h2V3H5v10zm4 0h2V6H9v7zm4 0h2V1h-2v12z"/>
+                        <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/>
                     </svg>
                     <span class="font-medium text-sm">YAGEN DASHBOARD</span>
                     <span class="ml-auto text-[9px] uppercase tracking-[0.14em] text-[#6b7280]">Soon</span>
@@ -348,7 +363,7 @@
                 <p class="text-[#a1a5b7]">Process Improvement Data</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5 gap-6 mb-10">
                 <div class="bg-card-gradient border border-[#323248] rounded-2xl p-6 shadow-lg border-t-4 border-t-[#8b5cf6]">
                     <div class="w-10 h-10 rounded-lg bg-[rgba(139,92,246,0.1)] text-[#8b5cf6] flex items-center justify-center mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/></svg>
@@ -378,6 +393,17 @@
                     <h3 class="text-white font-bold text-lg mb-1">BOILED BB SKIN</h3>
                     <p id="bbskin-card-status" class="text-xs text-[#a1a5b7] mb-4" aria-live="polite">กำลังโหลดข้อมูล BB SKIN 25G R12</p>
                     <a href="BB Skin Dashboard.html" class="text-[#50cd89] text-sm font-bold hover:text-white">ไปที่ Dashboard</a>
+                </div>
+
+                <div class="bg-card-gradient border border-[#323248] rounded-2xl p-6 shadow-lg border-t-4 border-t-[#ffc700]">
+                    <div class="w-10 h-10 rounded-lg bg-[rgba(255,199,0,0.1)] text-[#ffc700] flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/></svg>
+                    </div>
+                    <h3 class="text-white font-bold text-lg mb-1">NECK SKIN</h3>
+                    <p class="text-xs text-[#a1a5b7] mb-4">การปรับปรุงกระบวนการเสียบไม้สินค้า NECK SKIN</p>
+                    <span class="text-[#ffc700] text-sm font-bold flex items-center gap-1">
+                        เตรียม Dashboard <span class="rounded-full border border-[#ffc700]/40 px-2 py-0.5 text-[9px] tracking-wider">SOON</span>
+                    </span>
                 </div>
 
                 <div class="bg-card-gradient border border-[#323248] rounded-2xl p-6 shadow-lg border-t-4 border-t-[#f1416c]">
@@ -1135,7 +1161,7 @@
                     </div>
                     <span class="text-[11px] uppercase tracking-[0.2em] text-[#6b7280] font-bold">Recent trial-to-trial movement</span>
                 </div>
-                <div class="overflow-x-auto max-h-[320px] pr-1">
+                <div class="overflow-x-auto max-h-[420px] pr-1">
                     <table class="w-full text-left whitespace-nowrap text-sm">
                         <thead class="text-[11px] uppercase text-[#6b7280] border-b border-[#2b2b40]">
                             <tr>
@@ -1169,6 +1195,17 @@
                                     <td colspan="7" class="py-6 text-center text-[#6b7280]">ยังมีข้อมูลไม่พอสำหรับสร้าง recent change feed</td>
                                 </tr>
                             `}
+                            ${['A', 'B'].map(shift => `
+                                <tr>
+                                    <td class="py-3 pr-4 text-white font-semibold">NECK SKIN 40G R15 <span class="text-[#6b7280] font-normal">/ Shift ${shift}</span></td>
+                                    <td class="py-3 pr-4 text-[#6b7280]">รอข้อมูล</td>
+                                    <td class="py-3 pr-4 text-[#6b7280]">--</td>
+                                    <td class="py-3 pr-4 text-[#6b7280]">--</td>
+                                    <td class="py-3 pr-4 text-[#6b7280]">--</td>
+                                    <td class="py-3 pr-4 text-[#6b7280]">--</td>
+                                    <td class="py-3 pr-4 text-[#6b7280]">--</td>
+                                </tr>
+                            `).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -1781,6 +1818,21 @@
                             </div>
                         `;
                     }).join('')}
+                    <div class="grid ${visibleShifts.length === 2 ? 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]' : 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)]'} gap-3 items-stretch px-4 py-3 border-b border-[#2b2b40]">
+                        <div class="flex flex-col justify-center min-w-[150px] py-1">
+                            <div class="flex items-center gap-2 text-white font-bold text-sm"><span class="w-2 h-2 rounded-full bg-[#ffc700]"></span>NECK SKIN 40G R15</div>
+                            <div class="mt-1 text-[11px] text-[#6b7280]">Target รอกำหนด</div>
+                        </div>
+                        ${visibleShifts.map(shift => `
+                            <div class="min-w-[170px] rounded-lg border border-dashed border-[#323248] bg-[#151521] px-3 py-2.5">
+                                <div class="flex items-center justify-between gap-2">
+                                    ${renderShiftBadge(shift)}
+                                    <span class="text-[11px] text-[#6b7280]">รอข้อมูล</span>
+                                </div>
+                                <div class="mt-3 text-sm font-semibold text-[#6b7280]">--</div>
+                            </div>
+                        `).join('')}
+                    </div>
                     <div class="grid ${visibleShifts.length === 2 ? 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]' : 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)]'} gap-3 items-stretch px-4 py-3 last:border-b-0">
                         <div class="flex flex-col justify-center min-w-[150px] py-1">
                             <div class="flex items-center gap-2 text-white font-bold text-sm"><span class="w-2 h-2 rounded-full bg-[#f1416c]"></span>YAGEN</div>
@@ -1863,7 +1915,14 @@
                         <td class="py-3 pr-4 font-semibold ${getGapClass(bestGap)}">${renderDelta(bestGapPercent, '%')}</td>
                     </tr>
                 `;
-            }).join('');
+            }).join('') + `
+                <tr>
+                    <td class="py-3 pr-4 text-white font-semibold align-top">NECK SKIN 40G R15 <span class="block text-[11px] text-[#6b7280] font-normal">รอข้อมูล</span></td>
+                    <td class="py-3 pr-4 align-top">${renderShiftBadge('A')}<div class="mt-1 text-[#6b7280]">--</div></td>
+                    <td class="py-3 pr-4 align-top">${renderShiftBadge('B')}<div class="mt-1 text-[#6b7280]">--</div></td>
+                    ${Array(6).fill('<td class="py-3 pr-4 text-[#6b7280]">--</td>').join('')}
+                </tr>
+            `;
         }
 
         async function loadDashboardLine(config) {
