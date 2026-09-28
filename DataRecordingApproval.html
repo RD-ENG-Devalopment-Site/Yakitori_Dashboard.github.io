@@ -109,6 +109,8 @@
                             <option value="BL23G_M1">BL 23G R15 Dashboard (M1)</option>
                             <option value="BL23G_M2" selected>BL 23G R15 Dashboard (M2)</option>
                             <option value="BBSKINR12">BB SKIN 25G R12</option>
+                            <option value="NECKSKINR15">Neck Skin 40G R15</option>
+                            <option value="BBSKINF15">BB SKIN 35G F15</option>
                             <option value="GZ40G">Gizzard 40G S18</option>
                             <option value="GZ30G">Gizzard 30G R15</option>
                         </select>
@@ -299,9 +301,22 @@
         const projectDatasets = {
             BL23G_M1: 'BL23gR15_M1_DataLog',
             BL23G_M2: 'BL23gR15_DataLog',
-            BBSKINR12: 'BBSKINR12_DataLog_Shift A',
             GZ40G: 'GZ40gS18_DataLog',
             GZ30G: 'GZ30gR15_DataLog'
+        };
+        const shiftDatasets = {
+            BBSKINR12: {
+                A: 'BBSKINR12_DataLog_Shift A',
+                B: 'BBSKINR12_DataLog_Shift B'
+            },
+            NECKSKINR15: {
+                A: 'NECKSKINR15_Datalog_Shift A',
+                B: 'NECKSKINR15_Datalog_Shift B'
+            },
+            BBSKINF15: {
+                A: 'BBSKINF15_Datalog_Shift A',
+                B: 'BBSKINF15_Datalog_Shift B'
+            }
         };
 
         let unlockedPassword = '';
@@ -321,9 +336,9 @@
             const datasetField = document.getElementById('datasetField');
             const projectKeyField = document.getElementById('projectKeyField');
             const normalizedLine = String(line).trim().toUpperCase();
-            const dataset = normalizedLine === 'BBSKINR12'
-                ? `BBSKINR12_DataLog_Shift ${shift === 'B' ? 'B' : 'A'}`
-                : (projectDatasets[normalizedLine] || '');
+            const dataset = shiftDatasets[normalizedLine]?.[shift === 'B' ? 'B' : 'A']
+                || projectDatasets[normalizedLine]
+                || '';
             if (datasetField) datasetField.value = dataset;
             if (projectKeyField) projectKeyField.value = line;
         }

@@ -82,10 +82,21 @@ var BL23G_M1_SPREADSHEET_ID = "1o1dAQCU6mp43qzJcgst2wn5xH5-ILjMZ4nqrO5Txjhg";
 var BL23G_M1_SOURCE_SHEET = "BL23gR15_M1_DataLog";
 var BL23G_M1_SHIFT_B_SHEET = "BL23gR15_M1_ShiftB_DataLog";
 var BBSKIN_R12_PROJECT_KEY = "BBSKINR12";
-var BBSKIN_R12_TARGET_PRODUCTIVITY = 120;
+var BBSKIN_R12_TARGET_PRODUCTIVITY = 71;
 var BBSKIN_R12_SPREADSHEET_ID = "1o1dAQCU6mp43qzJcgst2wn5xH5-ILjMZ4nqrO5Txjhg";
 var BBSKIN_R12_SHIFT_A_SHEET = "BBSKINR12_DataLog_Shift A";
 var BBSKIN_R12_SHIFT_B_SHEET = "BBSKINR12_DataLog_Shift B";
+var ADDITIONAL_SKIN_SPREADSHEET_ID = "1o1dAQCU6mp43qzJcgst2wn5xH5-ILjMZ4nqrO5Txjhg";
+var ADDITIONAL_SKIN_LINES = {
+  NECKSKINR15: {
+    shiftA: "NECKSKINR15_Datalog_Shift A",
+    shiftB: "NECKSKINR15_Datalog_Shift B"
+  },
+  BBSKINF15: {
+    shiftA: "BBSKINF15_Datalog_Shift A",
+    shiftB: "BBSKINF15_Datalog_Shift B"
+  }
+};
 var GZ30G_SOURCE_SHEET = "GZ30gR15_DataLog";
 var GZ30G_SHIFT_B_SHEET = "GZ30gR15_ShiftB_DataLog";
 var GZ30G_TARGET_PRODUCTIVITY = 69;
@@ -191,6 +202,25 @@ function isBbSkinProject_(line, sheetName) {
 
 function resolveBbSkinSheetName_(shift) {
   return normalizeShift_(shift) === "B" ? BBSKIN_R12_SHIFT_B_SHEET : BBSKIN_R12_SHIFT_A_SHEET;
+}
+
+function getAdditionalSkinConfig_(line, sheetName) {
+  var normalizedLine = normalizeLine_(line);
+  var requestedSheet = String(sheetName || "").trim();
+  if (ADDITIONAL_SKIN_LINES[normalizedLine]) {
+    return { projectKey: normalizedLine, sheets: ADDITIONAL_SKIN_LINES[normalizedLine] };
+  }
+  for (var projectKey in ADDITIONAL_SKIN_LINES) {
+    var sheets = ADDITIONAL_SKIN_LINES[projectKey];
+    if (requestedSheet === sheets.shiftA || requestedSheet === sheets.shiftB) {
+      return { projectKey: projectKey, sheets: sheets };
+    }
+  }
+  return null;
+}
+
+function resolveAdditionalSkinSheetName_(config, shift) {
+  return normalizeShift_(shift) === "B" ? config.sheets.shiftB : config.sheets.shiftA;
 }
 
 function isBreakdownSheetName_(sheetName) {
@@ -508,6 +538,16 @@ function resolveRecordRoute_(payload) {
     };
   }
 
+  var additionalSkinConfig = getAdditionalSkinConfig_(line, requestedSheet);
+  if (additionalSkinConfig) {
+    return {
+      status: "success",
+      projectKey: additionalSkinConfig.projectKey,
+      shift: shift,
+      sheet: resolveAdditionalSkinSheetName_(additionalSkinConfig, shift)
+    };
+  }
+
   return {
     status: "success",
     projectKey: line,
@@ -632,7 +672,7 @@ function parseGizzardSheet_(sheet, defaultShift, db, records, lineLabel, targetP
       pack: Number(row[12 + dataOffset]) || 0,
       op: Number(row[13 + dataOffset]) || 0
     };
-    var calculatedEff = (productivity / targetProductivity) * 100;
+    var calculatedEff = targetProductivity > 0 ? (productivity / targetProductivity) * 100 : 0;
     var line = lineLabel;
     var recordDate = readAuditCell_(row, recordDateColumn);
     var createdAt = readAuditCell_(row, createdAtColumn);
@@ -713,6 +753,28 @@ function getJsonStream(e) {
     bbDb._records = dedupeRecordsByTrialAndShift_(bbRecords);
     attachSummaryFields_(bbDb, bbDb._records);
     return jsonOutput_(bbDb);
+  }
+
+  var additionalSkinConfig = getAdditionalSkinConfig_(projectKey, sheetName);
+  if (additionalSkinConfig) {
+    var skinSpreadsheet = SpreadsheetApp.openById(ADDITIONAL_SKIN_SPREADSHEET_ID);
+    var skinDb = {};
+    var skinRecords = [];
+    var requestedSkinShift = String(e.parameter.shift || "").trim().toUpperCase();
+    var skinShifts = requestedSkinShift === "A" || requestedSkinShift === "B"
+      ? [requestedSkinShift]
+      : (sheetName === additionalSkinConfig.sheets.shiftA ? ["A"]
+        : (sheetName === additionalSkinConfig.sheets.shiftB ? ["B"] : ["A", "B"]));
+    for (var skinIndex = 0; skinIndex < skinShifts.length; skinIndex++) {
+      var skinShift = skinShifts[skinIndex];
+      var skinSheetName = resolveAdditionalSkinSheetName_(additionalSkinConfig, skinShift);
+      var skinSheet = skinSpreadsheet.getSheetByName(skinSheetName);
+      if (!skinSheet) return jsonOutput_({ error: "Skin sheet not found: " + skinSheetName });
+      parseGizzardSheet_(skinSheet, skinShift, skinDb, skinRecords, additionalSkinConfig.projectKey, 0);
+    }
+    skinDb._records = dedupeRecordsByTrialAndShift_(skinRecords);
+    attachSummaryFields_(skinDb, skinDb._records);
+    return jsonOutput_(skinDb);
   }
 
   if (requestedAction === "read_breakdown" || isBreakdownSheetName_(sheetName)) {
@@ -1043,6 +1105,29 @@ function saveExternalRecord_(payload) {
       status: "success",
       message: "Record saved to " + bbTargetSheetName,
       sheet: bbTargetSheetName
+    };
+  }
+
+  var additionalSkinConfig = getAdditionalSkinConfig_(line, requestedSheet);
+  if (additionalSkinConfig) {
+    var skinShift = normalizeShift_(payload.shift);
+    var skinTargetSheetName = resolveAdditionalSkinSheetName_(additionalSkinConfig, skinShift);
+    var skinSpreadsheet = SpreadsheetApp.openById(ADDITIONAL_SKIN_SPREADSHEET_ID);
+    var skinTargetSheet = skinSpreadsheet.getSheetByName(skinTargetSheetName);
+    if (!skinTargetSheet) {
+      throw new Error("Skin sheet not found: " + skinTargetSheetName);
+    }
+
+    var skinAuditColumns = ensureRecordAuditColumns_(skinTargetSheet);
+    var skinNextRow = skinTargetSheet.getLastRow() + 1;
+    skinTargetSheet.appendRow(buildBl23gRow_(payload, skinShift));
+    skinTargetSheet.getRange(skinNextRow, skinAuditColumns.recordDateColumn).setValue(valueOrEmpty_(payload.recordDate || payload.date));
+    skinTargetSheet.getRange(skinNextRow, skinAuditColumns.createdAtColumn).setValue(now.toISOString());
+
+    return {
+      status: "success",
+      message: "Record saved to " + skinTargetSheetName,
+      sheet: skinTargetSheetName
     };
   }
 
