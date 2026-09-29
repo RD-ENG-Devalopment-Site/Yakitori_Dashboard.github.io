@@ -4,9 +4,15 @@
         let db = {};
         let keys = [];
 
-        // Targets will be configured after the production standard is approved.
-        const targetProductivity = null;
-        const actualOutputTarget = null;
+        const productivityTargets = Object.freeze([
+            { name: 'Challenge', target: 120 },
+            { name: 'G1', target: 78 },
+            { name: 'G2', target: 61 },
+            { name: 'G3', target: 60 },
+            { name: 'G4', target: 55 }
+        ]);
+        const targetProductivity = productivityTargets[0].target;
+        const actualOutputTarget = 1800;
         const idleTimeBaseline = Object.freeze({ prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 });
         let actualBaseline = { prep: 0, arrange: 0, machine: 0, inspec: 0, pack: 0 };
 
@@ -45,6 +51,15 @@
             ? `${Number(value).toFixed(2)}%`
             : '--';
         const targetText = () => hasProductivityTarget() ? Number(targetProductivity).toFixed(0) : '--';
+        const calculateTargetGap = (actual, target) => {
+            const actualValue = Number(actual) || 0;
+            const targetValue = Number(target) || 0;
+            const gap = actualValue - targetValue;
+            return {
+                gap,
+                percent: targetValue > 0 ? (gap / targetValue) * 100 : 0
+            };
+        };
 
         window.addEventListener('load', loadData);
 
@@ -831,9 +846,7 @@
                 return;
             }
 
-            const rowsData = [
-                { name: 'NECK SKIN 40G R15', target: targetProductivity, note: 'Target ปัจจุบัน' }
-            ];
+            const rowsData = productivityTargets;
 
             const baselineProd = Number(baseline.prod) || 0;
             const selectedProd = Number(selected.prod) || 0;
@@ -849,13 +862,17 @@
 
             let html = '';
             rowsData.forEach(row => {
-                const baselineGap = baselineProd - row.target;
-                const baselineGapPct = row.target > 0 ? (baselineGap / row.target) * 100 : 0;
-                const selectedGap = selectedProd - row.target;
-                const selectedGapPct = row.target > 0 ? (selectedGap / row.target) * 100 : 0;
+                const baselineResult = calculateTargetGap(baselineProd, row.target);
+                const selectedResult = calculateTargetGap(selectedProd, row.target);
+                const baselineGap = baselineResult.gap;
+                const baselineGapPct = baselineResult.percent;
+                const selectedGap = selectedResult.gap;
+                const selectedGapPct = selectedResult.percent;
                 const baselineGapColor = baselineGap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
                 const selectedGapColor = selectedGap >= 0 ? 'text-[#50cd89]' : 'text-[#f1416c]';
-                const rowBgStyle = 'bg-[rgba(80,205,137,0.03)]';
+                const rowBgStyle = row.name === 'Challenge'
+                    ? 'bg-[rgba(80,205,137,0.06)]'
+                    : 'bg-[rgba(255,255,255,0.01)]';
 
                 html += `<tr class="${rowBgStyle} transition duration-150">
                     <td class="p-3 text-white font-medium pl-4">${row.name}</td>
