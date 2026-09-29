@@ -5,8 +5,13 @@
         let keys = [];
 
         const targetProductivity = 0; // เพิ่มเมื่อมีค่าเป้าหมายที่อนุมัติแล้ว
-        const actualOutputTarget = 0; // เพิ่มเมื่อมีค่าเป้าหมายที่อนุมัติแล้ว
+        const actualOutputTarget = 1800;
         const idleTimeBaseline = null; // เพิ่ม Baseline CT หลังยืนยันกับหน้างาน
+        const gapTargets = Object.freeze([
+            { name: 'Challenge', target: 120 },
+            { name: 'G1', target: 80.5 },
+            { name: 'G2', target: 67.8 }
+        ]);
         const hasProductivityTarget = Number(targetProductivity) > 0;
         const hasOutputTarget = Number(actualOutputTarget) > 0;
         const hasIdleBaseline = Boolean(idleTimeBaseline);
@@ -54,16 +59,15 @@
             .map(el => [el.id, el.innerHTML]));
 
         function applyPendingTargetLabels() {
-            if (hasProductivityTarget) return;
-            const labels = [
+            const labels = hasProductivityTarget ? [] : [
                 ['kpi-target-label', 'เป้าหมาย Target: รอกำหนดค่า'],
                 ['chart-target-badge', 'Target: รอกำหนดค่า'],
                 ['table-summary-target', targetPendingLabel],
                 ['kpi-eff', targetPendingLabel],
                 ['val-t1-eff', targetPendingLabel],
-                ['val-best-eff', targetPendingLabel],
-                ['header-actual-yield', targetPendingLabel]
+                ['val-best-eff', targetPendingLabel]
             ];
+            if (hasOutputTarget) labels.push(['header-actual-yield', actualOutputTarget.toLocaleString()]);
             labels.forEach(([id, text]) => {
                 const element = document.getElementById(id);
                 if (element) element.textContent = text;
@@ -850,11 +854,7 @@
             const selected = db[selectedKey] || baseline;
             if(!baseline || !selected) return;
 
-            if (!hasProductivityTarget) {
-                tableBody.innerHTML = `<tr class="bg-[rgba(80,205,137,0.03)]"><td class="p-3 text-white font-medium pl-4">BB SKIN 35G F15</td><td colspan="7" class="p-3 text-center text-[#ffc700]">รอกำหนด Productivity Target เพื่อแสดง Gap</td></tr>`;
-                return;
-            }
-            const rowsData = [{ name: 'BB SKIN 35G F15', target: targetProductivity, note: 'Target ปัจจุบัน' }];
+            const rowsData = gapTargets;
 
             const baselineProd = Number(baseline.prod) || 0;
             const selectedProd = Number(selected.prod) || 0;
