@@ -513,6 +513,35 @@
             };
         }
 
+        async function confirmRecordSaved(payload) {
+            if (!window.YakitoriRuntime || !payload.sheet) return false;
+
+            const expectedTrial = String(payload.trial || '').trim();
+            const expectedShift = String(payload.shift || 'A').trim().toUpperCase();
+            const expectedLine = String(payload.projectKey || payload.line || '').trim().toUpperCase();
+
+            for (let attempt = 0; attempt < 4; attempt += 1) {
+                await new Promise(resolve => window.setTimeout(resolve, 1200));
+                try {
+                    const response = await fetch(window.YakitoriRuntime.buildApiUrl(payload.sheet, {
+                        projectKey: expectedLine,
+                        shift: expectedShift,
+                        ts: Date.now()
+                    }), { cache: 'no-store' });
+                    const feed = await response.json();
+                    const records = Array.isArray(feed?._records) ? feed._records : Object.values(feed || {});
+                    const found = records.some(record => record
+                        && String(record.line || '').trim().toUpperCase() === expectedLine
+                        && String(record.shift || '').trim().toUpperCase() === expectedShift
+                        && String(record.trial || '').trim() === expectedTrial);
+                    if (found) return true;
+                } catch (_) {
+                    // The request can be briefly unavailable while Apps Script writes the row.
+                }
+            }
+            return false;
+        }
+
         function unlockAccess(event) {
             event.preventDefault();
             const passInput = document.getElementById('recordPass');
@@ -562,7 +591,13 @@
 
             try {
                 await window.YakitoriRuntime.postToAppsScript('record_trial', payload);
-                pushStatus('ส่งข้อมูลเข้า Apps Script สำเร็จ', 'success');
+                pushStatus('ส่งแล้ว กำลังตรวจสอบแถวที่บันทึกจาก Apps Script…', 'info');
+                const isConfirmed = await confirmRecordSaved(payload);
+                if (!isConfirmed) {
+                    pushStatus('Apps Script รับคำขอแล้ว แต่ยังยืนยันแถวข้อมูลไม่ได้ กรุณาตรวจชีตแล้วลองใหม่', 'warn');
+                    return;
+                }
+                pushStatus('บันทึกสำเร็จและตรวจพบแถวข้อมูลใน Apps Script แล้ว', 'success');
                 form.reset();
                 setDefaultDate();
                 calculateMetrics();
