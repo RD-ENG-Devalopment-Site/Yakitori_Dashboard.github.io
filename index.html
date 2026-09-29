@@ -580,6 +580,9 @@
             appRouterState.currentPath = '';
             setActiveAppRoute('');
             if (!options.skipHistory) updateAppHistory('', options.replaceState);
+            if (dashboardReady && (!lastDashboardRefreshAt || Date.now() - lastDashboardRefreshAt.getTime() > 30000)) {
+                renderDashboardData();
+            }
         }
 
         function openAppPage(href, options = {}) {
@@ -679,6 +682,8 @@
         let lastDashboardRefreshAt = null;
         let dashboardSnapshot = null;
         let dashboardLoading = false;
+        let renderedProductionSignature = null;
+        let renderedBreakdownSignature = null;
         let dateRange = { from: '', to: '' };
 
         window.onload = function() {
@@ -690,7 +695,10 @@
             refreshDashboardBuildInfo();
             setActiveShiftFilter('all');
             renderDashboardData();
-            setInterval(renderDashboardData, 5000);
+            setInterval(renderDashboardData, 30000);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) renderDashboardData();
+            });
         };
 
         function formatHeaderDateTime(date = new Date()) {
@@ -757,7 +765,7 @@
                         return;
                     }
                     dateRange = { from, to };
-                    renderDashboardSnapshot();
+                    renderDashboardSnapshot(true);
                 };
                 ['dateFrom', 'dateTo'].forEach(id => document.getElementById(id).addEventListener('change', applyDates));
                 document.getElementById('clearDateRange').addEventListener('click', () => {
@@ -770,7 +778,7 @@
             document.querySelectorAll('[data-shift-filter]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     setActiveShiftFilter(btn.dataset.shiftFilter);
-                    renderDashboardSnapshot();
+                    renderDashboardSnapshot(true);
                 });
             });
 
@@ -1092,6 +1100,7 @@
             const insights = buildDashboardInsights(results);
             const statusRows = buildSheetStatusRows(results);
             const overallStatus = getOverallSystemStatus(statusRows);
+            const detailsOpen = freshnessPanel.querySelector('details')?.open;
             const timestampAvailable = Boolean(parseRecordDateValue(getRecordUpdateTime(insights.latestRecord?.latest)));
             const latestTime = timestampAvailable
                 ? formatDateTimeDisplay(getRecordUpdateTime(insights.latestRecord?.latest))
@@ -1146,6 +1155,7 @@
                     </details>
                 </div>
             `;
+            if (detailsOpen) freshnessPanel.querySelector('details').open = true;
         }
 
         function renderRecentChanges(results) {
@@ -1776,7 +1786,7 @@
                     <div class="min-w-[170px] rounded-lg border border-[#323248] bg-[#151521] px-3 py-2.5">
                         <div class="flex items-center justify-between gap-2">
                             ${renderShiftBadge(shift)}
-                            <span class="text-[11px] text-[#6b7280]">T${stats.latestTrial || stats.latest.trial}</span>
+                            <span class="text-[11px] text-[#6b7280]" ${config.failedShifts?.includes(shift) ? 'title="โหลดข้อมูลรอบล่าสุดไม่สำเร็จ แสดงข้อมูลก่อนหน้า"' : ''}>T${stats.latestTrial || stats.latest.trial}${config.failedShifts?.includes(shift) ? ' · เดิม' : ''}</span>
                         </div>
                         <div class="mt-2 flex items-baseline justify-between gap-2">
                             <span class="text-xl font-bold font-en" style="color:${accent.text}">${stats.latestProd.toFixed(1)}</span>
@@ -1986,34 +1996,61 @@
         }
 
         async function renderDashboardData() {
-            if (dashboardLoading) return;
+            if (dashboardLoading || document.hidden || document.getElementById('appHomeView')?.classList.contains('hidden')) return;
             dashboardLoading = true;
+            const breakdownPromise = fetch(window.YakitoriRuntime.buildApiUrl('', { action: 'read_breakdown' }), {
+                cache: 'no-store', signal: AbortSignal.timeout(30000)
+            }).then(async response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const feed = await response.json();
+                if (feed.error || feed.status === 'error') throw new Error(feed.error || feed.message);
+                return feed;
+            }).catch(error => {
+                console.warn('Failed to load breakdown feed', error);
+                return { _records: [], failed: true };
+            });
             try {
-            const [results, breakdownFeed] = await Promise.all([
-                Promise.all(lineConfigs.map(loadDashboardLine)),
-                fetch(window.YakitoriRuntime.buildApiUrl('', { action: 'read_breakdown' }), { cache: 'no-store', signal: AbortSignal.timeout(30000) })
-                    .then(async response => {
-                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                        const feed = await response.json();
-                        if (feed.error || feed.status === 'error') throw new Error(feed.error || feed.message);
-                        return feed;
-                    })
-                    .catch(error => {
-                        console.warn('Failed to load breakdown feed', error);
-                        return { _records: [], failed: true };
-                    })
-            ]);
+                const fetchedResults = await Promise.all(lineConfigs.map(loadDashboardLine));
+                const previousResults = new Map(dashboardSnapshot?.results.map(item => [item.prefix, item]) || []);
+                const results = fetchedResults.map(item => {
+                    const previous = previousResults.get(item.prefix);
+                    if (!previous || !item.failedShifts.length) return item;
+                    const staleRecords = previous.records.filter(record =>
+                        !item.sheetsByShift || item.failedShifts.includes(record.shift));
+                    return {
+                        ...item,
+                        records: [...item.records, ...staleRecords],
+                        summary: item.sheetsByShift ? item.summary : previous.summary
+                    };
+                });
+                lastDashboardRefreshAt = new Date();
+                const previousBreakdown = dashboardSnapshot?.breakdownFeed || { _records: [] };
+                dashboardSnapshot = { results, breakdownFeed: previousBreakdown };
+                renderDashboardSnapshot();
 
-            lastDashboardRefreshAt = new Date();
-            dashboardSnapshot = { results, breakdownFeed };
-            renderDashboardSnapshot();
+                const nextBreakdown = await breakdownPromise;
+                dashboardSnapshot = {
+                    results,
+                    breakdownFeed: nextBreakdown.failed ? { ...previousBreakdown, failed: true } : nextBreakdown
+                };
+                renderDashboardSnapshot();
+            } catch (error) {
+                console.error('Failed to refresh dashboard', error);
             } finally {
                 dashboardLoading = false;
             }
         }
 
-        function renderDashboardSnapshot() {
+        function renderDashboardSnapshot(force = false) {
             if (!dashboardSnapshot) return;
+            const productionSignature = JSON.stringify(dashboardSnapshot.results);
+            const breakdownSignature = JSON.stringify({
+                records: dashboardSnapshot.breakdownFeed._records || [],
+                failed: Boolean(dashboardSnapshot.breakdownFeed.failed)
+            });
+            const productionChanged = force || productionSignature !== renderedProductionSignature;
+            const breakdownChanged = force || breakdownSignature !== renderedBreakdownSignature;
+            if (!productionChanged && !breakdownChanged) return;
             const dated = Boolean(dateRange.from || dateRange.to);
             const results = dashboardSnapshot.results.map(config => ({
                 ...config,
@@ -2032,6 +2069,11 @@
             document.getElementById('dateRangeNote').textContent =
                 `${dated ? `${dateRange.from || 'เริ่มต้น'} ถึง ${dateRange.to || 'ล่าสุด'}` : 'ทุกวันที่'} · ใช้กับข้อมูลผลิตและ Downtime · ` +
                 `${dated ? 'ไม่รวม' : 'พบ'}ข้อมูลไม่ระบุวันที่: ผลิต ${unknownProduction}, Breakdown ${unknownBreakdowns} รายการ`;
+            if (!productionChanged) {
+                renderOverviewCards(results, breakdownFeed);
+                renderedBreakdownSignature = breakdownSignature;
+                return;
+            }
             const progressSummary = renderProgressPanel(results);
             const visibleLines = results.filter(config => getStats(filterByShift(config.records, currentShiftFilter),
                 currentShiftFilter === 'all' ? config.summary?.overall : config.summary?.byShift?.[currentShiftFilter]));
@@ -2052,6 +2094,8 @@
             const avg = progressSummary.activeProjectsCount > 0
                 ? (progressSummary.avgEffTotal / progressSummary.activeProjectsCount).toFixed(1) : '--';
             document.getElementById('avg-eff-display').innerHTML = `${avg}<span class="text-lg text-[#a1a5b7]">%</span>`;
+            renderedProductionSignature = productionSignature;
+            renderedBreakdownSignature = breakdownSignature;
         }
     </script>
 </body>
