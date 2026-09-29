@@ -4,11 +4,11 @@
         let db = {};
         let keys = [];
 
-        const targetProductivity = 0; // เพิ่มเมื่อมีค่าเป้าหมายที่อนุมัติแล้ว
+        const targetProductivity = 120;
         const actualOutputTarget = 1800;
         const idleTimeBaseline = null; // เพิ่ม Baseline CT หลังยืนยันกับหน้างาน
         const gapTargets = Object.freeze([
-            { name: 'Challenge', target: 120 },
+            { name: 'Challenge', target: targetProductivity },
             { name: 'G1', target: 80.5 },
             { name: 'G2', target: 67.8 }
         ]);
@@ -59,7 +59,11 @@
             .map(el => [el.id, el.innerHTML]));
 
         function applyPendingTargetLabels() {
-            const labels = hasProductivityTarget ? [] : [
+            const labels = hasProductivityTarget ? [
+                ['kpi-target-label', `เป้าหมาย Target: ${targetProductivity} ไม้/คน/ชั่วโมง`],
+                ['chart-target-badge', `Target: ${targetProductivity} ไม้/คน/ชั่วโมง`],
+                ['table-summary-target', String(targetProductivity)]
+            ] : [
                 ['kpi-target-label', 'เป้าหมาย Target: รอกำหนดค่า'],
                 ['chart-target-badge', 'Target: รอกำหนดค่า'],
                 ['table-summary-target', targetPendingLabel],
@@ -463,6 +467,9 @@
             const cycleGap = cycleTotal - previousCycleTotal;
             const targetGap = hasProductivityTarget ? currentProd - targetProductivity : null;
             const targetGapPct = hasProductivityTarget ? (targetGap / targetProductivity) * 100 : null;
+            const sign = value => Number(value) > 0 ? '+' : '';
+            const fixed = value => Number(value || 0).toFixed(2);
+            const pct = value => `${sign(value)}${Number(value || 0).toFixed(1)}%`;
             const targetRisk = hasProductivityTarget
                 ? `หากยังไม่ลดเวลาจุดนี้ จะมี Gap จาก Target ${targetProductivity} อยู่ที่ ${pct(targetGapPct)}`
                 : 'รอกำหนด Productivity Target เพื่อประเมิน Gap จากเป้าหมาย';
@@ -473,9 +480,6 @@
             const shiftGap = opposite ? currentProd - (Number(opposite.prod) || 0) : 0;
             const shiftGapPct = opposite && Number(opposite.prod) ? (shiftGap / Number(opposite.prod)) * 100 : 0;
             const bestLabel = bestTrialKey && db[bestTrialKey] ? `${Number(db[bestTrialKey].prod || 0).toFixed(1)} (Trial ${getTrialLabel(bestTrialKey)})` : 'ยังไม่มีข้อมูล';
-            const sign = value => Number(value) > 0 ? '+' : '';
-            const fixed = value => Number(value || 0).toFixed(2);
-            const pct = value => `${sign(value)}${Number(value || 0).toFixed(1)}%`;
             const state = currentProd < previousProd ? 'negative' : (currentProd >= Number(db[bestTrialKey]?.prod || 0) ? 'best' : (efficiency >= previousEfficiency ? 'improving' : 'stable'));
             const action = `ทดลองลดเวลา ${bottleneck.label} ลง 0.50-1.00 วินาที และตรวจสอบผลใน Trial ถัดไป`;
             const templates = [

@@ -82,17 +82,19 @@ var BL23G_M1_SPREADSHEET_ID = "1o1dAQCU6mp43qzJcgst2wn5xH5-ILjMZ4nqrO5Txjhg";
 var BL23G_M1_SOURCE_SHEET = "BL23gR15_M1_DataLog";
 var BL23G_M1_SHIFT_B_SHEET = "BL23gR15_M1_ShiftB_DataLog";
 var BBSKIN_R12_PROJECT_KEY = "BBSKINR12";
-var BBSKIN_R12_TARGET_PRODUCTIVITY = 71;
+var BBSKIN_R12_TARGET_PRODUCTIVITY = 120;
 var BBSKIN_R12_SPREADSHEET_ID = "1o1dAQCU6mp43qzJcgst2wn5xH5-ILjMZ4nqrO5Txjhg";
 var BBSKIN_R12_SHIFT_A_SHEET = "BBSKINR12_DataLog_Shift A";
 var BBSKIN_R12_SHIFT_B_SHEET = "BBSKINR12_DataLog_Shift B";
 var ADDITIONAL_SKIN_SPREADSHEET_ID = "1o1dAQCU6mp43qzJcgst2wn5xH5-ILjMZ4nqrO5Txjhg";
 var ADDITIONAL_SKIN_LINES = {
   NECKSKINR15: {
+    targetProductivity: 120,
     shiftA: "NECKSKINR15_Datalog_Shift A",
     shiftB: "NECKSKINR15_Datalog_Shift B"
   },
   BBSKINF15: {
+    targetProductivity: 120,
     shiftA: "BBSKINF15_Datalog_Shift A",
     shiftB: "BBSKINF15_Datalog_Shift B"
   }
@@ -770,7 +772,7 @@ function getJsonStream(e) {
       var skinSheetName = resolveAdditionalSkinSheetName_(additionalSkinConfig, skinShift);
       var skinSheet = skinSpreadsheet.getSheetByName(skinSheetName);
       if (!skinSheet) return jsonOutput_({ error: "Skin sheet not found: " + skinSheetName });
-      parseGizzardSheet_(skinSheet, skinShift, skinDb, skinRecords, additionalSkinConfig.projectKey, 0);
+      parseGizzardSheet_(skinSheet, skinShift, skinDb, skinRecords, additionalSkinConfig.projectKey, additionalSkinConfig.sheets.targetProductivity);
     }
     skinDb._records = dedupeRecordsByTrialAndShift_(skinRecords);
     attachSummaryFields_(skinDb, skinDb._records);
