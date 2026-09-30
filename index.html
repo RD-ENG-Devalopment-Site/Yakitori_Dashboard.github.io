@@ -448,7 +448,7 @@
                             <h3 class="text-sm font-bold text-white mb-5 border-b border-[#323248] pb-3">Productivity Progress vs Target (ไม้/คน/ชม.)</h3>
                             
                             <div id="productivitySectionBody" class="space-y-3">
-                        <div id="progressPanelList"></div>
+                        <div id="progressPanelList" class="overflow-x-auto"></div>
 
                     </div>
                         </div>
@@ -673,6 +673,14 @@
             {
                 prefix: 'bbskin', label: 'BB SKIN 25G R12', projectKey: 'BBSKINR12', target: 120, color: '#50cd89',
                 sheetsByShift: { A: 'BBSKINR12_DataLog_Shift A', B: 'BBSKINR12_DataLog_Shift B' }
+            },
+            {
+                prefix: 'bbskinf15', label: 'BB SKIN 35G F15', projectKey: 'BBSKINF15', target: 120, color: '#50cd89',
+                sheetsByShift: { A: 'BBSKINF15_Datalog_Shift A', B: 'BBSKINF15_Datalog_Shift B' }
+            },
+            {
+                prefix: 'neckskin', label: 'NECK SKIN 40G R15', projectKey: 'NECKSKINR15', target: 120, color: '#ffc700',
+                sheetsByShift: { A: 'NECKSKINR15_Datalog_Shift A', B: 'NECKSKINR15_Datalog_Shift B' }
             }
         ];
 
@@ -682,6 +690,10 @@
         let lastDashboardRefreshAt = null;
         let dashboardSnapshot = null;
         let dashboardLoading = false;
+        let dashboardLoadGeneration = 0;
+        let dashboardRenderFrame = null;
+        let dashboardFeedsCompleted = 0;
+        let dashboardFeedsTotal = 0;
         let renderedProductionSignature = null;
         let renderedBreakdownSignature = null;
         let dateRange = { from: '', to: '' };
@@ -954,11 +966,24 @@
         }
 
         function buildSheetStatusRows(results) {
-            return results.map(({ label, records }) => {
+            return results.map(({ label, records, failedShifts = [], loadingShifts = [], feedErrors = {} }) => {
                 const scoped = currentShiftFilter === 'all'
                     ? sortTrials(records)
                     : sortTrials(filterByShift(records, currentShiftFilter));
                 const stats = getStats(scoped);
+                const shifts = currentShiftFilter === 'all' ? ['A', 'B'] : [currentShiftFilter];
+                const failed = shifts.filter(shift => failedShifts.includes(shift));
+                const loading = shifts.filter(shift => loadingShifts.includes(shift));
+                if (failed.length || loading.length) {
+                    const routeError = failed.some(shift => feedErrors[shift] === 'route');
+                    return {
+                        name: getExperimentalDisplayName(label),
+                        status: failed.length ? stats ? 'ใช้ข้อมูลก่อนหน้า' : routeError ? 'แหล่งข้อมูลไม่ตรงสินค้า/กะ' : 'โหลดไม่สำเร็จ' : 'กำลังโหลดข้อมูล',
+                        tone: 'text-[#ffc700]',
+                        detail: failed.length ? `ตรวจการเชื่อมต่อ Shift ${failed.join(', ')}` : `รอข้อมูล Shift ${loading.join(', ')}`,
+                        statusKey: failed.length ? 'error' : 'loading'
+                    };
+                }
 
                 if (!stats) {
                     return {
@@ -1030,7 +1055,7 @@
 
         function buildDashboardInsights(results) {
             const visibleShifts = currentShiftFilter === 'all' ? ['A', 'B'] : [currentShiftFilter];
-            const streams = results.flatMap(({ label, target, records }) => {
+            const streams = results.flatMap(({ label, target, records, failedShifts = [] }) => {
                 return visibleShifts.map(shift => {
                     const scoped = sortTrials(filterByShift(records, shift));
                     if (!scoped.length) return null;
@@ -1042,6 +1067,7 @@
                         shift,
                         latest,
                         previous,
+                        stale: failedShifts.includes(shift),
                         deltaProd: previous ? latest.prod - previous.prod : null,
                         deltaEff: previous ? latest.eff - previous.eff : null,
                         deltaTotal: previous ? latest.total - previous.total : null,
@@ -1112,7 +1138,7 @@
                 ? 'อ้างอิงเวลาอัปเดตจากชีตล่าสุด'
                 : 'อ้างอิงเวลารีเฟรชข้อมูลล่าสุดของหน้า';
 
-            freshnessPanel.innerHTML = `
+            const markup = `
                 <div class="flex items-start justify-between gap-4 mb-4">
                     <div>
                         <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Data Freshness</p>
@@ -1133,7 +1159,7 @@
                         <span class="text-[#a1a5b7]">สถานะรวมระบบ</span>
                         <span class="${overallStatus.tone} font-semibold text-right">${overallStatus.label}</span>
                     </div>
-                    <details class="group rounded-xl border border-[#323248] bg-[#1a1d27] overflow-hidden">
+                    <details ${detailsOpen ? 'open' : ''} class="group rounded-xl border border-[#323248] bg-[#1a1d27] overflow-hidden">
                         <summary class="list-none cursor-pointer px-4 py-3 flex items-center justify-between gap-3">
                             <div>
                                 <div class="text-[#a1a5b7] text-xs uppercase tracking-[0.2em] font-bold mb-1">แหล่งข้อมูล</div>
@@ -1155,7 +1181,7 @@
                     </details>
                 </div>
             `;
-            if (detailsOpen) freshnessPanel.querySelector('details').open = true;
+            updateDashboardMarkup(freshnessPanel, markup);
         }
 
         function renderRecentChanges(results) {
@@ -1164,7 +1190,7 @@
 
             const { recentChanges } = buildDashboardInsights(results);
 
-            container.innerHTML = `
+            const markup = `
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
                     <div>
                         <p class="text-[11px] uppercase tracking-[0.24em] text-[#6b7280] font-bold mb-2">Latest Change Feed</p>
@@ -1193,7 +1219,7 @@
                                 return `
                                     <tr>
                                         <td class="py-3 pr-4 text-white font-semibold">${item.line} <span class="text-[#6b7280] font-normal">/ Shift ${item.shift}</span></td>
-                                        <td class="py-3 pr-4 text-white">T${item.latest.trial} <span class="text-[#7dd3fc] font-semibold">${item.latest.prod.toFixed(1)}</span></td>
+                                        <td class="py-3 pr-4 text-white">T${item.latest.trial} <span class="text-[#7dd3fc] font-semibold">${item.latest.prod.toFixed(1)}</span>${item.stale ? ' <span class="text-xs text-[#ffc700]">ข้อมูลก่อนหน้า</span>' : ''}</td>
                                         <td class="py-3 pr-4 text-[#a1a5b7]">T${item.previous.trial} <span class="font-semibold">${item.previous.prod.toFixed(1)}</span></td>
                                         <td class="py-3 pr-4 ${prodClass} font-semibold">${item.deltaProd >= 0 ? '+' : ''}${item.deltaProd.toFixed(1)}</td>
                                         <td class="py-3 pr-4 ${effClass} font-semibold">${item.deltaEff >= 0 ? '+' : ''}${item.deltaEff.toFixed(2)}%</td>
@@ -1206,21 +1232,11 @@
                                     <td colspan="7" class="py-6 text-center text-[#6b7280]">ยังมีข้อมูลไม่พอสำหรับสร้าง recent change feed</td>
                                 </tr>
                             `}
-                            ${['A', 'B'].map(shift => `
-                                <tr>
-                                    <td class="py-3 pr-4 text-white font-semibold">NECK SKIN 40G R15 <span class="text-[#6b7280] font-normal">/ Shift ${shift}</span></td>
-                                    <td class="py-3 pr-4 text-[#6b7280]">รอข้อมูล</td>
-                                    <td class="py-3 pr-4 text-[#6b7280]">--</td>
-                                    <td class="py-3 pr-4 text-[#6b7280]">--</td>
-                                    <td class="py-3 pr-4 text-[#6b7280]">--</td>
-                                    <td class="py-3 pr-4 text-[#6b7280]">--</td>
-                                    <td class="py-3 pr-4 text-[#6b7280]">--</td>
-                                </tr>
-                            `).join('')}
                         </tbody>
                     </table>
                 </div>
             `;
+            updateDashboardMarkup(container, markup);
         }
 
         function buildOverviewData(results) {
@@ -1439,6 +1455,8 @@
                 Boolean(getStats(filterByShift(item.records, shift), item.summary?.byShift?.[shift]))
             ).length, 0);
             const missingFeeds = Math.max(expectedFeeds - availableFeeds, 0);
+            const failedFeeds = results.reduce((count, item) => count + visibleShifts.filter(shift =>
+                item.failedShifts?.includes(shift)).length, 0);
             const targetHits = summary.activeLines.filter(item => item.currentStats.latest.prod >= item.target).length;
             const shiftLabel = summary.currentShiftFilter === 'all' ? 'All Shift' : `Shift ${summary.currentShiftFilter}`;
             const avgColor = summary.avgLatest === null ? 'text-[#a1a5b7]' : 'text-white';
@@ -1473,7 +1491,7 @@
                     : 'ยังไม่มี Cycle Time เพียงพอสำหรับระบุคอขวด'
             ];
 
-            container.innerHTML = `
+            const markup = `
                 <div class="bg-card-gradient border border-[#323248] rounded-2xl p-5 shadow-lg border-t-4 border-t-[#009ef7] min-h-[220px]">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-10 h-10 rounded-lg bg-[rgba(0,158,247,0.1)] text-[#009ef7] flex items-center justify-center">
@@ -1543,7 +1561,7 @@
                     <div class="space-y-2 text-sm mb-4">
                         <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Open breakdown ในช่วงที่เลือก</span><span class="${breakdown.open ? 'text-[#f1416c]' : 'text-[#50cd89]'} font-semibold text-right">${breakdown.failed ? 'โหลดไม่สำเร็จ' : `${breakdown.open} events`}</span></div>
                         <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Downtime ในช่วง/กะที่เลือก</span><span class="text-[#ffc700] font-semibold">${breakdown.failed ? '--' : formatMetricValue(breakdown.totalDowntime, 0)} min</span></div>
-                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Data gaps</span><span class="${missingFeeds ? 'text-[#ffc700]' : 'text-[#50cd89]'} font-semibold">${missingFeeds ? `${missingFeeds} feed${missingFeeds === 1 ? '' : 's'} missing` : 'Complete for selected shifts'}</span></div>
+                        <div class="flex justify-between gap-3"><span class="text-[#a1a5b7]">Data gaps</span><span class="${missingFeeds || failedFeeds ? 'text-[#ffc700]' : 'text-[#50cd89]'} font-semibold">${failedFeeds ? `${failedFeeds} feeds โหลดไม่สำเร็จ` : missingFeeds ? `${missingFeeds} feed${missingFeeds === 1 ? '' : 's'} missing` : 'Complete for selected shifts'}</span></div>
                         ${actionList.map((item, index) => `
                             <div class="flex items-start gap-2">
                                 <span class="mt-1 w-2 h-2 rounded-full ${index === 0 ? 'bg-[#50cd89]' : index === 1 ? 'bg-[#009ef7]' : 'bg-[#ffc700]'}"></span>
@@ -1557,6 +1575,7 @@
                     </div>
                 </div>
             `;
+            updateDashboardMarkup(container, markup);
         }
 
         function normalizeSheetData(db) {
@@ -1770,7 +1789,7 @@
                         <div class="min-w-[170px] rounded-lg border border-dashed border-[#323248] bg-[#151521] px-3 py-2.5">
                             <div class="flex items-center justify-between gap-2">
                                 ${renderShiftBadge(shift)}
-                                <span class="text-[11px] text-[#6b7280]">${config.failedShifts?.includes(shift) ? 'โหลดไม่สำเร็จ' : 'No data'}</span>
+                                <span class="text-[11px] text-[#a1a5b7]">${config.feedErrors?.[shift] === 'route' ? 'แหล่งข้อมูลไม่ตรงสินค้า/กะ' : config.failedShifts?.includes(shift) ? 'โหลดไม่สำเร็จ' : config.loadingShifts?.includes(shift) ? 'กำลังโหลดข้อมูล' : 'ยังไม่มีข้อมูล'}</span>
                             </div>
                             <div class="mt-3 text-sm font-semibold text-[#6b7280]">--</div>
                         </div>
@@ -1786,7 +1805,7 @@
                     <div class="min-w-[170px] rounded-lg border border-[#323248] bg-[#151521] px-3 py-2.5">
                         <div class="flex items-center justify-between gap-2">
                             ${renderShiftBadge(shift)}
-                            <span class="text-[11px] text-[#6b7280]" ${config.failedShifts?.includes(shift) ? 'title="โหลดข้อมูลรอบล่าสุดไม่สำเร็จ แสดงข้อมูลก่อนหน้า"' : ''}>T${stats.latestTrial || stats.latest.trial}${config.failedShifts?.includes(shift) ? ' · เดิม' : ''}</span>
+                            <span class="text-[11px] text-[#6b7280]" ${config.failedShifts?.includes(shift) ? 'title="โหลดข้อมูลรอบล่าสุดไม่สำเร็จ แสดงข้อมูลก่อนหน้า"' : ''}>T${stats.latestTrial || stats.latest.trial}${config.failedShifts?.includes(shift) ? ' · ข้อมูลก่อนหน้า' : ''}</span>
                         </div>
                         <div class="mt-2 flex items-baseline justify-between gap-2">
                             <span class="text-xl font-bold font-en" style="color:${accent.text}">${stats.latestProd.toFixed(1)}</span>
@@ -1808,8 +1827,8 @@
                 `;
             };
 
-            container.innerHTML = `
-                <div class="rounded-xl border border-[#323248] overflow-hidden bg-[#1a1d27]">
+            const markup = `
+                <div class="rounded-xl border border-[#323248] overflow-hidden bg-[#1a1d27]" style="min-width:${visibleShifts.length === 2 ? 640 : 430}px">
                     <div class="grid ${visibleShifts.length === 2 ? 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]' : 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)]'} gap-3 px-4 py-2.5 border-b border-[#323248] text-[10px] uppercase tracking-[0.16em] font-bold text-[#6b7280]">
                         <span>Line / Target</span>
                         ${visibleShifts.map(shift => `<span>Shift ${shift}</span>`).join('')}
@@ -1820,7 +1839,7 @@
                             return `<div>${renderShiftCell(config, shift, stats)}</div>`;
                         }).join('');
                         return `
-                            <div class="grid ${visibleShifts.length === 2 ? 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]' : 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)]'} gap-3 items-stretch px-4 py-3 border-b border-[#2b2b40] last:border-b-0">
+                            <div data-line="${config.prefix}" class="grid ${visibleShifts.length === 2 ? 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]' : 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)]'} gap-3 items-stretch px-4 py-3 border-b border-[#2b2b40] last:border-b-0">
                                 <div class="flex flex-col justify-center min-w-[150px] py-1">
                                     <div class="flex items-center gap-2 text-white font-bold text-sm"><span class="w-2 h-2 rounded-full" style="background:${config.color}"></span>${config.label}</div>
                                     <div class="mt-1 text-[11px] text-[#6b7280]">Target ${config.target} ไม้/คน/ชม.</div>
@@ -1829,36 +1848,6 @@
                             </div>
                         `;
                     }).join('')}
-                    <div class="grid ${visibleShifts.length === 2 ? 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]' : 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)]'} gap-3 items-stretch px-4 py-3 border-b border-[#2b2b40]">
-                        <div class="flex flex-col justify-center min-w-[150px] py-1">
-                            <div class="flex items-center gap-2 text-white font-bold text-sm"><span class="w-2 h-2 rounded-full bg-[#50cd89]"></span>BB SKIN 35G F15</div>
-                            <div class="mt-1 text-[11px] text-[#6b7280]">Target 120 ไม้/คน/ชม.</div>
-                        </div>
-                        ${visibleShifts.map(shift => `
-                            <div class="min-w-[170px] rounded-lg border border-dashed border-[#323248] bg-[#151521] px-3 py-2.5">
-                                <div class="flex items-center justify-between gap-2">
-                                    ${renderShiftBadge(shift)}
-                                    <span class="text-[11px] text-[#6b7280]">รอข้อมูล</span>
-                                </div>
-                                <div class="mt-3 text-sm font-semibold text-[#6b7280]">--</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="grid ${visibleShifts.length === 2 ? 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]' : 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)]'} gap-3 items-stretch px-4 py-3 border-b border-[#2b2b40]">
-                        <div class="flex flex-col justify-center min-w-[150px] py-1">
-                            <div class="flex items-center gap-2 text-white font-bold text-sm"><span class="w-2 h-2 rounded-full bg-[#ffc700]"></span>NECK SKIN 40G R15</div>
-                            <div class="mt-1 text-[11px] text-[#6b7280]">Target 120 ไม้/คน/ชม.</div>
-                        </div>
-                        ${visibleShifts.map(shift => `
-                            <div class="min-w-[170px] rounded-lg border border-dashed border-[#323248] bg-[#151521] px-3 py-2.5">
-                                <div class="flex items-center justify-between gap-2">
-                                    ${renderShiftBadge(shift)}
-                                    <span class="text-[11px] text-[#6b7280]">รอข้อมูล</span>
-                                </div>
-                                <div class="mt-3 text-sm font-semibold text-[#6b7280]">--</div>
-                            </div>
-                        `).join('')}
-                    </div>
                     <div class="grid ${visibleShifts.length === 2 ? 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]' : 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)]'} gap-3 items-stretch px-4 py-3 last:border-b-0">
                         <div class="flex flex-col justify-center min-w-[150px] py-1">
                             <div class="flex items-center gap-2 text-white font-bold text-sm"><span class="w-2 h-2 rounded-full bg-[#f1416c]"></span>YAGEN</div>
@@ -1873,10 +1862,39 @@
                         </div>
                     </div>
                 </div>
-                <p class="mt-2 text-[11px] text-[#6b7280]">ตัวเลขสีหลักคือ Productivity ล่าสุด · แถบแสดงสัดส่วนเทียบ Target · Best แสดงค่าดีที่สุดของแต่ละกะ</p>
+                <p class="mt-2 text-[11px] text-[#6b7280]">ตัวเลขสีหลักคือ Productivity ล่าสุด · แถบแสดงสัดส่วนเทียบ Target · Best แสดงค่าดีที่สุดของแต่ละกะ<span class="block sm:hidden">เลื่อนตารางแนวนอนเพื่อดูข้อมูลแต่ละกะ</span></p>
             `;
 
+            updateDashboardMarkup(container, markup);
             return { avgEffTotal, activeProjectsCount };
+        }
+
+        // Keep unchanged nodes, focus and scroll position during partial feed updates.
+        function updateDashboardMarkup(container, markup) {
+            const template = document.createElement('template');
+            template.innerHTML = markup;
+            const syncChildren = (current, next) => {
+                Array.from(next.childNodes).forEach((node, index) => {
+                    const existing = current.childNodes[index];
+                    if (!existing) {
+                        current.appendChild(node.cloneNode(true));
+                    } else if (existing.nodeType !== node.nodeType || existing.nodeName !== node.nodeName) {
+                        existing.replaceWith(node.cloneNode(true));
+                    } else if (node.nodeType === Node.ELEMENT_NODE) {
+                        Array.from(existing.attributes).forEach(attribute => {
+                            if (!node.hasAttribute(attribute.name)) existing.removeAttribute(attribute.name);
+                        });
+                        Array.from(node.attributes).forEach(attribute => {
+                            if (existing.getAttribute(attribute.name) !== attribute.value) existing.setAttribute(attribute.name, attribute.value);
+                        });
+                        syncChildren(existing, node);
+                    } else if (existing.nodeValue !== node.nodeValue) {
+                        existing.nodeValue = node.nodeValue;
+                    }
+                });
+                while (current.childNodes.length > next.childNodes.length) current.lastChild.remove();
+            };
+            syncChildren(container, template.content);
         }
 
         function renderShiftBadge(shift) {
@@ -1891,7 +1909,7 @@
             const tbody = document.getElementById('compareBody');
             if (!tbody) return;
 
-            tbody.innerHTML = results.map(({ label, records, summary }) => {
+            const markup = results.map(({ prefix, label, records, summary, failedShifts = [] }) => {
                 const aStats = getStats(filterByShift(records, 'A'), summary?.byShift?.A);
                 const bStats = getStats(filterByShift(records, 'B'), summary?.byShift?.B);
                 const aLatest = aStats ? aStats.latestProd : null;
@@ -1924,12 +1942,13 @@
                                 <span class="${accentClass} font-semibold">${stats.latestProd.toFixed(1)}</span>
                                 <span class="text-[11px] text-[#6b7280]">T${stats.latestTrial || stats.latest.trial}</span>
                             </div>
+                            ${failedShifts.includes(shift) ? '<span class="text-xs text-[#ffc700]">ข้อมูลก่อนหน้า</span>' : ''}
                         </div>
                     `;
                 };
 
                 return `
-                    <tr>
+                    <tr data-line="${prefix}">
                         <td class="py-3 pr-4 text-white font-semibold align-top">${label}</td>
                         <td class="py-3 pr-4 align-top">${renderMetric(aStats, 'A', 'text-[#c4b5fd]')}</td>
                         <td class="py-3 pr-4 align-top">${renderMetric(bStats, 'B', 'text-[#7dd3fc]')}</td>
@@ -1941,17 +1960,11 @@
                         <td class="py-3 pr-4 font-semibold ${getGapClass(bestGap)}">${renderDelta(bestGapPercent, '%')}</td>
                     </tr>
                 `;
-            }).join('') + `
-                <tr>
-                    <td class="py-3 pr-4 text-white font-semibold align-top">NECK SKIN 40G R15 <span class="block text-[11px] text-[#6b7280] font-normal">รอข้อมูล</span></td>
-                    <td class="py-3 pr-4 align-top">${renderShiftBadge('A')}<div class="mt-1 text-[#6b7280]">--</div></td>
-                    <td class="py-3 pr-4 align-top">${renderShiftBadge('B')}<div class="mt-1 text-[#6b7280]">--</div></td>
-                    ${Array(6).fill('<td class="py-3 pr-4 text-[#6b7280]">--</td>').join('')}
-                </tr>
-            `;
+            }).join('');
+            updateDashboardMarkup(tbody, markup);
         }
 
-        async function loadDashboardLine(config) {
+        async function loadDashboardLine(config, onFeed) {
             const requests = config.sheetsByShift
                 ? Object.entries(config.sheetsByShift)
                 : [[null, config.sheet]];
@@ -1968,23 +1981,30 @@
                     let records = normalizeSheetData(payload);
                     if (shift) {
                         if (records.some(record => record.line !== config.projectKey || record.shift !== shift)) {
-                            throw new Error(`Unexpected line or shift in ${sheet}`);
+                            const error = new Error(`Unexpected line or shift in ${sheet}`);
+                            error.feedError = 'route';
+                            throw error;
                         }
                         records = records.map(record => {
                             const prod = record.prod || (record.man ? record.total / record.man : 0);
                             return { ...record, prod, eff: prod / config.target * 100 };
                         });
                     }
-                    return {
+                    const feed = {
                         shift, records,
                         summary: normalizeSheetSummary(payload)
                     };
+                    onFeed(feed);
+                    return feed;
                 } catch (error) {
                     console.error(`Failed to load ${sheet}`, error);
-                    return {
+                    const feed = {
                         shift, failed: true, records: [],
+                        error: error.feedError || 'network',
                         summary: normalizeSheetSummary({})
                     };
+                    onFeed(feed);
+                    return feed;
                 }
             }));
             return {
@@ -1998,51 +2018,100 @@
         async function renderDashboardData() {
             if (dashboardLoading || document.hidden || document.getElementById('appHomeView')?.classList.contains('hidden')) return;
             dashboardLoading = true;
+            const generation = ++dashboardLoadGeneration;
+            if (dashboardRenderFrame !== null) {
+                cancelAnimationFrame(dashboardRenderFrame);
+                dashboardRenderFrame = null;
+            }
+            dashboardFeedsCompleted = 0;
+            dashboardFeedsTotal = lineConfigs.reduce((sum, config) => sum + (config.sheetsByShift ? Object.keys(config.sheetsByShift).length : 1), 0);
+            const previousResults = new Map(dashboardSnapshot?.results.map(item => [item.prefix, item]) || []);
+            dashboardSnapshot = {
+                results: lineConfigs.map(config => previousResults.get(config.prefix) || {
+                    ...config, records: [], summary: normalizeSheetSummary({}), failedShifts: [],
+                    loadingShifts: ['A', 'B'], feedErrors: {}
+                }),
+                breakdownFeed: dashboardSnapshot?.breakdownFeed || { _records: [] }
+            };
+            const scheduleRender = () => {
+                if (generation !== dashboardLoadGeneration || dashboardRenderFrame !== null) return;
+                dashboardRenderFrame = requestAnimationFrame(() => {
+                    dashboardRenderFrame = null;
+                    if (generation === dashboardLoadGeneration) renderDashboardSnapshot();
+                });
+            };
+            const receiveFeed = (config, feed) => {
+                if (generation !== dashboardLoadGeneration) return;
+                const index = dashboardSnapshot.results.findIndex(item => item.prefix === config.prefix);
+                const current = dashboardSnapshot.results[index];
+                const shifts = feed.shift ? [feed.shift] : ['A', 'B'];
+                const affected = record => !feed.shift || record.shift === feed.shift;
+                const failedShifts = current.failedShifts.filter(shift => !shifts.includes(shift));
+                const feedErrors = { ...current.feedErrors };
+                shifts.forEach(shift => {
+                    if (feed.failed) feedErrors[shift] = feed.error;
+                    else delete feedErrors[shift];
+                });
+                dashboardSnapshot.results[index] = {
+                    ...current,
+                    records: feed.failed ? current.records : [...current.records.filter(record => !affected(record)), ...feed.records]
+                        .sort((a, b) => a.shift.localeCompare(b.shift) || Number(a.trial) - Number(b.trial)),
+                    summary: feed.failed ? current.summary : config.sheetsByShift ? normalizeSheetSummary({}) : feed.summary,
+                    failedShifts: feed.failed ? [...failedShifts, ...shifts] : failedShifts,
+                    loadingShifts: (current.loadingShifts || []).filter(shift => !shifts.includes(shift)),
+                    feedErrors
+                };
+                dashboardFeedsCompleted++;
+                scheduleRender();
+            };
+            scheduleRender();
             const breakdownPromise = fetch(window.YakitoriRuntime.buildApiUrl('', { action: 'read_breakdown' }), {
                 cache: 'no-store', signal: AbortSignal.timeout(30000)
             }).then(async response => {
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const feed = await response.json();
                 if (feed.error || feed.status === 'error') throw new Error(feed.error || feed.message);
+                if (generation === dashboardLoadGeneration) {
+                    dashboardSnapshot.breakdownFeed = feed;
+                    scheduleRender();
+                }
                 return feed;
             }).catch(error => {
                 console.warn('Failed to load breakdown feed', error);
+                if (generation === dashboardLoadGeneration) {
+                    dashboardSnapshot.breakdownFeed = { ...dashboardSnapshot.breakdownFeed, failed: true };
+                    scheduleRender();
+                }
                 return { _records: [], failed: true };
             });
             try {
-                const fetchedResults = await Promise.all(lineConfigs.map(loadDashboardLine));
-                const previousResults = new Map(dashboardSnapshot?.results.map(item => [item.prefix, item]) || []);
-                const results = fetchedResults.map(item => {
-                    const previous = previousResults.get(item.prefix);
-                    if (!previous || !item.failedShifts.length) return item;
-                    const staleRecords = previous.records.filter(record =>
-                        !item.sheetsByShift || item.failedShifts.includes(record.shift));
-                    return {
-                        ...item,
-                        records: [...item.records, ...staleRecords],
-                        summary: item.sheetsByShift ? item.summary : previous.summary
-                    };
-                });
-                lastDashboardRefreshAt = new Date();
-                const previousBreakdown = dashboardSnapshot?.breakdownFeed || { _records: [] };
-                dashboardSnapshot = { results, breakdownFeed: previousBreakdown };
-                renderDashboardSnapshot();
-
-                const nextBreakdown = await breakdownPromise;
-                dashboardSnapshot = {
-                    results,
-                    breakdownFeed: nextBreakdown.failed ? { ...previousBreakdown, failed: true } : nextBreakdown
-                };
-                renderDashboardSnapshot();
+                await Promise.all(lineConfigs.map(config => loadDashboardLine(config, feed => receiveFeed(config, feed))));
+                if (generation === dashboardLoadGeneration) lastDashboardRefreshAt = new Date();
+                await breakdownPromise;
             } catch (error) {
                 console.error('Failed to refresh dashboard', error);
             } finally {
-                dashboardLoading = false;
+                if (generation === dashboardLoadGeneration) {
+                    dashboardLoading = false;
+                    scheduleRender();
+                }
             }
         }
 
         function renderDashboardSnapshot(force = false) {
             if (!dashboardSnapshot) return;
+            let loadStatus = document.getElementById('dashboardLoadStatus');
+            if (!loadStatus) {
+                loadStatus = document.createElement('p');
+                loadStatus.id = 'dashboardLoadStatus';
+                loadStatus.className = 'mt-1 text-xs text-[#a1a5b7]';
+                loadStatus.setAttribute('aria-live', 'polite');
+                document.getElementById('dateRangeNote').after(loadStatus);
+            }
+            const loadText = dashboardFeedsCompleted < dashboardFeedsTotal
+                ? `กำลังโหลดข้อมูลผลิต ${dashboardFeedsCompleted}/${dashboardFeedsTotal} แหล่ง · ตัวเลขสรุปอาจยังไม่ครบ`
+                : `ตรวจข้อมูลผลิตครบ ${dashboardFeedsTotal} แหล่ง · ดูสถานะผิดพลาดแยกตามสินค้า/กะ`;
+            if (loadStatus.textContent !== loadText) loadStatus.textContent = loadText;
             const productionSignature = JSON.stringify(dashboardSnapshot.results);
             const breakdownSignature = JSON.stringify({
                 records: dashboardSnapshot.breakdownFeed._records || [],
