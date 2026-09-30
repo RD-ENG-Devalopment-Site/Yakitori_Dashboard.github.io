@@ -669,7 +669,31 @@
             tbody.innerHTML = html;
         }
 
+        function updateTableSummary() {
+            const dataKeys = getVisibleKeys().filter(k => !isBaselineRecord(k)
+                && db[k]?.prod !== null && db[k]?.prod !== ''
+                && Number.isFinite(Number(db[k]?.prod))).sort(compareRecordKeys);
+            const latestKey = dataKeys[dataKeys.length - 1];
+            const bestKey = dataKeys.reduce((best, k) =>
+                !best || Number(db[k].prod) > Number(db[best].prod) ? k : best, null);
+            const labelFor = k => k ? `ครั้งที่ ${getTrialLabel(k)} / Shift ${getRecordShift(k)}` : '--';
+            const setText = (id, value) => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value;
+            };
+            setText('table-summary-target', targetProductivity > 0 ? targetProductivity.toFixed(0) : '--');
+            setText('table-summary-latest', latestKey ? `${Number(db[latestKey].prod).toFixed(1)} ไม้/คน/ชม.` : '--');
+            setText('table-summary-latest-label', labelFor(latestKey));
+            setText('table-summary-best', bestKey ? `${Number(db[bestKey].prod).toFixed(1)} ไม้/คน/ชม.` : '--');
+            setText('table-summary-best-label', bestKey ? `${labelFor(bestKey)} (Best)` : '--');
+            const avgEff = dataKeys.length && targetProductivity > 0
+                ? dataKeys.reduce((sum, k) => sum + Number(db[k].prod) / targetProductivity * 100, 0) / dataKeys.length
+                : null;
+            setText('table-summary-eff', avgEff === null ? '--' : `${avgEff.toFixed(2)}%`);
+        }
+
         function renderTable() {
+            updateTableSummary();
             return renderLegacyTable();
             const tableBody = document.getElementById('tableBody');
             const allKeys = getVisibleKeys();
