@@ -189,3 +189,73 @@ test('skin configs and targets are present; revisions are deduplicated', () => {
     assert.equal(rows.length, 2);
     assert.equal(rows.find(row => row.shift === 'A').prod, 80);
 });
+
+test('F15 empty-shift recovery preserves the A/B overview and restores status and controls', () => {
+    const source = read('bb-skin-35g-f15-dashboard.js');
+    const elements = new Map();
+    const element = id => {
+        if (!elements.has(id)) elements.set(id, { innerHTML: '--', textContent: '', disabled: false });
+        return elements.get(id);
+    };
+    const headerIds = ['header-max-yield', 'header-current-yield', 'header-current-man', 'header-selected-round', 'header-man-round'];
+    const emptyMarkup = new Map([...headerIds, 'kpi-prod'].map(id => [id, '--']));
+    let renders = 0;
+    let selections = 0;
+    const context = vm.createContext({
+        document: { getElementById: element, querySelectorAll: () => [] },
+        db: { '1_B': { ...record('BBSKINF15', 'B', 41.9), total: 628, man: 15 } },
+        keys: ['1_B'], selectedShiftFilter: 'all', selectedDataIndex: 0,
+        baselineKey: '1_B', bestTrialKey: '1_B', gapComparisonKey: '1_B',
+        lastDataUpdatedAt: new Date('2026-10-01T04:00:00Z'),
+        overviewHeaderIds: new Set(headerIds), emptyMarkup,
+        trendChart: null, cycleChart: null, prodJourneyChart: null, bottleneckChart: null,
+        applyPendingTargetLabels: () => { element('header-actual-yield').textContent = '1,800'; },
+        compareRecordKeys: () => 0,
+        getTrialLabel: key => context.db[key].trial,
+        getRecordShift: key => context.db[key].shift,
+        isBaselineRecord: () => false,
+        getVisibleKeys: () => context.keys.filter(key => context.selectedShiftFilter === 'all' || context.db[key].shift === context.selectedShiftFilter),
+        findBestTrialKey: visible => visible[0], getSummaryBaselineKey: () => '1_B',
+        renderList() {}, renderTable: () => { renders++; }, initCharts() {},
+        syncGapComparisonSelect() {}, calculateExecutiveSummary() {}, initSummaryCharts() {},
+        selectIteration: () => { selections++; }
+    });
+    for (const [start, end] of [
+        ['function clearDashboard(', 'async function loadData()'],
+        ['function hasCompleteHeaderMetrics(', 'function getVisibleKeys()'],
+        ['function refreshShiftView()', 'function syncGapComparisonSelect()'],
+        ['function setShiftFilter(', 'function setGapComparison(']
+    ]) vm.runInContext(section(source, start, end), context);
+    const assertOverview = () => {
+        assert.match(element('header-max-yield').innerHTML, /628/);
+        assert.match(element('header-current-yield').innerHTML, /628/);
+        assert.match(element('header-current-man').innerHTML, /15/);
+        assert.match(element('header-selected-round').innerText, /Shift B/);
+    };
+    for (let cycle = 0; cycle < 3; cycle++) {
+        context.setShiftFilter('all'); assertOverview();
+        context.setShiftFilter('A'); assertOverview();
+        assert.equal(element('selectedIterText').textContent, 'ยังไม่มีข้อมูลสำหรับ Shift A');
+        assert.equal(element('dataStatus').textContent, 'ยังไม่มีข้อมูลสำหรับ Shift A');
+        assert.equal(element('gapComparisonSelect').disabled, true);
+        assert.equal(element('tableRoundSelect').disabled, true);
+        context.setShiftFilter('B'); assertOverview();
+        assert.match(element('dataStatus').textContent, /อัปเดตแล้ว • Shift B • 1 รายการ/);
+        assert.equal(element('gapComparisonSelect').disabled, false);
+        assert.equal(element('tableRoundSelect').disabled, false);
+    }
+    assert.equal(renders, 6);
+    assert.equal(selections, 6);
+    assert.equal(context.keys.length, 1);
+    assert.equal(context.db['1_B'].total, 628);
+    // Loading/errors clear the whole overview, but never overwrite the caller's status.
+    element('dataStatus').textContent = 'โหลดข้อมูลไม่สำเร็จ';
+    context.clearDashboard('ไม่สามารถโหลดข้อมูลได้');
+    assert.equal(element('header-current-yield').innerHTML, '--');
+    assert.equal(element('dataStatus').textContent, 'โหลดข้อมูลไม่สำเร็จ');
+    assert.equal(element('header-actual-yield').textContent, '1,800');
+    context.keys = []; context.db = {};
+    context.setShiftFilter('all');
+    assert.match(element('dataStatus').textContent, /ในทั้งสองกะ/);
+    assert.equal(element('header-max-yield').innerHTML, '--');
+});

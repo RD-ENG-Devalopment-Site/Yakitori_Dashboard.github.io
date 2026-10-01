@@ -36,6 +36,7 @@
         let chartLabels = [];
         let chartData = [];
         let viewKeys = [];
+        let lastDataUpdatedAt = null;
 
         if (window.Chart) Chart.defaults.color = '#a1a5b7';
         if (window.Chart) Chart.defaults.borderColor = '#323248';
@@ -55,8 +56,12 @@
         // 🛠️ ดึงข้อมูลจาก Google Sheets หรือ Mock Data สำรอง
         // ==========================================
         const emptyMarkup = new Map(Array.from(document.querySelectorAll('[id]'))
-            .filter(el => !el.querySelector('[id]') && !['SCRIPT','CANVAS','SELECT','BUTTON'].includes(el.tagName))
+            .filter(el => el.id !== 'dataStatus' && !el.querySelector('[id]') && !['SCRIPT','CANVAS','SELECT','BUTTON'].includes(el.tagName))
             .map(el => [el.id, el.innerHTML]));
+        const overviewHeaderIds = new Set([
+            'header-max-yield', 'header-current-yield', 'header-current-man',
+            'header-selected-round', 'header-man-round'
+        ]);
 
         function applyPendingTargetLabels() {
             const labels = hasProductivityTarget ? [
@@ -78,10 +83,14 @@
             });
         }
 
-        function clearDashboard(message) {
+        function clearDashboard(message, { preserveOverview = false } = {}) {
             [trendChart, cycleChart, prodJourneyChart, bottleneckChart].forEach(chart => chart && chart.destroy());
             trendChart = cycleChart = prodJourneyChart = bottleneckChart = null;
-            emptyMarkup.forEach((html, id) => { document.getElementById(id).innerHTML = html; });
+            emptyMarkup.forEach((html, id) => {
+                if (!preserveOverview || !overviewHeaderIds.has(id)) {
+                    document.getElementById(id).innerHTML = html;
+                }
+            });
             document.getElementById('selectedIterText').textContent = message;
             document.getElementById('dropdownList').textContent = message;
             document.querySelectorAll('tbody').forEach(body => {
@@ -99,6 +108,7 @@
         async function loadData() {
             const status = document.getElementById('dataStatus');
             const retry = document.getElementById('reloadData');
+            lastDataUpdatedAt = null;
             applyPendingTargetLabels();
             if (retry) retry.disabled = true;
             status.textContent = 'กำลังโหลดข้อมูล BB SKIN 35G F15…';
@@ -147,8 +157,8 @@
                 }
                 document.getElementById('gapComparisonSelect').disabled = false;
                 document.getElementById('tableRoundSelect').disabled = false;
+                lastDataUpdatedAt = new Date();
                 initializeDashboardFromSheets();
-                status.textContent = 'อัปเดตแล้ว • ' + keys.length + ' รายการ • ' + new Date().toLocaleString('th-TH');
             } catch (error) {
                 db = {}; keys = []; viewKeys = [];
                 clearDashboard('ไม่สามารถโหลดข้อมูลได้');
@@ -172,14 +182,9 @@
 
             baselineKey = keys.find(isBaselineRecord) || keys[0];
 
-            let maxYield = Math.max(...keys.map(k => db[k] ? Number(db[k].total) : 0));
-            if (maxYield === -Infinity) maxYield = 0;
-            document.getElementById('header-max-yield').innerHTML = `${maxYield.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
-
             selectedShiftFilter = 'all';
             syncShiftFilterSelect();
             refreshShiftView();
-            updateLatestHeaderMetrics();
 
             let defaultKey = getVisibleKeys().slice(-1)[0] || baselineKey || keys[keys.length - 1] || "เดิม";
             selectIteration(defaultKey);
@@ -289,7 +294,14 @@
             return Number(record?.total) > 0 && Number(record?.man) > 0;
         }
 
-        function updateLatestHeaderMetrics() {
+        function updateOverviewHeaderMetrics() {
+            // Header cards summarize the complete A/B dataset, not the selected shift.
+            overviewHeaderIds.forEach(id => {
+                document.getElementById(id).innerHTML = emptyMarkup.get(id);
+            });
+            if (!keys.length) return;
+            const maxYield = Math.max(0, ...keys.map(key => Number(db[key]?.total) || 0));
+            document.getElementById('header-max-yield').innerHTML = `${maxYield.toLocaleString()} <span class="text-xs font-normal text-[#6b7280]">ไม้/ชม.</span>`;
             const latestKey = keys.slice().sort(compareRecordKeys).reverse().find(key => {
                 return !isBaselineRecord(key) && hasCompleteHeaderMetrics(db[key]);
             });
@@ -349,7 +361,16 @@
 
         function refreshShiftView() {
             viewKeys = getVisibleKeys();
-            if (!viewKeys.length) { clearDashboard('ยังไม่มีข้อมูลสำหรับกะนี้'); return; }
+            updateOverviewHeaderMetrics();
+            const status = document.getElementById('dataStatus');
+            if (!viewKeys.length) {
+                const message = selectedShiftFilter === 'all'
+                    ? 'ยังไม่มีข้อมูล BB SKIN 35G F15 ในทั้งสองกะ'
+                    : 'ยังไม่มีข้อมูลสำหรับ Shift ' + selectedShiftFilter;
+                clearDashboard(message, { preserveOverview: true });
+                status.textContent = message;
+                return;
+            }
             document.getElementById('gapComparisonSelect').disabled = false;
             document.getElementById('tableRoundSelect').disabled = false;
             bestTrialKey = findBestTrialKey(viewKeys);
@@ -369,6 +390,9 @@
             syncGapComparisonSelect();
             calculateExecutiveSummary(summaryBaselineKey, gapComparisonKey);
             initSummaryCharts(summaryBaselineKey, gapComparisonKey);
+            const shiftLabel = selectedShiftFilter === 'all' ? 'All Shift' : 'Shift ' + selectedShiftFilter;
+            const updatedAt = lastDataUpdatedAt ? ' • ' + lastDataUpdatedAt.toLocaleString('th-TH') : '';
+            status.textContent = 'อัปเดตแล้ว • ' + shiftLabel + ' • ' + viewKeys.length + ' รายการ' + updatedAt;
         }
         function syncShiftFilterSelect() {
             const select = document.getElementById('shiftFilterSelect');

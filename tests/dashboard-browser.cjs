@@ -147,6 +147,7 @@ async function run() {
             console.log('PASS DOM summary and Shift B: ' + file);
             await dashboard.close();
         }
+        await verifyF15ShiftRecovery(browser);
         const files = execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' })
             .split('\n').filter(file => /\.(html|js)$/.test(file));
         let count = 0;
@@ -169,6 +170,81 @@ async function run() {
         console.log(JSON.stringify({ staticFiles: files.length, inlineScripts: count, syntaxErrors: 0 }));
     } finally {
         await browser.close();
+    }
+}
+
+async function verifyF15ShiftRecovery(browser) {
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+        const dashboard = await browser.newPage({ viewport });
+        const errors = [];
+        let mode = 'b-only';
+        let requests = 0;
+        dashboard.on('pageerror', error => errors.push(error.message));
+        const bRecord = {
+            ...row('BBSKINF15', 'B', 41.9), total: 628, man: 15, ct_total: 85.95,
+            recordDate: '2026-09-27T17:00:00Z', createdAt: '2026-09-29T06:18:22.302Z',
+            layout: { prep: 3, block: 8, inspec: 2, pack: 2, op: 0 },
+            cycle_detail: { prep: 25.2, arrange: 28.5, machine: 1.25, inspec: 15.5, pack: 15.5 }
+        };
+        await dashboard.route('https://script.google.com/**', route => {
+            assert.equal(route.request().method(), 'GET'); requests++;
+            const shift = new URL(route.request().url()).searchParams.get('shift');
+            if (mode === 'failed') return route.fulfill({ status: 503, body: 'unavailable' });
+            const records = mode === 'empty' || (mode === 'b-only' && shift === 'A') ||
+                (mode === 'a-only' && shift === 'B') ? [] : [{ ...bRecord, shift }];
+            const body = Object.assign({ _records: records }, Object.fromEntries(records.map(r => [r.trial + '__' + r.shift, r])));
+            return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+        });
+        await dashboard.goto(urlFor('BB Skin 35G F15 Dashboard.html'));
+        await dashboard.locator('#dataStatus').filter({ hasText: 'อัปเดตแล้ว' }).waitFor({ state: 'attached' });
+        const headers = async () => {
+            assert.match(await dashboard.locator('#header-max-yield').innerText(), /628/);
+            assert.match(await dashboard.locator('#header-current-yield').innerText(), /628/);
+            assert.match(await dashboard.locator('#header-current-man').innerText(), /15/);
+            assert.match(await dashboard.locator('#header-actual-yield').innerText(), /1,800/);
+        };
+        const populated = async shift => {
+            await headers();
+            assert.match(await dashboard.locator('#header-selected-round').innerText(), new RegExp('Shift ' + shift, 'i'));
+            assert.equal(await dashboard.locator('#kpi-prod').innerText(), '41.9');
+            assert.equal(await dashboard.locator('#kpi-eff').innerText(), '34.92%');
+            assert.match(await dashboard.locator('#kpi-cycle').innerText(), /85.95/);
+            assert.equal(await dashboard.locator('#kpi-total').innerText(), '628');
+            assert.match(await dashboard.locator('#tableBody').innerText(), /41.9/);
+            assert.match(await dashboard.locator('#table-summary-latest-label').innerText(), new RegExp('Shift ' + shift, 'i'));
+            assert.match(await dashboard.locator('#dataStatus').innerText(), /อัปเดตแล้ว.*1 รายการ/);
+            assert.equal(await dashboard.locator('#gapComparisonSelect').isEnabled(), true);
+            assert.equal(await dashboard.locator('#tableRoundSelect').isEnabled(), true);
+            assert.match(await dashboard.locator('#executiveGapTableBody').innerText(), /-65.1%/);
+            assert.equal(await dashboard.evaluate(() => [trendChart, cycleChart, prodJourneyChart, bottleneckChart].filter(Boolean).length), 4);
+        };
+        const emptyShift = async shift => {
+            await headers();
+            assert.equal(await dashboard.locator('#kpi-prod').innerText(), '--');
+            assert.equal(await dashboard.locator('#dataStatus').innerText(), 'ยังไม่มีข้อมูลสำหรับ Shift ' + shift);
+            assert.equal(await dashboard.locator('#gapComparisonSelect').isEnabled(), false);
+            assert.equal(await dashboard.locator('#tableRoundSelect').isEnabled(), false);
+        };
+        const initialRequests = requests;
+        for (let cycle = 0; cycle < 3; cycle++) {
+            await dashboard.locator('#shiftFilterSelect').selectOption('A'); await emptyShift('A');
+            await dashboard.locator('#shiftFilterSelect').selectOption('B'); await populated('B');
+            await dashboard.locator('#shiftFilterSelect').selectOption('all'); await populated('B');
+        }
+        assert.equal(requests, initialRequests, 'Filters must use loaded data, not call GAS again');
+        await dashboard.waitForFunction(() => [trendChart, cycleChart, prodJourneyChart, bottleneckChart].every(chart => chart && !chart.animating));
+        await dashboard.screenshot({ path: path.join(root, 'output/f15-shift-recovery-' + viewport.width + '.png') });
+        mode = 'empty'; await dashboard.evaluate(() => loadData());
+        assert.match(await dashboard.locator('#dataStatus').innerText(), /ในทั้งสองกะ/);
+        assert.match(await dashboard.locator('#header-current-yield').innerText(), /--/);
+        mode = 'failed'; await dashboard.evaluate(() => loadData());
+        assert.match(await dashboard.locator('#dataStatus').innerText(), /โหลดข้อมูลไม่สำเร็จ/);
+        mode = 'a-only'; await dashboard.evaluate(() => loadData());
+        await dashboard.locator('#shiftFilterSelect').selectOption('B'); await emptyShift('B');
+        await dashboard.locator('#shiftFilterSelect').selectOption('A'); await populated('A');
+        assert.deepEqual(errors, []);
+        console.log('PASS F15 ' + viewport.width + ': repeated empty A → B → All recovery, reverse shifts, empty/error/retry; no extra GAS requests');
+        await dashboard.close();
     }
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });
