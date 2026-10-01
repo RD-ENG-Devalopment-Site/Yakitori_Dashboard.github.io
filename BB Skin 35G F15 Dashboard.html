@@ -89,6 +89,34 @@
         .nav-item:hover .dropdown-icon { transform: rotate(180deg); }
         .glow-text-green { text-shadow: 0 0 15px rgba(80, 205, 137, 0.4); }
         .glow-text-blue { text-shadow: 0 0 15px rgba(0, 158, 247, 0.4); }
+        .data-status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #c3c6d4;
+        }
+        #dataStatus { flex: 1 1 260px; overflow-wrap: anywhere; }
+        .data-status-bar[data-state="warning"] #dataStatus,
+        .data-status-bar[data-state="error"] #dataStatus { color: #f5cf73; }
+        #reloadData {
+            min-height: 44px;
+            padding: 8px 16px;
+            border: 1px solid #474761;
+            border-radius: 8px;
+            background: #1e1e2d;
+            color: #e8eaf0;
+            cursor: pointer;
+        }
+        #reloadData:hover { background: #2a2a3d; }
+        #reloadData:focus-visible { outline: 2px solid #009ef7; outline-offset: 3px; }
+        #reloadData:disabled { opacity: .6; cursor: wait; }
+        @media (max-width: 600px) {
+            #dataStatus { flex-basis: 100%; }
+        }
     </style>
     <link rel="stylesheet" href="bb-skin-theme.css?v=20260904-01">
 </head>
@@ -122,7 +150,10 @@
         </div>
     </header>
 
-    <p id="dataStatus" role="status" aria-live="polite" class="sr-only">กำลังเตรียมข้อมูล…</p>
+    <div class="data-status-bar" data-state="loading">
+        <p id="dataStatus" role="status" aria-live="polite" aria-atomic="true">กำลังเตรียมข้อมูล…</p>
+        <button id="reloadData" type="button" onclick="loadData()" disabled>โหลดใหม่</button>
+    </div>
     <main class="flex-1 w-full pb-8">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-card rounded-xl p-5 border-t-4 border-[#009ef7] shadow-lg">
@@ -548,6 +579,6 @@
     </main>
 
     <script src="yakitori-runtime.js?v=20260929-01"></script>
-    <script src="bb-skin-35g-f15-dashboard.js?v=20261001-01"></script>
+    <script src="bb-skin-35g-f15-dashboard.js?v=20261001-02"></script>
 </body>
 </html>

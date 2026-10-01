@@ -37,6 +37,9 @@
         let chartData = [];
         let viewKeys = [];
         let lastDataUpdatedAt = null;
+        let isLoadingData = false;
+        let shiftLoadErrors = [];
+        let usingPreviousData = false;
 
         if (window.Chart) Chart.defaults.color = '#a1a5b7';
         if (window.Chart) Chart.defaults.borderColor = '#323248';
@@ -53,7 +56,7 @@
         window.addEventListener('load', loadData);
 
         // ==========================================
-        // 🛠️ ดึงข้อมูลจาก Google Sheets หรือ Mock Data สำรอง
+        // 🛠️ ดึงข้อมูลจริงจาก Google Sheets ผ่าน GAS (ไม่ใช้ Mock Data สำรอง)
         // ==========================================
         const emptyMarkup = new Map(Array.from(document.querySelectorAll('[id]'))
             .filter(el => el.id !== 'dataStatus' && !el.querySelector('[id]') && !['SCRIPT','CANVAS','SELECT','BUTTON'].includes(el.tagName))
@@ -83,6 +86,89 @@
             });
         }
 
+        function updateDataStatus(message, state = 'success') {
+            const status = document.getElementById('dataStatus');
+            if (isLoadingData && state !== 'loading') message = 'กำลังโหลดข้อมูลใหม่… • ' + message;
+            if (!isLoadingData && shiftLoadErrors.length) {
+                message += (usingPreviousData ? '' : ' • ข้อมูลยังไม่ครบทั้งสองกะ') + ' • ' +
+                    shiftLoadErrors.map(item => 'Shift ' + item.shift + ': ' + item.message).join(' • ');
+                if (state !== 'error') state = 'warning';
+            }
+            if (!isLoadingData && usingPreviousData) {
+                message = 'แสดงข้อมูลก่อนหน้า (ยังไม่ได้อัปเดต) • ' + message;
+                state = 'warning';
+            }
+            status.textContent = message;
+            status.parentElement.dataset.state = isLoadingData ? 'loading' : state;
+        }
+
+        function describeLoadError(error) {
+            if (error?.name === 'AbortError' || error?.name === 'TimeoutError') {
+                return 'GAS ตอบกลับช้าเกิน 45 วินาที';
+            }
+            if (error instanceof TypeError) return 'เชื่อมต่อ GAS ไม่สำเร็จ';
+            return error?.message || 'อ่านข้อมูลจาก GAS ไม่สำเร็จ';
+        }
+
+        async function fetchShiftFeed(shift) {
+            // Retry only read-only transient failures, once per shift; always release the timer.
+            for (let attempt = 0; attempt < 2; attempt++) {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 45000);
+                try {
+                    const url = window.YakitoriRuntime.buildApiUrl('BBSKINF15_Datalog_Shift ' + shift, {
+                        projectKey: 'BBSKINF15', shift, ts: Date.now(), attempt
+                    });
+                    const response = await fetch(url, { cache: 'no-store', signal: controller.signal });
+                    if (!response.ok) {
+                        const error = new Error('โหลดข้อมูลไม่สำเร็จ (HTTP ' + response.status + ')');
+                        error.retryable = response.status === 429 || response.status >= 500;
+                        throw error;
+                    }
+                    const feed = await response.json();
+                    if (!feed || typeof feed !== 'object' || Array.isArray(feed)) {
+                        throw new Error('รูปแบบข้อมูล GAS ไม่ถูกต้อง');
+                    }
+                    if (feed.error) throw new Error(String(feed.error));
+                    return normalizeShiftFeed(feed, shift);
+                } catch (error) {
+                    const retryable = error?.retryable || error instanceof TypeError ||
+                        error?.name === 'AbortError' || error?.name === 'TimeoutError';
+                    if (attempt || !retryable) throw error;
+                    updateDataStatus('กำลังลองโหลด Shift ' + shift + ' อีกครั้ง…', 'loading');
+                } finally {
+                    clearTimeout(timer);
+                }
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+
+        function normalizeShiftFeed(feed, expectedShift) {
+            const normalized = {};
+            // Keyed records include CT/layout; _records is only a GAS summary.
+            const detailedRecords = Object.values(feed).filter(record =>
+                record && typeof record === 'object' && record.cycle_detail && record.layout
+            );
+            const records = detailedRecords.length ? detailedRecords : (Array.isArray(feed._records) ? feed._records : []);
+            records.forEach(record => {
+                if (!record || typeof record !== 'object') return;
+                const trial = String(record.trial || '').trim();
+                if (!/^(?:[0-9]+(?:\.[0-9]+)?|เดิม)$/.test(trial)) return;
+                const shift = String(record.shift).toUpperCase();
+                if (shift !== expectedShift) throw new Error('ข้อมูลกะไม่ถูกต้อง');
+                if (record.line !== 'BBSKINF15') throw new Error('GAS ยังไม่ใช่รุ่นที่รองรับ BB SKIN 35G F15 กรุณาตรวจการเผยแพร่');
+                if (!record.cycle_detail || !record.layout) throw new Error('ข้อมูล Cycle Time หรือกำลังคนไม่ครบ');
+                const total = Number(record.total) || 0;
+                const man = Number(record.man) || 0;
+                const prod = Number(record.prod) || (man ? total / man : 0);
+                normalized[trial + '_' + shift] = {
+                    ...record, trial, shift, total, man, prod,
+                    eff: hasProductivityTarget ? (prod / targetProductivity) * 100 : null
+                };
+            });
+            return normalized;
+        }
+
         function clearDashboard(message, { preserveOverview = false } = {}) {
             [trendChart, cycleChart, prodJourneyChart, bottleneckChart].forEach(chart => chart && chart.destroy());
             trendChart = cycleChart = prodJourneyChart = bottleneckChart = null;
@@ -106,64 +192,44 @@
         }
 
         async function loadData() {
-            const status = document.getElementById('dataStatus');
+            if (isLoadingData) return;
             const retry = document.getElementById('reloadData');
-            lastDataUpdatedAt = null;
+            isLoadingData = true;
             applyPendingTargetLabels();
             if (retry) retry.disabled = true;
-            status.textContent = 'กำลังโหลดข้อมูล BB SKIN 35G F15…';
-            clearDashboard('กำลังโหลดข้อมูล…');
+            updateDataStatus('กำลังโหลดข้อมูล BB SKIN 35G F15…' + (keys.length ? ' (แสดงข้อมูลก่อนหน้าระหว่างโหลด)' : ''), 'loading');
+            if (!keys.length) clearDashboard('กำลังโหลดข้อมูล…');
             try {
                 if (!window.Chart) throw new Error('โหลดไลบรารีกราฟไม่สำเร็จ');
-                const feeds = await Promise.all(['A','B'].map(async shift => {
-                    const url = window.YakitoriRuntime.buildApiUrl('BBSKINF15_Datalog_Shift ' + shift, {
-                        projectKey: 'BBSKINF15', shift, ts: Date.now()
-                    });
-                    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(30000) });
-                    if (!response.ok) throw new Error('โหลด Shift ' + shift + ' ไม่สำเร็จ (HTTP ' + response.status + ')');
-                    const feed = await response.json();
-                    if (feed.error) throw new Error(String(feed.error));
-                    return feed;
-                }));
-                db = {};
-                feeds.forEach(feed => {
-                    // GAS publishes both keyed records (full detail) and _records (summary).
-                    // Prefer keyed records because the dashboard charts require CT and manpower layout.
-                    const detailedRecords = Object.values(feed).filter(record =>
-                        record && typeof record === 'object' && record.cycle_detail && record.layout
-                    );
-                    const records = detailedRecords.length ? detailedRecords : (Array.isArray(feed._records) ? feed._records : []);
-                    records.forEach(record => {
-                    if (!record || typeof record !== 'object' || !record.cycle_detail || !record.layout) return;
-                    const trial = String(record.trial || '').trim();
-                    if (!/^(?:[0-9]+(?:\\.[0-9]+)?|เดิม)$/.test(trial)) return;
-                    const shift = String(record.shift).toUpperCase();
-                    if (!['A','B'].includes(shift)) throw new Error('ข้อมูลกะไม่ถูกต้อง');
-                    if (record.line !== 'BBSKINF15') throw new Error('GAS ยังไม่ใช่รุ่นที่รองรับ BB SKIN 35G F15 กรุณาตรวจการเผยแพร่');
-                    const total = Number(record.total) || 0;
-                    const man = Number(record.man) || 0;
-                    const prod = Number(record.prod) || (man ? total / man : 0);
-                    db[trial + '_' + shift] = {
-                        ...record, trial, shift, total, man, prod,
-                        eff: hasProductivityTarget ? (prod / targetProductivity) * 100 : null
-                    };
-                    });
-                });
+                const results = await Promise.allSettled(['A','B'].map(fetchShiftFeed));
+                shiftLoadErrors = results.flatMap((result, index) => result.status === 'rejected'
+                    ? [{ shift: ['A','B'][index], message: describeLoadError(result.reason) }] : []);
+                if (shiftLoadErrors.length === 2) throw new Error('GAS ยังโหลดไม่สำเร็จทั้งสองกะ');
+                db = Object.assign({}, ...results.filter(result => result.status === 'fulfilled').map(result => result.value));
+                usingPreviousData = false;
+                isLoadingData = false;
                 keys = [];
+                viewKeys = [];
+                lastDataUpdatedAt = new Date();
                 if (!Object.keys(db).length) {
-                    clearDashboard('ยังไม่มีข้อมูล BB SKIN 35G F15');
-                    status.textContent = 'ยังไม่มีข้อมูล BB SKIN 35G F15 ในทั้งสองกะ';
+                    const message = shiftLoadErrors.length ? 'ยังไม่มีรายการในกะที่โหลดสำเร็จ (ข้อมูลยังไม่ครบทั้งสองกะ)' : 'ยังไม่มีข้อมูล BB SKIN 35G F15 ในทั้งสองกะ';
+                    clearDashboard(message);
+                    updateDataStatus(message, shiftLoadErrors.length ? 'warning' : 'success');
                     return;
                 }
                 document.getElementById('gapComparisonSelect').disabled = false;
                 document.getElementById('tableRoundSelect').disabled = false;
-                lastDataUpdatedAt = new Date();
                 initializeDashboardFromSheets();
             } catch (error) {
-                db = {}; keys = []; viewKeys = [];
-                clearDashboard('ไม่สามารถโหลดข้อมูลได้');
-                status.textContent = 'โหลดข้อมูลไม่สำเร็จ: ' + error.message + ' — โปรดลองรีเฟรชหน้าเว็บ';
+                isLoadingData = false;
+                usingPreviousData = keys.length > 0;
+                if (!usingPreviousData) {
+                    db = {}; keys = []; viewKeys = [];
+                    clearDashboard('ไม่สามารถโหลดข้อมูลได้');
+                }
+                updateDataStatus('โหลดข้อมูลไม่สำเร็จ: ' + describeLoadError(error) + ' — กดโหลดใหม่เพื่อลองอีกครั้ง', 'error');
             } finally {
+                isLoadingData = false;
                 if (retry) retry.disabled = false;
             }
         }
@@ -182,12 +248,11 @@
 
             baselineKey = keys.find(isBaselineRecord) || keys[0];
 
-            selectedShiftFilter = 'all';
             syncShiftFilterSelect();
             refreshShiftView();
 
-            let defaultKey = getVisibleKeys().slice(-1)[0] || baselineKey || keys[keys.length - 1] || "เดิม";
-            selectIteration(defaultKey);
+            const defaultKey = getVisibleKeys().slice(-1)[0];
+            if (defaultKey) selectIteration(defaultKey);
         }
 
         function toggleDropdown() {
@@ -362,13 +427,15 @@
         function refreshShiftView() {
             viewKeys = getVisibleKeys();
             updateOverviewHeaderMetrics();
-            const status = document.getElementById('dataStatus');
             if (!viewKeys.length) {
-                const message = selectedShiftFilter === 'all'
-                    ? 'ยังไม่มีข้อมูล BB SKIN 35G F15 ในทั้งสองกะ'
+                const failedShift = shiftLoadErrors.some(item => item.shift === selectedShiftFilter);
+                const message = failedShift && !usingPreviousData ? 'ยังโหลดข้อมูล Shift ' + selectedShiftFilter + ' ไม่สำเร็จ'
+                    : selectedShiftFilter === 'all' ? (shiftLoadErrors.length && !usingPreviousData
+                        ? 'ยังไม่มีรายการในกะที่โหลดสำเร็จ (ข้อมูลยังไม่ครบทั้งสองกะ)'
+                        : 'ยังไม่มีข้อมูล BB SKIN 35G F15 ในทั้งสองกะ')
                     : 'ยังไม่มีข้อมูลสำหรับ Shift ' + selectedShiftFilter;
                 clearDashboard(message, { preserveOverview: true });
-                status.textContent = message;
+                updateDataStatus(message, failedShift ? 'warning' : 'success');
                 return;
             }
             document.getElementById('gapComparisonSelect').disabled = false;
@@ -392,7 +459,7 @@
             initSummaryCharts(summaryBaselineKey, gapComparisonKey);
             const shiftLabel = selectedShiftFilter === 'all' ? 'All Shift' : 'Shift ' + selectedShiftFilter;
             const updatedAt = lastDataUpdatedAt ? ' • ' + lastDataUpdatedAt.toLocaleString('th-TH') : '';
-            status.textContent = 'อัปเดตแล้ว • ' + shiftLabel + ' • ' + viewKeys.length + ' รายการ' + updatedAt;
+            updateDataStatus((usingPreviousData ? 'ข้อมูลที่โหลดไว้' : 'อัปเดตแล้ว') + ' • ' + shiftLabel + ' • ' + viewKeys.length + ' รายการ' + updatedAt);
         }
         function syncShiftFilterSelect() {
             const select = document.getElementById('shiftFilterSelect');

@@ -179,7 +179,13 @@ async function verifyF15ShiftRecovery(browser) {
         const errors = [];
         let mode = 'b-only';
         let requests = 0;
+        let attempts = { A: 0, B: 0 };
         dashboard.on('pageerror', error => errors.push(error.message));
+        await dashboard.addInitScript(() => {
+            const nativeTimeout = window.setTimeout.bind(window);
+            window.setTimeout = (fn, delay, ...args) => nativeTimeout(fn,
+                delay === 45000 && window.f15TestTimeout ? 200 : delay === 1000 ? 1 : delay, ...args);
+        });
         const bRecord = {
             ...row('BBSKINF15', 'B', 41.9), total: 628, man: 15, ct_total: 85.95,
             recordDate: '2026-09-27T17:00:00Z', createdAt: '2026-09-29T06:18:22.302Z',
@@ -189,7 +195,12 @@ async function verifyF15ShiftRecovery(browser) {
         await dashboard.route('https://script.google.com/**', route => {
             assert.equal(route.request().method(), 'GET'); requests++;
             const shift = new URL(route.request().url()).searchParams.get('shift');
-            if (mode === 'failed') return route.fulfill({ status: 503, body: 'unavailable' });
+            attempts[shift]++;
+            if (mode === 'timeout' && shift === 'A' && attempts[shift] === 1) return;
+            if (mode === 'failed' || (mode === 'partial' && shift === 'A') ||
+                (mode === 'recover' && shift === 'A' && attempts[shift] === 1)) {
+                return route.fulfill({ status: 503, body: 'unavailable' });
+            }
             const records = mode === 'empty' || (mode === 'b-only' && shift === 'A') ||
                 (mode === 'a-only' && shift === 'B') ? [] : [{ ...bRecord, shift }];
             const body = Object.assign({ _records: records }, Object.fromEntries(records.map(r => [r.trial + '__' + r.shift, r])));
@@ -232,7 +243,8 @@ async function verifyF15ShiftRecovery(browser) {
             await dashboard.locator('#shiftFilterSelect').selectOption('all'); await populated('B');
         }
         assert.equal(requests, initialRequests, 'Filters must use loaded data, not call GAS again');
-        await dashboard.waitForFunction(() => [trendChart, cycleChart, prodJourneyChart, bottleneckChart].every(chart => chart && !chart.animating));
+        await dashboard.waitForFunction(() => [trendChart, cycleChart, prodJourneyChart, bottleneckChart].every(chart =>
+            chart && chart.getDatasetMeta(0).data.every(point => Math.abs(point.y - point.getProps(['y'], true).y) < 0.1)));
         await dashboard.screenshot({ path: path.join(root, 'output/f15-shift-recovery-' + viewport.width + '.png') });
         mode = 'empty'; await dashboard.evaluate(() => loadData());
         assert.match(await dashboard.locator('#dataStatus').innerText(), /ในทั้งสองกะ/);
@@ -242,8 +254,55 @@ async function verifyF15ShiftRecovery(browser) {
         mode = 'a-only'; await dashboard.evaluate(() => loadData());
         await dashboard.locator('#shiftFilterSelect').selectOption('B'); await emptyShift('B');
         await dashboard.locator('#shiftFilterSelect').selectOption('A'); await populated('A');
+        const reload = async nextMode => {
+            mode = nextMode; attempts = { A: 0, B: 0 };
+            await dashboard.getByRole('button', { name: 'โหลดใหม่', exact: true }).click();
+            await dashboard.waitForFunction(() => !isLoadingData);
+            assert.equal(await dashboard.locator('#reloadData').isEnabled(), true);
+        };
+        await dashboard.locator('#shiftFilterSelect').selectOption('all');
+        await reload('recover');
+        assert.deepEqual(attempts, { A: 2, B: 1 });
+        assert.match(await dashboard.locator('#dataStatus').innerText(), /อัปเดตแล้ว.*2 รายการ/);
+        assert.equal(await dashboard.locator('.data-status-bar').getAttribute('data-state'), 'success');
+        await dashboard.evaluate(() => { window.f15TestTimeout = true; });
+        await reload('timeout');
+        assert.deepEqual(attempts, { A: 2, B: 1 });
+        assert.match(await dashboard.locator('#dataStatus').innerText(), /อัปเดตแล้ว.*2 รายการ/);
+        await dashboard.evaluate(() => { window.f15TestTimeout = false; });
+        await reload('partial');
+        assert.deepEqual(attempts, { A: 2, B: 1 });
+        assert.match(await dashboard.locator('#dataStatus').innerText(), /ข้อมูลยังไม่ครบทั้งสองกะ.*Shift A/);
+        assert.equal(await dashboard.locator('#kpi-prod').innerText(), '41.9');
+        await dashboard.locator('#shiftFilterSelect').selectOption('A');
+        assert.match(await dashboard.locator('#dataStatus').innerText(), /ยังโหลดข้อมูล Shift A ไม่สำเร็จ/);
+        assert.doesNotMatch(await dashboard.locator('#dataStatus').innerText(), /ยังไม่มีข้อมูลสำหรับ Shift A/);
+        assert.equal(await dashboard.locator('#kpi-prod').innerText(), '--');
+        // Retrying with A still unavailable must not show B's KPI under an A filter.
+        await reload('partial');
+        assert.equal(await dashboard.locator('#shiftFilterSelect').inputValue(), 'A');
+        assert.equal(await dashboard.locator('#kpi-prod').innerText(), '--');
+        await dashboard.locator('#shiftFilterSelect').selectOption('B');
+        await reload('failed');
+        assert.deepEqual(attempts, { A: 2, B: 2 });
+        assert.equal(await dashboard.locator('#kpi-prod').innerText(), '41.9');
+        assert.match(await dashboard.locator('#dataStatus').innerText(), /ข้อมูลก่อนหน้า \(ยังไม่ได้อัปเดต\)/);
+        await dashboard.locator('#shiftFilterSelect').selectOption('all');
+        assert.match(await dashboard.locator('#dataStatus').innerText(), /ข้อมูลก่อนหน้า \(ยังไม่ได้อัปเดต\)/);
+        await dashboard.screenshot({ path: path.join(root, 'output/f15-data-warning-' + viewport.width + '.png') });
+        await reload('valid');
+        assert.doesNotMatch(await dashboard.locator('#dataStatus').innerText(), /ก่อนหน้า|ไม่สำเร็จ/);
+        assert.match(await dashboard.locator('#dataStatus').innerText(), /2 รายการ/);
+        assert.equal(await dashboard.locator('#dataStatus').isVisible(), true);
+        const statusBar = await dashboard.locator('.data-status-bar').boundingBox();
+        const retryButton = await dashboard.locator('#reloadData').boundingBox();
+        assert.ok(retryButton.height >= 44 && retryButton.x >= statusBar.x);
+        assert.ok(retryButton.x + retryButton.width <= viewport.width);
+        await dashboard.waitForFunction(() => [trendChart, cycleChart, prodJourneyChart, bottleneckChart].every(chart =>
+            chart && chart.getDatasetMeta(0).data.every(point => Math.abs(point.y - point.getProps(['y'], true).y) < 0.1)));
+        await dashboard.screenshot({ path: path.join(root, 'output/f15-data-loading-' + viewport.width + '.png') });
         assert.deepEqual(errors, []);
-        console.log('PASS F15 ' + viewport.width + ': repeated empty A → B → All recovery, reverse shifts, empty/error/retry; no extra GAS requests');
+        console.log('PASS F15 ' + viewport.width + ': shift recovery, timeout/503 retry, partial error vs empty, labelled stale refresh and retry button; GET only');
         await dashboard.close();
     }
 }
