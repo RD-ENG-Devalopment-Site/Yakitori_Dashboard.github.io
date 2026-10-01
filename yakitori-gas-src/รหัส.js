@@ -68,6 +68,7 @@ function doPost(e) {
   } catch (error) {
     return jsonOutput_({
       status: "error",
+      code: error.code || "WRITE_FAILED",
       message: error.toString()
     });
   }
@@ -514,48 +515,90 @@ function inferBl23gProjectKey_(payload) {
     (projectKey === BL23G_M1_PROJECT_KEY ? BL23G_M1_PROJECT_KEY : BL23G_M2_PROJECT_KEY);
 }
 
+function productionRoutes_() {
+  var routes = {};
+  routes[BL23G_M1_PROJECT_KEY] = { kind: "bl", line: "BL23G", target: BL23G_TARGET_PRODUCTIVITY, spreadsheetId: BL23G_M1_SPREADSHEET_ID, shiftA: BL23G_M1_SOURCE_SHEET, shiftB: BL23G_M1_SHIFT_B_SHEET };
+  routes[BL23G_M2_PROJECT_KEY] = { kind: "bl", line: "BL23G", target: BL23G_TARGET_PRODUCTIVITY, shiftA: BL23G_SOURCE_SHEET, shiftB: BL23G_SHIFT_B_SHEET };
+  routes.GZ30G = { kind: "gizzard", line: "GZ30G", target: GZ30G_TARGET_PRODUCTIVITY, shiftA: GZ30G_SOURCE_SHEET, shiftB: GZ30G_SHIFT_B_SHEET };
+  routes.GZ40G = { kind: "gizzard", line: "GZ40G", target: GZ40G_TARGET_PRODUCTIVITY, shiftA: GZ40G_SOURCE_SHEET, shiftB: GZ40G_SHIFT_B_SHEET };
+  routes[BBSKIN_R12_PROJECT_KEY] = { kind: "skin", line: BBSKIN_R12_PROJECT_KEY, target: BBSKIN_R12_TARGET_PRODUCTIVITY, spreadsheetId: BBSKIN_R12_SPREADSHEET_ID, shiftA: BBSKIN_R12_SHIFT_A_SHEET, shiftB: BBSKIN_R12_SHIFT_B_SHEET };
+  Object.keys(ADDITIONAL_SKIN_LINES).forEach(function(key) {
+    var config = ADDITIONAL_SKIN_LINES[key];
+    routes[key] = { kind: "skin", line: key, target: config.targetProductivity, spreadsheetId: ADDITIONAL_SKIN_SPREADSHEET_ID, shiftA: config.shiftA, shiftB: config.shiftB };
+  });
+  return routes;
+}
+
+function invalidRoute_(message) {
+  var error = new Error(message);
+  error.code = "INVALID_ROUTE";
+  throw error;
+}
+
+function resolveProductionRoute_(payload, writing) {
+  payload = payload || {};
+  var routes = productionRoutes_();
+  var requestedSheet = String(payload.sheet || payload.targetSheet || "").trim();
+  if (payload.sheet && payload.targetSheet && normalizeLine_(payload.sheet) !== normalizeLine_(payload.targetSheet)) {
+    invalidRoute_("Conflicting sheet selections");
+  }
+  var projectKey = "";
+  var sheetShift = "";
+  if (requestedSheet) {
+    Object.keys(routes).forEach(function(key) {
+      ["A", "B"].forEach(function(shift) {
+        if (normalizeLine_(routes[key]["shift" + shift]) === normalizeLine_(requestedSheet)) {
+          projectKey = key;
+          sheetShift = shift;
+        }
+      });
+    });
+    if (!projectKey) invalidRoute_("Unknown production sheet");
+  }
+
+  var hasBlFamily = false;
+  [payload.line, payload.projectKey].forEach(function(value) {
+    var key = normalizeLine_(value);
+    if (!key) return;
+    if (key === "BL23G") { hasBlFamily = true; return; }
+    if (key === "GZ30") key = "GZ30G";
+    if (key === "GZ40") key = "GZ40G";
+    if (!Object.prototype.hasOwnProperty.call(routes, key)) invalidRoute_("Unknown production project");
+    if (projectKey && projectKey !== key) invalidRoute_("Conflicting project and sheet selections");
+    projectKey = key;
+  });
+  if (hasBlFamily) {
+    if (!projectKey) projectKey = BL23G_M2_PROJECT_KEY;
+    if (routes[projectKey].kind !== "bl") invalidRoute_("Conflicting BL23G project selection");
+  }
+  // The parameterless legacy public feed was Gizzard 30G, not an arbitrary sheet.
+  if (!projectKey) {
+    if (writing) invalidRoute_("A production project or sheet is required");
+    projectKey = "GZ30G";
+  }
+  var config = routes[projectKey];
+  var shift = normalizeLine_(payload.shift);
+  if (shift === "SHIFT A") shift = "A";
+  if (shift === "SHIFT B") shift = "B";
+  if (shift && shift !== "A" && shift !== "B") invalidRoute_("Invalid shift");
+  // BL/Gizzard source names represent a two-shift dataset in existing callers.
+  if (shift && sheetShift && shift !== sheetShift && (config.kind === "skin" || sheetShift === "B")) {
+    invalidRoute_("Conflicting sheet and shift selections");
+  }
+  var shifts = shift ? [shift]
+    : (sheetShift === "B" || (config.kind === "skin" && sheetShift) ? [sheetShift] : ["A", "B"]);
+  if (writing) shifts = [shift || sheetShift || "A"];
+  return { projectKey: projectKey, config: config, shifts: shifts };
+}
+
+function productionSpreadsheet_(config) {
+  return config.spreadsheetId ? SpreadsheetApp.openById(config.spreadsheetId) : SpreadsheetApp.getActiveSpreadsheet();
+}
+
 function resolveRecordRoute_(payload) {
-  var line = normalizeLine_(payload && payload.line);
-  var requestedSheet = String(payload && (payload.sheet || payload.targetSheet) || "").trim();
-  var shift = normalizeShift_(payload && payload.shift);
-
-  if (line === "BL23G" || line === BL23G_M1_PROJECT_KEY || line === BL23G_M2_PROJECT_KEY || isBl23gSheetName_(requestedSheet)) {
-    var bl23ProjectKey = inferBl23gProjectKey_(payload);
-    var bl23Config = getBl23gProjectConfig_(bl23ProjectKey);
-    return {
-      status: "success",
-      projectKey: bl23ProjectKey,
-      shift: shift,
-      sheet: shift === "B" ? bl23Config.shiftBSheet : bl23Config.sourceSheet
-    };
-  }
-
-  if (line === "GZ30G" || line === "GZ40G" || isGizzardSheetName_(requestedSheet)) {
-    var isGz40 = line === "GZ40G" || isGz40gSheetName_(requestedSheet);
-    return {
-      status: "success",
-      projectKey: isGz40 ? "GZ40G" : "GZ30G",
-      shift: shift,
-      sheet: resolveGizzardSheetName_(isGz40 ? GZ40G_SOURCE_SHEET : GZ30G_SOURCE_SHEET, shift)
-    };
-  }
-
-  var additionalSkinConfig = getAdditionalSkinConfig_(line, requestedSheet);
-  if (additionalSkinConfig) {
-    return {
-      status: "success",
-      projectKey: additionalSkinConfig.projectKey,
-      shift: shift,
-      sheet: resolveAdditionalSkinSheetName_(additionalSkinConfig, shift)
-    };
-  }
-
-  return {
-    status: "success",
-    projectKey: line,
-    shift: shift,
-    sheet: requestedSheet || "APEX_Flow_Records"
-  };
+  var route = resolveProductionRoute_(payload, true);
+  var shift = route.shifts[0];
+  return { status: "success", projectKey: route.projectKey, shift: shift, sheet: route.config["shift" + shift] };
 }
 
 function readAuditCell_(row, column) {
@@ -712,223 +755,78 @@ function parseGizzardSheet_(sheet, defaultShift, db, records, lineLabel, targetP
 }
 
 function getJsonStream(e) {
-  var projectKey = e && e.parameter && e.parameter.projectKey
-    ? String(e.parameter.projectKey).trim().toUpperCase()
-    : BL23G_M2_PROJECT_KEY;
-  var bl23Config = getBl23gProjectConfig_(projectKey);
-  var ss = bl23Config.spreadsheet;
-  var sheetName = "GZ30gR15_DataLog";
-  var requestedAction = e && e.parameter && e.parameter.action
-    ? String(e.parameter.action).trim().toLowerCase()
-    : "";
-
-  if (requestedAction === "read_block_tracker") {
-    return ContentService.createTextOutput(JSON.stringify(readBlockTrackerRecords_()))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  if (requestedAction === "read_machine_layout") {
-    return ContentService.createTextOutput(JSON.stringify(readMachineLayoutRecords_()))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  if (e && e.parameter && e.parameter.sheet) {
-    sheetName = e.parameter.sheet.toString().trim();
-  }
-
-  if (isBbSkinProject_(projectKey, sheetName)) {
-    var bbSpreadsheet = SpreadsheetApp.openById(BBSKIN_R12_SPREADSHEET_ID);
-    var bbDb = {};
-    var bbRecords = [];
-    var bbRequestedShift = String(e.parameter.shift || "").toUpperCase();
-    var bbShifts = bbRequestedShift === "A" || bbRequestedShift === "B"
-      ? [bbRequestedShift]
-      : (sheetName === BBSKIN_R12_SHIFT_A_SHEET ? ["A"]
-        : (sheetName === BBSKIN_R12_SHIFT_B_SHEET ? ["B"] : ["A", "B"]));
-    for (var bbIndex = 0; bbIndex < bbShifts.length; bbIndex++) {
-      var bbShift = bbShifts[bbIndex];
-      var bbSheetName = resolveBbSkinSheetName_(bbShift);
-      var bbSheet = bbSpreadsheet.getSheetByName(bbSheetName);
-      if (!bbSheet) return jsonOutput_({ error: "BB Skin sheet not found: " + bbSheetName });
-      parseGizzardSheet_(bbSheet, bbShift, bbDb, bbRecords, BBSKIN_R12_PROJECT_KEY, BBSKIN_R12_TARGET_PRODUCTIVITY);
+  try {
+    var params = e && e.parameter || {};
+    var action = String(params.action || "").trim().toLowerCase();
+    if (action === "read_health") {
+      var targets = {};
+      var routes = productionRoutes_();
+      Object.keys(routes).forEach(function(key) { targets[key] = routes[key].target; });
+      return jsonOutput_({ status: "success", apiVersion: "20260930-routes-1", targets: targets, writeProtocolVersion: null });
     }
-    bbDb._records = dedupeRecordsByTrialAndShift_(bbRecords);
-    attachSummaryFields_(bbDb, bbDb._records);
-    return jsonOutput_(bbDb);
-  }
-
-  var additionalSkinConfig = getAdditionalSkinConfig_(projectKey, sheetName);
-  if (additionalSkinConfig) {
-    var skinSpreadsheet = SpreadsheetApp.openById(ADDITIONAL_SKIN_SPREADSHEET_ID);
-    var skinDb = {};
-    var skinRecords = [];
-    var requestedSkinShift = String(e.parameter.shift || "").trim().toUpperCase();
-    var skinShifts = requestedSkinShift === "A" || requestedSkinShift === "B"
-      ? [requestedSkinShift]
-      : (sheetName === additionalSkinConfig.sheets.shiftA ? ["A"]
-        : (sheetName === additionalSkinConfig.sheets.shiftB ? ["B"] : ["A", "B"]));
-    for (var skinIndex = 0; skinIndex < skinShifts.length; skinIndex++) {
-      var skinShift = skinShifts[skinIndex];
-      var skinSheetName = resolveAdditionalSkinSheetName_(additionalSkinConfig, skinShift);
-      var skinSheet = skinSpreadsheet.getSheetByName(skinSheetName);
-      if (!skinSheet) return jsonOutput_({ error: "Skin sheet not found: " + skinSheetName });
-      parseGizzardSheet_(skinSheet, skinShift, skinDb, skinRecords, additionalSkinConfig.projectKey, additionalSkinConfig.sheets.targetProductivity);
+    if (action && ["read_breakdown", "read_block_tracker", "read_machine_layout"].indexOf(action) === -1) {
+      invalidRoute_("Unknown read action");
     }
-    skinDb._records = dedupeRecordsByTrialAndShift_(skinRecords);
-    attachSummaryFields_(skinDb, skinDb._records);
-    return jsonOutput_(skinDb);
-  }
-
-  if (requestedAction === "read_breakdown" || isBreakdownSheetName_(sheetName)) {
-    var breakdownSheet = ensureBreakdownLogSheet_(ss);
-    return ContentService.createTextOutput(JSON.stringify(buildBreakdownFeed_(breakdownSheet)))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  if (isBl23gSheetName_(sheetName)) {
-    var bl23Db = {};
-    var bl23Records = [];
-
-    var sourceSheet = ss.getSheetByName(bl23Config.sourceSheet);
-    if (sourceSheet) {
-      parseBl23gSheet_(sourceSheet, "A", bl23Db, bl23Records);
-    }
-
-    if (sheetName === bl23Config.shiftBSheet) {
-      bl23Db = {};
-      bl23Records = [];
-      var shiftBSheet = ss.getSheetByName(bl23Config.shiftBSheet);
-      if (shiftBSheet) {
-        parseBl23gSheet_(shiftBSheet, "B", bl23Db, bl23Records);
+    if (action) {
+      var requestedProject = normalizeLine_(params.projectKey);
+      var expectedSheet = action === "read_breakdown" ? BREAKDOWN_LOG_SHEET
+        : (action === "read_block_tracker" ? BLOCK_TRACKER_SHEET : MACHINE_LAYOUT_SHEET);
+      if (params.sheet && normalizeLine_(params.sheet) !== normalizeLine_(expectedSheet)) {
+        invalidRoute_("Conflicting action and sheet selections");
       }
-    } else {
-      var shiftB = ss.getSheetByName(bl23Config.shiftBSheet);
-      if (shiftB) {
-        parseBl23gSheet_(shiftB, "B", bl23Db, bl23Records);
+      if (requestedProject && requestedProject !== BL23G_M1_PROJECT_KEY &&
+          !(action === "read_breakdown" && requestedProject === BL23G_M2_PROJECT_KEY)) {
+        invalidRoute_("Invalid storage project");
       }
+      if (action === "read_block_tracker") return jsonOutput_(readBlockTrackerRecords_());
+      if (action === "read_machine_layout") return jsonOutput_(readMachineLayoutRecords_());
+      var breakdownConfig = getBl23gProjectConfig_(requestedProject || BL23G_M2_PROJECT_KEY);
+      return jsonOutput_(buildBreakdownFeed_(breakdownConfig.spreadsheet.getSheetByName(BREAKDOWN_LOG_SHEET)));
+    }
+    if (isBreakdownSheetName_(params.sheet)) {
+      var breakdownProject = normalizeLine_(params.projectKey);
+      if (breakdownProject && breakdownProject !== BL23G_M1_PROJECT_KEY && breakdownProject !== BL23G_M2_PROJECT_KEY) {
+        invalidRoute_("Invalid breakdown project");
+      }
+      var legacyBreakdownConfig = getBl23gProjectConfig_(breakdownProject || BL23G_M2_PROJECT_KEY);
+      return jsonOutput_(buildBreakdownFeed_(legacyBreakdownConfig.spreadsheet.getSheetByName(BREAKDOWN_LOG_SHEET)));
     }
 
-    bl23Records = dedupeRecordsByTrialAndShift_(bl23Records);
-    bl23Db._records = bl23Records;
-    attachSummaryFields_(bl23Db, bl23Records);
-    return ContentService.createTextOutput(JSON.stringify(bl23Db))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  if (isGizzardSheetName_(sheetName)) {
-    var gizzardDb = {};
-    var gizzardRecords = [];
-    var gizzardTarget = isGz40gSheetName_(sheetName) ? GZ40G_TARGET_PRODUCTIVITY : GZ30G_TARGET_PRODUCTIVITY;
-    var gizzardLine = isGz40gSheetName_(sheetName) ? "GZ40G" : "GZ30G";
-    var gizzardSourceSheetName = isGz40gSheetName_(sheetName) ? GZ40G_SOURCE_SHEET : GZ30G_SOURCE_SHEET;
-    var gizzardShiftSheetName = isGz40gSheetName_(sheetName) ? GZ40G_SHIFT_B_SHEET : GZ30G_SHIFT_B_SHEET;
-
-    var gizzardSource = ss.getSheetByName(gizzardSourceSheetName);
-    if (gizzardSource) {
-      parseGizzardSheet_(gizzardSource, "A", gizzardDb, gizzardRecords, gizzardLine, gizzardTarget);
+    var route = resolveProductionRoute_(params, false);
+    var ss = productionSpreadsheet_(route.config);
+    var db = {};
+    var records = [];
+    var foundSheet = false;
+    route.shifts.forEach(function(shift) {
+      var sheet = ss.getSheetByName(route.config["shift" + shift]);
+      if (!sheet) {
+        if (route.shifts.length === 1 || route.config.kind === "skin") {
+          var missing = new Error("Production sheet is unavailable");
+          missing.code = "SHEET_NOT_FOUND";
+          throw missing;
+        }
+        return;
+      }
+      foundSheet = true;
+      if (route.config.kind === "bl") parseBl23gSheet_(sheet, shift, db, records);
+      else parseGizzardSheet_(sheet, shift, db, records, route.config.line, route.config.target);
+    });
+    if (!foundSheet) {
+      var unavailable = new Error("Production sheets are unavailable");
+      unavailable.code = "SHEET_NOT_FOUND";
+      throw unavailable;
     }
-
-    if (sheetName === gizzardShiftSheetName) {
-      gizzardDb = {};
-      gizzardRecords = [];
-      var gizzardShiftOnly = ss.getSheetByName(gizzardShiftSheetName);
-      if (gizzardShiftOnly) {
-        parseGizzardSheet_(gizzardShiftOnly, "B", gizzardDb, gizzardRecords, gizzardLine, gizzardTarget);
-      }
-    } else {
-      var gizzardShift = ss.getSheetByName(gizzardShiftSheetName);
-      if (gizzardShift) {
-        parseGizzardSheet_(gizzardShift, "B", gizzardDb, gizzardRecords, gizzardLine, gizzardTarget);
-      }
-    }
-
-    gizzardRecords = dedupeRecordsByTrialAndShift_(gizzardRecords);
-    gizzardDb._records = gizzardRecords;
-    attachSummaryFields_(gizzardDb, gizzardRecords);
-    return ContentService.createTextOutput(JSON.stringify(gizzardDb))
-      .setMimeType(ContentService.MimeType.JSON);
+    db._records = dedupeRecordsByTrialAndShift_(records);
+    attachSummaryFields_(db, db._records);
+    return jsonOutput_(db);
+  } catch (error) {
+    return jsonOutput_({
+      status: "error",
+      code: error.code || "READ_FAILED",
+      error: error.code ? error.message : "Unable to read the requested feed",
+      _records: []
+    });
   }
-
-  var sheet = ss.getSheetByName(sheetName);
-  if (!sheet) {
-    return ContentService.createTextOutput(JSON.stringify({ error: "Sheet not found: " + sheetName }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  var targetProductivity = 69;
-  if (sheetName.indexOf("BL23g") !== -1) {
-    targetProductivity = BL23G_TARGET_PRODUCTIVITY;
-  } else if (sheetName.indexOf("GZ40g") !== -1) {
-    targetProductivity = 84;
-  } else if (sheetName.indexOf("GZ30g") !== -1) {
-    targetProductivity = 69;
-  }
-
-  var data = sheet.getDataRange().getValues();
-  var db = {};
-  var records = [];
-
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    var trialKey = row[0] ? row[0].toString().trim() : "";
-    if (trialKey === "" || trialKey === "Default") continue;
-    if (trialKey === "เดิม") continue;
-
-    if (sheetName.indexOf("BL23g") !== -1 && isShiftToken_(row[1])) continue;
-    var shiftOffset = sheetName.indexOf("BL23g") !== -1 ? 0 : (isShiftToken_(row[1]) ? 1 : 0);
-    var totalMan = Number(row[8 + shiftOffset]) || 0;
-    var totalOutput = Number(row[7 + shiftOffset]) || 0;
-    var calculatedProd = totalMan > 0 ? (totalOutput / totalMan) : 0;
-    var calculatedEff = (calculatedProd / targetProductivity) * 100;
-    var shift = sheetName.indexOf("BL23g") !== -1 ? normalizeShift_(row[15 + shiftOffset], "A") : (shiftOffset ? normalizeShift_(row[1]) : "A");
-    var recordKey = buildRecordKey_(trialKey, shift);
-    var line = row[15 + shiftOffset] ? row[15 + shiftOffset].toString().trim() : "";
-    var recordDate = row[14 + shiftOffset] ? row[14 + shiftOffset].toString().trim() : "";
-    var record = {
-      key: recordKey,
-      trial: trialKey,
-      line: line,
-      shift: shift,
-      prod: Number(calculatedProd),
-      eff: Number(calculatedEff),
-      man: totalMan,
-      total: totalOutput,
-      recordDate: recordDate,
-      status: row[20 + shiftOffset] ? row[20 + shiftOffset].toString().trim() : ""
-    };
-
-    records.push(record);
-    db[recordKey] = {
-      trial: trialKey,
-      prod: Number(calculatedProd),
-      eff: Number(calculatedEff),
-      man: totalMan,
-      total: totalOutput,
-      shift: shift,
-      line: line,
-      recordDate: recordDate,
-      layout: {
-        prep: Number(row[9 + shiftOffset]) || 0,
-        block: Number(row[10 + shiftOffset]) || 0,
-        inspec: Number(row[11 + shiftOffset]) || 0,
-        pack: Number(row[12 + shiftOffset]) || 0,
-        op: Number(row[13 + shiftOffset]) || 0
-      },
-      cycle_detail: {
-        prep: Number(row[1 + shiftOffset]) || 0,
-        arrange: Number(row[2 + shiftOffset]) || 0,
-        machine: Number(row[3 + shiftOffset]) || 0,
-        inspec: Number(row[4 + shiftOffset]) || 0,
-        pack: Number(row[5 + shiftOffset]) || 0
-      }
-    };
-  }
-
-  records = dedupeRecordsByTrialAndShift_(records);
-  db._records = records;
-  attachSummaryFields_(db, records);
-  return ContentService.createTextOutput(JSON.stringify(db))
-    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function buildBreakdownFeed_(sheet) {
@@ -1032,169 +930,21 @@ function buildBreakdownFeed_(sheet) {
 }
 
 function saveExternalRecord_(payload) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var line = normalizeLine_(payload.line);
-  var requestedSheet = String(payload.sheet || payload.targetSheet || "").trim();
-  var now = new Date();
+  var route = resolveProductionRoute_(payload, true);
+  var ss = productionSpreadsheet_(route.config);
+  var shift = route.shifts[0];
+  var sheetName = route.config["shift" + shift];
+  var sheet = shift === "B" && route.config.kind !== "skin"
+    ? ensureShiftBSheetCopy_(ss, route.config.shiftA, route.config.shiftB)
+    : ss.getSheetByName(sheetName);
+  if (!sheet) throw new Error("Production sheet is unavailable");
 
-  if (line === "BL23G" || line === BL23G_M1_PROJECT_KEY || line === BL23G_M2_PROJECT_KEY || isBl23gSheetName_(requestedSheet)) {
-    var bl23Route = resolveRecordRoute_(payload);
-    var bl23Config = getBl23gProjectConfig_(bl23Route.projectKey);
-    ss = bl23Config.spreadsheet;
-    var shift = bl23Route.shift;
-    var targetSheetName = bl23Route.sheet;
-    var targetSheet = targetSheetName === bl23Config.shiftBSheet
-      ? ensureShiftBSheetCopy_(ss, bl23Config.sourceSheet, bl23Config.shiftBSheet)
-      : ss.getSheetByName(bl23Config.sourceSheet);
-    if (!targetSheet) {
-      throw new Error("BL23G source sheet not found: " + bl23Config.sourceSheet);
-    }
-
-    var blAuditColumns = ensureRecordAuditColumns_(targetSheet);
-    var blNextRow = targetSheet.getLastRow() + 1;
-    targetSheet.appendRow(buildBl23gRow_(payload, shift));
-    targetSheet.getRange(blNextRow, blAuditColumns.recordDateColumn).setValue(valueOrEmpty_(payload.recordDate || payload.date));
-    targetSheet.getRange(blNextRow, blAuditColumns.createdAtColumn).setValue(now.toISOString());
-    return {
-      status: "success",
-      message: "Record saved to " + targetSheetName,
-      sheet: targetSheetName
-    };
-  }
-
-  if (line === "GZ30G" || line === "GZ40G" || isGizzardSheetName_(requestedSheet)) {
-    var gShift = normalizeShift_(payload.shift);
-    var isGz40 = line === "GZ40G" || isGz40gSheetName_(requestedSheet);
-    var gSourceSheetName = isGz40 ? GZ40G_SOURCE_SHEET : GZ30G_SOURCE_SHEET;
-    var gShiftSheetName = isGz40 ? GZ40G_SHIFT_B_SHEET : GZ30G_SHIFT_B_SHEET;
-    var gTargetSheetName = gShift === "B" ? gShiftSheetName : gSourceSheetName;
-    var gTargetSheet = gTargetSheetName === gShiftSheetName
-      ? ensureShiftBSheetCopy_(ss, gSourceSheetName, gShiftSheetName)
-      : ss.getSheetByName(gSourceSheetName);
-    if (!gTargetSheet) {
-      throw new Error("Source sheet not found: " + gSourceSheetName);
-    }
-
-    var gAuditColumns = ensureRecordAuditColumns_(gTargetSheet);
-    var gNextRow = gTargetSheet.getLastRow() + 1;
-    gTargetSheet.appendRow(buildBl23gRow_(payload, gShift));
-    gTargetSheet.getRange(gNextRow, gAuditColumns.recordDateColumn).setValue(valueOrEmpty_(payload.recordDate || payload.date));
-    gTargetSheet.getRange(gNextRow, gAuditColumns.createdAtColumn).setValue(now.toISOString());
-
-    return {
-      status: "success",
-      message: "Record saved to " + gTargetSheetName,
-      sheet: gTargetSheetName
-    };
-  }
-
-  if (isBbSkinProject_(line, requestedSheet)) {
-    var bbShift = normalizeShift_(payload.shift);
-    var bbTargetSheetName = resolveBbSkinSheetName_(bbShift);
-    var bbSpreadsheet = SpreadsheetApp.openById(BBSKIN_R12_SPREADSHEET_ID);
-    var bbTargetSheet = bbSpreadsheet.getSheetByName(bbTargetSheetName);
-    if (!bbTargetSheet) {
-      throw new Error("BB SKIN sheet not found: " + bbTargetSheetName);
-    }
-
-    var bbAuditColumns = ensureRecordAuditColumns_(bbTargetSheet);
-    var bbNextRow = bbTargetSheet.getLastRow() + 1;
-    bbTargetSheet.appendRow(buildBl23gRow_(payload, bbShift));
-    bbTargetSheet.getRange(bbNextRow, bbAuditColumns.recordDateColumn).setValue(valueOrEmpty_(payload.recordDate || payload.date));
-    bbTargetSheet.getRange(bbNextRow, bbAuditColumns.createdAtColumn).setValue(now.toISOString());
-
-    return {
-      status: "success",
-      message: "Record saved to " + bbTargetSheetName,
-      sheet: bbTargetSheetName
-    };
-  }
-
-  var additionalSkinConfig = getAdditionalSkinConfig_(line, requestedSheet);
-  if (additionalSkinConfig) {
-    var skinShift = normalizeShift_(payload.shift);
-    var skinTargetSheetName = resolveAdditionalSkinSheetName_(additionalSkinConfig, skinShift);
-    var skinSpreadsheet = SpreadsheetApp.openById(ADDITIONAL_SKIN_SPREADSHEET_ID);
-    var skinTargetSheet = skinSpreadsheet.getSheetByName(skinTargetSheetName);
-    if (!skinTargetSheet) {
-      throw new Error("Skin sheet not found: " + skinTargetSheetName);
-    }
-
-    var skinAuditColumns = ensureRecordAuditColumns_(skinTargetSheet);
-    var skinNextRow = skinTargetSheet.getLastRow() + 1;
-    skinTargetSheet.appendRow(buildBl23gRow_(payload, skinShift));
-    skinTargetSheet.getRange(skinNextRow, skinAuditColumns.recordDateColumn).setValue(valueOrEmpty_(payload.recordDate || payload.date));
-    skinTargetSheet.getRange(skinNextRow, skinAuditColumns.createdAtColumn).setValue(now.toISOString());
-
-    return {
-      status: "success",
-      message: "Record saved to " + skinTargetSheetName,
-      sheet: skinTargetSheetName
-    };
-  }
-
-  var sheetName = requestedSheet || "APEX_Flow_Records";
-  var sheet = ensureSheet_(ss, sheetName, [
-    "trial",
-    "shift",
-    "ct_prep",
-    "ct_arrange",
-    "ct_machine",
-    "ct_inspec",
-    "ct_pack",
-    "ct_total",
-    "yield_hour",
-    "man_total",
-    "man_prep",
-    "man_block",
-    "man_inspec",
-    "man_pack",
-    "man_op",
-    "recordDate",
-    "line",
-    "issue",
-    "actionNote",
-    "submitter",
-    "comment",
-    "status",
-    "recordType",
-    "createdAt"
-  ]);
-
-  var recordShift = normalizeShift_(payload.shift);
-  var row = [
-    valueOrEmpty_(payload.trial),
-    recordShift,
-    Number(payload.ct_prep) || 0,
-    Number(payload.ct_arrange) || 0,
-    Number(payload.ct_machine) || 0,
-    Number(payload.ct_inspec) || 0,
-    Number(payload.ct_pack) || 0,
-    Number(payload.ct_total) || Number(payload.total) || 0,
-    Number(payload.yield_hour) || Number(payload.prod) || 0,
-    Number(payload.man_total) || Number(payload.man) || 0,
-    Number(payload.man_prep) || 0,
-    Number(payload.man_block) || 0,
-    Number(payload.man_inspec) || 0,
-    Number(payload.man_pack) || 0,
-    Number(payload.man_op) || 0,
-    valueOrEmpty_(payload.recordDate || payload.date),
-    valueOrEmpty_(payload.line),
-    valueOrEmpty_(payload.issue),
-    valueOrEmpty_(payload.actionNote || payload.action_note),
-    valueOrEmpty_(payload.submitter || payload.createdBy),
-    valueOrEmpty_(payload.comment),
-    String(payload.status || "pending"),
-    "record_trial",
-    now.toISOString()
-  ];
-
-  sheet.appendRow(row);
-  return {
-    status: "success",
-    message: "Record saved to " + sheetName,
-    sheet: sheetName
-  };
+  var audit = ensureRecordAuditColumns_(sheet);
+  var nextRow = sheet.getLastRow() + 1;
+  sheet.appendRow(buildBl23gRow_(payload, shift));
+  sheet.getRange(nextRow, audit.recordDateColumn).setValue(valueOrEmpty_(payload.recordDate || payload.date));
+  sheet.getRange(nextRow, audit.createdAtColumn).setValue(new Date().toISOString());
+  return { status: "success", message: "Record saved to " + sheetName, sheet: sheetName };
 }
 
 function saveApprovalRecord_(payload) {
@@ -1337,7 +1087,9 @@ function deleteBlockTrackerRecord_(payload) {
 }
 
 function readBlockTrackerRecords_() {
-  var sheet = getBlockTrackerSheet_();
+  var ss = SpreadsheetApp.openById(BL23G_M1_SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(BLOCK_TRACKER_SHEET);
+  if (!sheet) return { status: "success", sheet: BLOCK_TRACKER_SHEET, records: [] };
   var values = sheet.getDataRange().getValues();
   var records = [];
   for (var i = 1; i < values.length; i++) {
@@ -1360,85 +1112,9 @@ function readBlockTrackerRecords_() {
 
 function saveData(formData) {
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheetName = formData.targetSheet;
-    var sheet = ss.getSheetByName(sheetName);
-
-    if (!sheet) {
-      return {
-        status: "error",
-        message: "Sheet not found: " + sheetName
-      };
-    }
-
-    var newRow = [
-      formData.trial,
-      Number(formData.ct_prep),
-      Number(formData.ct_arrange),
-      Number(formData.ct_machine),
-      Number(formData.ct_inspec),
-      Number(formData.ct_pack),
-      Number(formData.ct_total),
-      Number(formData.yield_hour),
-      Number(formData.man_total),
-      Number(formData.man_prep),
-      Number(formData.man_block),
-      Number(formData.man_inspec),
-      Number(formData.man_pack),
-      Number(formData.man_op)
-    ];
-
-    if (String(sheetName).indexOf("BL23g") !== -1) {
-      var shift = normalizeShift_(formData.shift);
-      if (shift === "B") {
-        sheet = ensureBl23ShiftBSheet_(ss);
-      }
-      newRow = [
-        formData.trial,
-        Number(formData.ct_prep),
-        Number(formData.ct_arrange),
-        Number(formData.ct_machine),
-        Number(formData.ct_inspec),
-        Number(formData.ct_pack),
-        Number(formData.ct_total),
-        Number(formData.yield_hour),
-        Number(formData.man_total),
-        Number(formData.man_prep),
-        Number(formData.man_block),
-        Number(formData.man_inspec),
-        Number(formData.man_pack),
-        Number(formData.man_op),
-        Number(formData.productivity) || 0,
-        shift,
-        0
-      ];
-    } else if (String(sheetName).indexOf("GZ30g") !== -1 || String(sheetName).indexOf("GZ40g") !== -1) {
-      var gShift = normalizeShift_(formData.shift);
-      var isGz40Sheet = String(sheetName).indexOf("GZ40g") !== -1;
-      var gSourceSheetName = isGz40Sheet ? GZ40G_SOURCE_SHEET : GZ30G_SOURCE_SHEET;
-      var gShiftSheetName = isGz40Sheet ? GZ40G_SHIFT_B_SHEET : GZ30G_SHIFT_B_SHEET;
-      sheet = gShift === "B"
-        ? ensureShiftBSheetCopy_(ss, gSourceSheetName, gShiftSheetName)
-        : ss.getSheetByName(gSourceSheetName);
-      if (!sheet) {
-        return {
-          status: "error",
-          message: "Sheet not found: " + gSourceSheetName
-        };
-      }
-      newRow = buildBl23gRow_(formData, gShift);
-    }
-
-    sheet.appendRow(newRow);
-    return {
-      status: "success",
-      message: "Saved trial " + formData.trial + " to " + sheetName
-    };
+    return saveExternalRecord_(formData || {});
   } catch (error) {
-    return {
-      status: "error",
-      message: "Save failed: " + error.toString()
-    };
+    return { status: "error", code: error.code || "WRITE_FAILED", message: "Save failed: " + error.toString() };
   }
 }
 
@@ -1657,7 +1333,9 @@ function saveMachineLayoutRecord_(payload) {
 }
 
 function readMachineLayoutRecords_() {
-  var sheet = ensureMachineLayoutSheet_();
+  var ss = SpreadsheetApp.openById(MACHINE_LAYOUT_SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(MACHINE_LAYOUT_SHEET);
+  if (!sheet) return { status: "success", records: [] };
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) {
     return { status: "success", records: [] };
