@@ -6,6 +6,7 @@
   <title>Block Tracker Records - Project APEX Flow</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="yakitori-runtime.js?v=20260617-04"></script>
+  <script src="block-tracker-ui.js?v=20260929-02"></script>
   <script src="yakitori-recording-auth.js?v=20260719-01"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap');
@@ -35,7 +36,7 @@
         <input id="editIndex" type="hidden">
         <div class="grid gap-5 xl:grid-cols-[1fr_1fr_1.5fr_1.5fr]">
           <fieldset class="rounded-xl border border-[#3b3b55] p-4"><legend class="px-2 text-base font-bold text-white">ชื่อบล็อค</legend><label class="block text-sm text-[#b3b7c9]">ชื่อรายการ<input id="name" required class="control mt-2 w-full rounded-xl px-3 py-3" placeholder="เช่น Tail Block (S18)"></label><label class="mt-3 block text-sm text-[#b3b7c9]">วันที่–เวลาบันทึก<input id="recordedAtDisplay" readonly class="control mt-2 w-full cursor-default rounded-xl px-3 py-3 text-[#b9d7ee]"></label></fieldset>
-          <fieldset class="rounded-xl border border-[#3b3b55] p-4"><legend class="px-2 text-base font-bold text-white">ไฟล์รูปบล็อค</legend><label class="block text-sm text-[#b3b7c9]">เลือกรูป<input id="image" type="file" accept="image/*" class="control mt-2 block w-full rounded-xl p-2 text-xs"></label><p class="mt-2 text-xs text-[#777b90]">รองรับไฟล์รูปภาพ</p></fieldset>
+          <fieldset class="rounded-xl border border-[#3b3b55] p-4"><legend class="px-2 text-base font-bold text-white">ไฟล์รูปบล็อค</legend><label class="block text-sm text-[#b3b7c9]">เลือกรูป<input id="image" type="file" accept="image/png,image/jpeg,image/webp" class="control mt-2 block w-full rounded-xl p-2 text-xs"></label><p class="mt-2 text-xs text-[#777b90]">PNG, JPEG หรือ WebP ไม่เกิน 2 MB</p></fieldset>
           <fieldset class="rounded-xl border border-[#354d6b] p-4"><legend class="px-2 text-base font-bold text-[#78caff]">จำนวนบล็อคบนไลน์ผลิต</legend><div class="grid grid-cols-2 gap-3"><label class="text-sm text-[#b3b7c9]">จำนวนที่ใช้งาน<input id="onLineUsed" type="number" min="0" required class="control mt-2 w-full rounded-xl px-3 py-3"></label><label class="text-sm text-[#b3b7c9]">เสียหาย<input id="onLineDamaged" type="number" min="0" required class="control mt-2 w-full rounded-xl px-3 py-3"></label></div></fieldset>
           <fieldset class="rounded-xl border border-[#365343] p-4"><legend class="px-2 text-base font-bold text-[#80e4ae]">จำนวนบล็อคอะไหล่</legend><div class="grid grid-cols-2 gap-3"><label class="text-sm text-[#b3b7c9]">จำนวนที่มี<input id="spareAvailable" type="number" min="0" required class="control mt-2 w-full rounded-xl px-3 py-3"></label><label class="text-sm text-[#b3b7c9]">เสียหาย<input id="spareDamaged" type="number" min="0" required class="control mt-2 w-full rounded-xl px-3 py-3"></label></div></fieldset>
         </div>
@@ -46,8 +47,9 @@
   </main>
   <script>
     const defaults=[{no:1,recordId:'BT-TAIL-S18',name:'Tail Block (S18)',onLineUsed:13,onLineDamaged:1,spareAvailable:0,spareDamaged:1},{no:2,recordId:'BT-TAIL-R15',name:'Tail Block (R15)',onLineUsed:10,onLineDamaged:0,spareAvailable:3,spareDamaged:1},{no:3,recordId:'BT-GZ-S18',name:'Gizzard Block (S18)',onLineUsed:12,onLineDamaged:2,spareAvailable:4,spareDamaged:0},{no:4,recordId:'BT-GZ-R15',name:'Gizzard Block (R15)',onLineUsed:8,onLineDamaged:0,spareAvailable:2,spareDamaged:0}];
-    const saved=JSON.parse(localStorage.getItem('apex-block-tracker')||'null');
-    let blocks=saved&&saved[0]&&'onLineUsed'in saved[0]?saved:defaults;
+    const blockUI=window.YakitoriBlockUI;
+    const saved=blockUI.readCache(localStorage,defaults);
+    let blocks=saved.length===0||'onLineUsed'in saved[0]?saved:defaults;
     const $=id=>document.getElementById(id), fields=['name','onLineUsed','onLineDamaged','spareAvailable','spareDamaged'];
     const accessGate=$('accessGate'), recordApp=$('recordApp');
     function unlockRecordPage(){sessionStorage.setItem('apex-block-tracker-access','granted');accessGate.classList.add('hidden');recordApp.classList.remove('hidden');}
@@ -59,9 +61,28 @@
     function ensureRecordId(record){if(!record.recordId)record.recordId='BT-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);return record.recordId;}
     async function syncRecord(record){ensureRecordId(record);if(!window.YakitoriRuntime)return;await window.YakitoriRuntime.postToAppsScript('record_block_tracker',{recordId:record.recordId,recordedAt:record.recordedAt||new Date().toISOString(),name:record.name,onLineUsed:record.onLineUsed,onLineDamaged:record.onLineDamaged,spareAvailable:record.spareAvailable,spareDamaged:record.spareDamaged,imageReference:record.image?'Stored locally in browser':''});}
     async function deleteRemoteRecord(recordId){if(!window.YakitoriRuntime||!recordId)return;await window.YakitoriRuntime.postToAppsScript('delete_block_tracker',{recordId:recordId});}
-    function render(){const input=(value,i,field,color)=>`<input type="number" min="0" value="${value}" data-i="${i}" data-field="${field}" class="quick-edit w-20 rounded-lg border border-[#3b3b55] bg-[#151522] px-2 py-1.5 text-center font-en font-bold ${color} focus:border-[#009ef7] focus:outline-none">`; $('recordTable').innerHTML=blocks.map((b,i)=>`<tr><td class="px-5 py-3">${b.image?`<img src="${b.image}" alt="${b.name}" class="h-10 w-14 rounded-lg object-cover">`:'<span class="text-xs text-[#777b90]">ไม่มีรูป</span>'}</td><td class="px-5 py-3.5 font-semibold text-white">${b.name}</td><td class="px-4 py-3.5 text-center">${input(b.onLineUsed,i,'onLineUsed','text-[#6fc6ff]')}</td><td class="px-4 py-3.5 text-center">${input(b.onLineDamaged,i,'onLineDamaged','text-[#ff8ba2]')}</td><td class="px-4 py-3.5 text-center">${input(b.spareAvailable,i,'spareAvailable','text-[#7ae3a7]')}</td><td class="px-4 py-3.5 text-center">${input(b.spareDamaged,i,'spareDamaged','text-[#ff8ba2]')}</td><td class="px-5 py-3.5 text-center"><button class="edit rounded-lg bg-[#26364d] px-2.5 py-1.5 text-xs text-[#8fd0ff]" data-i="${i}">แก้ไขชื่อ/รูป</button><button class="delete ml-2 rounded-lg bg-[#442431] px-2.5 py-1.5 text-xs text-[#ff9baa]" data-i="${i}">ลบ</button></td></tr>`).join('');}
+    function render(){
+      const countFields=['onLineUsed','onLineDamaged','spareAvailable','spareDamaged'];
+      const colors=['text-[#6fc6ff]','text-[#ff8ba2]','text-[#7ae3a7]','text-[#ff8ba2]'];
+      blockUI.replaceRows($('recordTable'),blocks,(b,i)=>{
+        const row=blockUI.element('tr');
+        blockUI.appendImage(blockUI.cell(row,'px-5 py-3'),b,'h-10 w-14 rounded-lg object-cover','text-xs text-[#777b90]','span');
+        blockUI.cell(row,'px-5 py-3.5 font-semibold text-white',b.name);
+        countFields.forEach((field,j)=>{
+          const input=blockUI.element('input','quick-edit w-20 rounded-lg border border-[#3b3b55] bg-[#151522] px-2 py-1.5 text-center font-en font-bold '+colors[j]+' focus:border-[#009ef7] focus:outline-none');
+          input.type='number';input.min='0';input.step='1';input.value=b[field];input.dataset.i=i;input.dataset.field=field;
+          blockUI.cell(row,'px-4 py-3.5 text-center').appendChild(input);
+        });
+        const actions=blockUI.cell(row,'px-5 py-3.5 text-center');
+        [['edit','edit rounded-lg bg-[#26364d] px-2.5 py-1.5 text-xs text-[#8fd0ff]','แก้ไขชื่อ/รูป'],['delete','delete ml-2 rounded-lg bg-[#442431] px-2.5 py-1.5 text-xs text-[#ff9baa]','ลบ']].forEach(([,classes,label])=>{
+          const button=blockUI.element('button',classes,label);button.type='button';button.dataset.i=i;actions.appendChild(button);
+        });
+        return row;
+      });
+    }
     function edit(i){const b=blocks[i];$('editIndex').value=i;fields.forEach(k=>$(k).value=b[k]);refreshRecordedAtDisplay(b.recordedAt);window.scrollTo({top:0,behavior:'smooth'});}
-    $('recordForm').addEventListener('submit',async e=>{e.preventDefault();const index=$('editIndex').value,old=index===''?{}:blocks[index],b={...old,no:index===''?blocks.length+1:old.no};ensureRecordId(b);b.recordedAt=old.recordedAt||new Date().toISOString();fields.forEach(k=>b[k]=k==='name'?$(k).value:Number($(k).value));const file=$('image').files[0];if(file)b.image=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.readAsDataURL(file);});if(index==='')blocks.push(b);else blocks[index]=b;save();await syncRecord(b);$('recordForm').reset();$('editIndex').value='';refreshRecordedAtDisplay();render();});
+    $('recordForm').addEventListener('submit',async e=>{e.preventDefault();const index=$('editIndex').value,old=index===''?{}:blocks[index],b={...old,no:index===''?blocks.length+1:old.no};ensureRecordId(b);b.recordedAt=old.recordedAt||new Date().toISOString();fields.forEach(k=>b[k]=k==='name'?$(k).value:Number($(k).value));const file=$('image').files[0];if(file){try{b.image=await blockUI.readImageFile(file);}catch(error){$('image').setCustomValidity(error.message);$('image').reportValidity();return;}}if(index==='')blocks.push(b);else blocks[index]=b;save();await syncRecord(b);$('recordForm').reset();$('editIndex').value='';refreshRecordedAtDisplay();render();});
+    $('image').addEventListener('change',()=>$('image').setCustomValidity(''));
     async function loadRemoteRecords(){if(!window.YakitoriRuntime)return;try{const response=await fetch(window.YakitoriRuntime.buildApiUrl('',{action:'read_block_tracker'}),{cache:'no-store'});const body=await response.json();if(!body.records||!body.records.length)return;const localImages=new Map(blocks.map(b=>[b.recordId,b.image]));blocks=body.records.map((b,i)=>({...b,no:i+1,image:localImages.get(b.recordId)}));save();render();}catch(error){console.warn('Block Tracker sync unavailable',error);}}
     $('resetBtn').addEventListener('click',()=>{$('recordForm').reset();$('editIndex').value='';refreshRecordedAtDisplay();});$('recordTable').addEventListener('click',e=>{const i=Number(e.target.dataset.i);if(e.target.classList.contains('edit'))edit(i);if(e.target.classList.contains('delete')&&confirm('ลบรายการนี้?')){const recordId=blocks[i].recordId;blocks.splice(i,1);blocks.forEach((b,j)=>b.no=j+1);save();deleteRemoteRecord(recordId);render();}});$('recordTable').addEventListener('change',e=>{if(!e.target.classList.contains('quick-edit'))return;const i=Number(e.target.dataset.i),field=e.target.dataset.field,value=Math.max(0,Number(e.target.value)||0);blocks[i][field]=value;blocks[i].recordedAt=blocks[i].recordedAt||new Date().toISOString();ensureRecordId(blocks[i]);e.target.value=value;save();syncRecord(blocks[i]);});refreshRecordedAtDisplay();setInterval(()=>{if($('editIndex').value==='')refreshRecordedAtDisplay();},1000);render();loadRemoteRecords();
   </script>
