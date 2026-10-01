@@ -22,24 +22,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Run local regression tests
+        run: node --test tests/dashboard-regression.cjs tests/block-tracker-security.cjs tests/recording-baseline.cjs tests/gas-routing.cjs tests/pages-artifact.cjs
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Generate dashboard build info
-        shell: bash
-        run: |
-          cat > build-info.json <<EOF
-          {
-            "build": "${{ github.run_number }}",
-            "commit": "${{ github.sha }}",
-            "builtAt": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          }
-          EOF
+      - name: Build public Pages artifact
+        run: node scripts/build-pages.cjs
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .
+          path: _site
 
   deploy:
     environment:

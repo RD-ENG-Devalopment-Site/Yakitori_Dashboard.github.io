@@ -7,7 +7,10 @@ const vm = require('node:vm');
 const { execFileSync, spawnSync } = require('node:child_process');
 const { chromium } = require('playwright');
 const root = path.resolve(__dirname, '..');
-const urlFor = file => 'file:///' + root.replace(/\\/g, '/') + '/' + file;
+const siteRoot = process.env.YAKITORI_SITE_ROOT || root;
+const urlFor = file => process.env.YAKITORI_SITE_ORIGIN
+    ? new URL(file, process.env.YAKITORI_SITE_ORIGIN).href
+    : 'file:///' + siteRoot.replace(/\\/g, '/') + '/' + file;
 const row = (line, shift, prod, trial = '1') => ({
     line, shift, prod, trial, eff: 999, man: 10, total: prod * 10,
     recordDate: '2026-09-30', createdAt: '2026-09-30T01:00:00Z',
