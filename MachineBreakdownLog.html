@@ -45,10 +45,27 @@
         }
         .machine-option:hover { border-color: #5e6278; transform: translateY(-1px); }
         .machine-option.is-selected {
-            background: rgba(255, 199, 0, .10);
-            border-color: #ffc700;
-            box-shadow: 0 0 0 1px rgba(255, 199, 0, .16);
+            background: rgba(0, 158, 247, .10);
+            border-color: #009ef7;
+            box-shadow: 0 0 0 1px rgba(0, 158, 247, .16);
         }
+        .machine-select-button { min-width: 0; }
+        .machine-status-select {
+            background: #1a1a27;
+            border: 1px solid #323248;
+            color: white;
+        }
+        .machine-status-select:focus { outline: none; border-color: #009ef7; }
+        .machine-status-dot {
+            display: inline-block !important;
+            width: 12px !important;
+            height: 12px !important;
+            flex: 0 0 12px !important;
+            border-radius: 9999px;
+        }
+        .machine-status-dot.status-ready { background: #50cd89 !important; box-shadow: 0 0 8px rgba(80, 205, 137, .48); }
+        .machine-status-dot.status-maintenance { background: #ffc700 !important; box-shadow: 0 0 8px rgba(255, 199, 0, .48); }
+        .machine-status-dot.status-not-installed { background: #f1416c !important; box-shadow: 0 0 8px rgba(241, 65, 108, .50); }
     </style>
     <link rel="stylesheet" href="yakitori-m1-theme.css?v=20260719-01">
     <link rel="stylesheet" href="recording-workspace-theme.css?v=20260719-01">
@@ -139,7 +156,11 @@
                     <label class="space-y-2 md:col-span-2">
                         <span class="text-sm text-white">สินค้า / Target reference</span>
                         <select name="productLine" class="field w-full rounded-xl px-4 py-3" onchange="calculateBreakdownMetrics()">
-                            <option value="BL23G">BL23G</option>
+                            <option value="BL23G_M1">BL 23G R15 (M1)</option>
+                            <option value="BL23G_M2" selected>BL 23G R15 (M2)</option>
+                            <option value="BBSKINR12">BB SKIN 25G R12</option>
+                            <option value="NECKSKINR15">Neck Skin 40G R15</option>
+                            <option value="BBSKINF15">BB SKIN 35G F15</option>
                             <option value="GZ40G">Gizzard 40G S18</option>
                             <option value="GZ30G">Gizzard 30G R15</option>
                         </select>
@@ -148,25 +169,25 @@
                     <div class="space-y-3 md:col-span-2">
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <span class="text-sm text-white block">เลือกเครื่องจักรที่เกิด Breakdown <span class="text-[#f1416c]">*</span></span>
-                            <span class="text-xs text-[#a1a5b7]">ทั้งหมด 4 เครื่อง</span>
+                            <span class="text-xs text-[#a1a5b7]">เขียว: พร้อมใช้งาน · เหลือง: บำรุงรักษา · แดง: ยังไม่ติดตั้ง</span>
                         </div>
                         <div id="machineOptions" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <button type="button" class="machine-option rounded-xl px-4 py-4 text-left" data-machine="M1">
-                                <span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-[#50cd89]"></span><strong class="text-white">M1</strong></span>
-                                <span class="block mt-2 text-sm text-[#a1a5b7]">Skewer Yakitori Machine 1</span>
-                            </button>
-                            <button type="button" class="machine-option rounded-xl px-4 py-4 text-left" data-machine="M2">
-                                <span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-[#50cd89]"></span><strong class="text-white">M2</strong></span>
-                                <span class="block mt-2 text-sm text-[#a1a5b7]">Skewer Yakitori Machine 2</span>
-                            </button>
-                            <button type="button" class="machine-option rounded-xl px-4 py-4 text-left" data-machine="M3">
-                                <span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-[#ffc700]"></span><strong class="text-white">M3</strong></span>
-                                <span class="block mt-2 text-sm text-[#a1a5b7]">Skewer Yakitori Machine 3</span>
-                            </button>
-                            <button type="button" class="machine-option rounded-xl px-4 py-4 text-left" data-machine="M4">
-                                <span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-[#ffc700]"></span><strong class="text-white">M4</strong></span>
-                                <span class="block mt-2 text-sm text-[#a1a5b7]">Skewer Yakitori Machine 4</span>
-                            </button>
+                            <div class="machine-option rounded-xl px-4 py-4" data-machine-card="M1">
+                                <button type="button" class="machine-select-button w-full text-left" data-machine="M1"><span class="flex items-center gap-2"><span class="machine-status-dot status-ready h-2.5 w-2.5 rounded-full" data-machine-dot="M1"></span><strong class="text-white">M1</strong></span><span class="block mt-2 text-sm text-[#a1a5b7]">Skewer Yakitori Machine 1</span></button>
+                                <label class="block mt-3 text-xs text-[#a1a5b7]">สถานะเครื่อง<select class="machine-status-select mt-1 w-full rounded-lg px-3 py-2 text-sm" data-machine-status="M1"><option value="ready">พร้อมใช้งาน</option><option value="maintenance">กำลังบำรุงรักษา</option><option value="not_installed">ยังไม่ติดตั้ง</option></select></label>
+                            </div>
+                            <div class="machine-option rounded-xl px-4 py-4" data-machine-card="M2">
+                                <button type="button" class="machine-select-button w-full text-left" data-machine="M2"><span class="flex items-center gap-2"><span class="machine-status-dot status-ready h-2.5 w-2.5 rounded-full" data-machine-dot="M2"></span><strong class="text-white">M2</strong></span><span class="block mt-2 text-sm text-[#a1a5b7]">Skewer Yakitori Machine 2</span></button>
+                                <label class="block mt-3 text-xs text-[#a1a5b7]">สถานะเครื่อง<select class="machine-status-select mt-1 w-full rounded-lg px-3 py-2 text-sm" data-machine-status="M2"><option value="ready">พร้อมใช้งาน</option><option value="maintenance">กำลังบำรุงรักษา</option><option value="not_installed">ยังไม่ติดตั้ง</option></select></label>
+                            </div>
+                            <div class="machine-option rounded-xl px-4 py-4" data-machine-card="M3">
+                                <button type="button" class="machine-select-button w-full text-left" data-machine="M3"><span class="flex items-center gap-2"><span class="machine-status-dot status-ready h-2.5 w-2.5 rounded-full" data-machine-dot="M3"></span><strong class="text-white">M3</strong></span><span class="block mt-2 text-sm text-[#a1a5b7]">Skewer Yakitori Machine 3</span></button>
+                                <label class="block mt-3 text-xs text-[#a1a5b7]">สถานะเครื่อง<select class="machine-status-select mt-1 w-full rounded-lg px-3 py-2 text-sm" data-machine-status="M3"><option value="ready">พร้อมใช้งาน</option><option value="maintenance">กำลังบำรุงรักษา</option><option value="not_installed">ยังไม่ติดตั้ง</option></select></label>
+                            </div>
+                            <div class="machine-option rounded-xl px-4 py-4" data-machine-card="M4">
+                                <button type="button" class="machine-select-button w-full text-left" data-machine="M4"><span class="flex items-center gap-2"><span class="machine-status-dot status-ready h-2.5 w-2.5 rounded-full" data-machine-dot="M4"></span><strong class="text-white">M4</strong></span><span class="block mt-2 text-sm text-[#a1a5b7]">Skewer Yakitori Machine 4</span></button>
+                                <label class="block mt-3 text-xs text-[#a1a5b7]">สถานะเครื่อง<select class="machine-status-select mt-1 w-full rounded-lg px-3 py-2 text-sm" data-machine-status="M4"><option value="ready">พร้อมใช้งาน</option><option value="maintenance">กำลังบำรุงรักษา</option><option value="not_installed">ยังไม่ติดตั้ง</option></select></label>
+                            </div>
                         </div>
                         <input type="hidden" name="station" value="M1">
                     </div>
@@ -306,7 +327,11 @@
                     <span class="text-xs uppercase tracking-[0.18em] text-[#a1a5b7] font-bold">Filter by Product</span>
                     <select id="breakdownFilterProduct" class="field w-full rounded-xl px-4 py-3 text-sm">
                         <option value="all">All Products</option>
-                        <option value="BL23G">BL23G</option>
+                        <option value="BL23G_M1">BL 23G R15 (M1)</option>
+                        <option value="BL23G_M2">BL 23G R15 (M2)</option>
+                        <option value="BBSKINR12">BB SKIN 25G R12</option>
+                        <option value="NECKSKINR15">Neck Skin 40G R15</option>
+                        <option value="BBSKINF15">BB SKIN 35G F15</option>
                         <option value="GZ40G">Gizzard 40G S18</option>
                         <option value="GZ30G">Gizzard 30G R15</option>
                     </select>
@@ -357,7 +382,11 @@
         const BREAKDOWN_SHEET_NAME = 'MachineBreakdownLog';
         const BREAKDOWN_HISTORY_KEY = 'yakitori-breakdown-history';
         const lineTargets = {
-            BL23G: 130,
+            BL23G_M1: 130,
+            BL23G_M2: 130,
+            BBSKINR12: 120,
+            NECKSKINR15: 120,
+            BBSKINF15: 120,
             GZ40G: 84,
             GZ30G: 69
         };
@@ -367,8 +396,16 @@
             M3: 'Skewer Yakitori Machine 3',
             M4: 'Skewer Yakitori Machine 4'
         };
+        const machineLayoutIds = { M1: 'YK-101', M2: 'YK-102', M3: 'YK-103', M4: 'YK-104' };
+        const machineAvailabilityMap = { running: 'ready', maintenance: 'maintenance', idle: 'not_installed', fault: 'maintenance' };
+        const machineAvailabilityToApi = { ready: 'running', maintenance: 'maintenance', not_installed: 'idle' };
+        let machineLayoutRecords = new Map();
         const lineDisplayMap = {
-            BL23G: 'สินค้า BL 23G',
+            BL23G_M1: 'BL 23G R15 (M1)',
+            BL23G_M2: 'BL 23G R15 (M2)',
+            BBSKINR12: 'BB SKIN 25G R12',
+            NECKSKINR15: 'Neck Skin 40G R15',
+            BBSKINF15: 'BB SKIN 35G F15',
             GZ40G: 'สินค้า Gizzard 40G',
             GZ30G: 'สินค้า Gizzard 30G'
         };
@@ -413,9 +450,67 @@
 
             document.querySelectorAll('[data-machine]').forEach(button => {
                 const selected = button.dataset.machine === machineId;
-                button.classList.toggle('is-selected', selected);
+                button.closest('[data-machine-card]')?.classList.toggle('is-selected', selected);
                 button.setAttribute('aria-pressed', String(selected));
             });
+        }
+
+        function setMachineAvailability(machineId, availability) {
+            const normalized = ['ready', 'maintenance', 'not_installed'].includes(availability) ? availability : 'ready';
+            const select = document.querySelector(`[data-machine-status="${machineId}"]`);
+            const dot = document.querySelector(`[data-machine-dot="${machineId}"]`);
+            if (select) select.value = normalized;
+            if (dot) {
+                dot.classList.remove('status-ready', 'status-maintenance', 'status-not-installed');
+                dot.classList.add(`status-${normalized}`);
+            }
+        }
+
+        async function loadMachineAvailability() {
+            if (!window.YakitoriRuntime?.buildApiUrl) return;
+            try {
+                const response = await fetch(window.YakitoriRuntime.buildApiUrl('MachineLayout_DataLog', {
+                    action: 'read_machine_layout', ts: Date.now()
+                }), { cache: 'no-store' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const payload = await response.json();
+                const records = Array.isArray(payload?.records) ? payload.records : [];
+                machineLayoutRecords = new Map(records.map(record => [String(record.machine_id || '').trim(), record]));
+                Object.entries(machineLayoutIds).forEach(([machineId, layoutId]) => {
+                    const status = machineAvailabilityMap[machineLayoutRecords.get(layoutId)?.machine_status] || 'not_installed';
+                    setMachineAvailability(machineId, status);
+                });
+            } catch (error) {
+                console.warn('Unable to load machine availability:', error);
+                pushStatus('ไม่สามารถอ่านสถานะเครื่องล่าสุดได้ — แสดงสถานะเริ่มต้นชั่วคราว', 'warn');
+            }
+        }
+
+        async function saveMachineAvailability(machineId, availability) {
+            const layoutId = machineLayoutIds[machineId];
+            if (!layoutId || !window.YakitoriRuntime?.postToAppsScript) return;
+
+            const existing = machineLayoutRecords.get(layoutId) || {};
+            const payload = {
+                machine_id: layoutId,
+                machine_name: existing.machine_name || machineCatalog[machineId],
+                conveyor_name: existing.conveyor_name || '',
+                product_name: existing.product_name || '',
+                installed_at: existing.installed_at || '',
+                machine_status: machineAvailabilityToApi[availability] || 'running',
+                last_breakdown_at: existing.last_breakdown_at || '',
+                breakdown_detail: existing.breakdown_detail || ''
+            };
+
+            try {
+                await window.YakitoriRuntime.postToAppsScript('upsert_machine_layout', payload);
+                machineLayoutRecords.set(layoutId, { ...existing, ...payload });
+                pushStatus(`${machineId}: บันทึกสถานะเครื่องแล้ว`, 'success');
+            } catch (error) {
+                console.error('Unable to save machine availability:', error);
+                pushStatus(`บันทึกสถานะ ${machineId} ไม่สำเร็จ: ${error.message || error}`, 'error');
+                loadMachineAvailability();
+            }
         }
 
         function initializeMachineSelector() {
@@ -425,7 +520,16 @@
             document.querySelectorAll('[data-machine]').forEach(button => {
                 button.addEventListener('click', () => selectMachine(button.dataset.machine));
             });
+            document.querySelectorAll('[data-machine-status]').forEach(select => {
+                select.addEventListener('change', event => {
+                    const machineId = event.currentTarget.dataset.machineStatus;
+                    const availability = event.currentTarget.value;
+                    setMachineAvailability(machineId, availability);
+                    saveMachineAvailability(machineId, availability);
+                });
+            });
             selectMachine('M1');
+            loadMachineAvailability();
         }
 
         function resolveBreakdownEventId(entry, index = 0) {
