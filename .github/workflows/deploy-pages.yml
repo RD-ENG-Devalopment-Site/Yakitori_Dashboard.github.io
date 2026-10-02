@@ -28,7 +28,10 @@ jobs:
           node-version: '24'
 
       - name: Run local regression tests
-        run: node --test tests/dashboard-regression.cjs tests/block-tracker-security.cjs tests/recording-baseline.cjs tests/gas-routing.cjs tests/pages-artifact.cjs
+        run: node --test tests/dashboard-regression.cjs tests/block-tracker-security.cjs tests/recording-baseline.cjs tests/gas-routing.cjs tests/pages-artifact.cjs tests/breakdown-domain.cjs tests/breakdown-gas.cjs tests/breakdown-bff.cjs
+
+      - name: Verify reproducible read-only Viewer build
+        run: node scripts/build-machine-viewer.cjs --check
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

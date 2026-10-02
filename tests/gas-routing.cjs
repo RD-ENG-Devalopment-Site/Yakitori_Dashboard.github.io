@@ -160,7 +160,8 @@ test('known skin writes use the correct external sheet and preserve positional b
 test('health metadata is additive, read-only and contains no deployment secrets or spreadsheet IDs', () => {
     const h = createGasHarness();
     const health = h.read({ action: 'read_health' });
-    assert.equal(health.writeProtocolVersion, null);
+    assert.equal(health.writeProtocolVersion, 2);
+    assert.equal(health.breakdownWritesEnabled, false);
     for (const [project, , , target] of routes) assert.equal(health.targets[project], target);
     assert.equal(h.reads.length, 0);
     assert.equal(h.mutations.length, 0);

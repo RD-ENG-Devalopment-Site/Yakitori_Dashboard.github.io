@@ -1,5 +1,5 @@
 (function (global) {
-    const BUILD_VERSION = "20260929-02";
+    const BUILD_VERSION = "20261002-layout-readonly-01";
     const CONFIG = {
         appsScriptUrl: "https://script.google.com/macros/s/AKfycbzCP20irjQdA65MEQXeB4KW8kkvmYRMJYbL8Zm1IdklPpKvvmTIIFcx0Zs_pm3Nwyel/exec",
         buildVersion: BUILD_VERSION
@@ -129,7 +129,7 @@
         return url.toString();
     }
 
-    async function postToAppsScript(action, payload = {}) {
+    async function postToAppsScript(action, payload = {}, options = {}) {
         const body = {
             action,
             payload
@@ -138,6 +138,7 @@
         await fetch(CONFIG.appsScriptUrl, {
             method: "POST",
             mode: "no-cors",
+            signal: options.signal,
             headers: {
                 "Content-Type": "text/plain;charset=UTF-8"
             },

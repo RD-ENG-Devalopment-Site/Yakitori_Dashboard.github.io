@@ -18,7 +18,15 @@ function createGasHarness({ activeSheets = {}, externalSheets = {} } = {}) {
                 getRange(row, column, height = 1, width = 1) {
                     const range = {
                         getValues: () => Array.from({ length: height }, (_, i) =>
-                            Array.from({ length: width }, (_, j) => rows[row - 1 + i]?.[column - 1 + j] ?? '')),
+                            Array.from({ length: width }, (_, j) => {
+                                const value = rows[row - 1 + i]?.[column - 1 + j] ?? '';
+                                return value === '=SUM(1,2)' ? 3 : value;
+                            })),
+                        getFormulas: () => Array.from({ length: height }, (_, i) =>
+                            Array.from({ length: width }, (_, j) => {
+                                const value = rows[row - 1 + i]?.[column - 1 + j];
+                                return typeof value === 'string' && value.startsWith('=') ? value : '';
+                            })),
                         getDisplayValues: () => range.getValues().map(values => values.map(String)),
                         setValues(values) {
                             mutations.push({ type: 'setValues', spreadsheet: id, sheet: name, row, column });
@@ -91,6 +99,8 @@ function createGasHarness({ activeSheets = {}, externalSheets = {} } = {}) {
     });
     const source = fs.readFileSync(path.resolve(__dirname, '../../yakitori-gas-src/รหัส.js'), 'utf8');
     vm.runInContext(source, context, { filename: 'GAS source', timeout: 1000 });
+    const breakdownSource = fs.readFileSync(path.resolve(__dirname, '../../yakitori-gas-src/BreakdownProtocol.js'), 'utf8');
+    vm.runInContext(breakdownSource, context, { filename: 'Breakdown protocol', timeout: 1000 });
     return {
         context, active, external, mutations, reads,
         read: params => JSON.parse(context.getJsonStream({ parameter: params }).getContent()),

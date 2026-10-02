@@ -1,8 +1,10 @@
 (function () {
     'use strict';
 
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzCP20irjQdA65MEQXeB4KW8kkvmYRMJYbL8Zm1IdklPpKvvmTIIFcx0Zs_pm3Nwyel/exec';
-    const HISTORY_KEY = 'yakitori-breakdown-history';
+    let lastGood = null;
+    let inFlight = false;
+    let timer = null;
+    let failures = 0;
     const MACHINES = ['M1', 'M2', 'M3', 'M4'];
     const REFRESH_INTERVAL_MS = 60 * 1000;
 
@@ -19,7 +21,7 @@
     }
 
     function getEventTime(record) {
-        const created = Date.parse(record?.createdAt || record?.updatedAt || '');
+        const created = Date.parse(record?.startedAt || record?.updatedAt || record?.createdAt || '');
         if (Number.isFinite(created)) return created;
 
         const local = Date.parse(`${record?.breakdownDate || ''}T${record?.startTime || '00:00'}`);
@@ -30,7 +32,7 @@
         const date = new Date(getEventTime(record));
         if (!Number.isFinite(date.getTime()) || date.getTime() === 0) return '-';
         return date.toLocaleString('th-TH', {
-            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok'
         });
     }
 
@@ -38,41 +40,35 @@
         const value = String(record?.breakdownStatus || record?.status || 'Open').trim().toLowerCase();
         if (value === 'closed') return 'closed';
         if (value === 'monitoring') return 'monitoring';
-        return 'open';
-    }
-
-    function readLocalHistory() {
-        try {
-            const value = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
-            return Array.isArray(value) ? value : [];
-        } catch (_) {
-            return [];
-        }
+        return value === 'open' ? 'open' : 'unknown';
     }
 
     async function readBreakdowns() {
-        const url = new URL(API_URL);
-        url.searchParams.set('page', 'api');
-        url.searchParams.set('sheet', 'MachineBreakdownLog');
-        url.searchParams.set('action', 'read_breakdown');
+        const url = window.YakitoriRuntime.buildApiUrl('MachineBreakdownLog', { action: 'read_breakdown', ts: Date.now() });
 
         try {
-            const response = await fetch(url.toString(), { cache: 'no-store' });
+            const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(20000) });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const payload = await response.json();
-            const records = Array.isArray(payload?._records) ? payload._records : [];
-            return { records, source: 'Google Sheet' };
+            if (payload.status !== 'success' || !Array.isArray(payload._records)) throw new Error('Invalid breakdown feed');
+            lastGood = { records: payload._records, source: 'Google Sheet', asOf: payload.asOf || new Date().toISOString() };
+            failures = 0;
+            return { ...lastGood, stale: false };
         } catch (_) {
-            return { records: readLocalHistory(), source: 'Browser preview' };
+            failures++;
+            return { records: lastGood?.records || [], source: lastGood ? 'ข้อมูลเก่า — อ่านล่าสุดไม่สำเร็จ' : 'อ่านข้อมูลไม่ได้', asOf: lastGood?.asOf, stale: true };
         }
     }
 
     function latestByMachine(records) {
         const result = Object.fromEntries(MACHINES.map(machine => [machine, null]));
         records.forEach(record => {
+            if (record.voidedAt || record.isHistorical === true || record.isHistorical === 'true' || record.isMachineStop === false || record.isMachineFailure === false) return;
             const machine = getMachineCode(record);
             if (!machine) return;
-            if (!result[machine] || getEventTime(record) > getEventTime(result[machine])) {
+            const current = result[machine];
+            const priority = r => !r ? 9 : normalizeStatus(r) === 'open' ? 0 : normalizeStatus(r) === 'monitoring' ? 1 : 2;
+            if (!current || priority(record) < priority(current) || (priority(record) === priority(current) && getEventTime(record) > getEventTime(current))) {
                 result[machine] = record;
             }
         });
@@ -104,7 +100,7 @@
     }
 
     function statusLabel(status) {
-        return { open: 'Breakdown เปิดอยู่', monitoring: 'กำลังติดตาม', closed: 'ปิดงานแล้ว' }[status] || 'ปกติ';
+        return { open: 'Breakdown เปิดอยู่', monitoring: 'ทดลองเดิน/เฝ้าติดตาม', closed: 'ประวัติปิดงานแล้ว' }[status] || 'สถานะไม่ทราบ';
     }
 
     function decorateMarkers(latest) {
@@ -114,12 +110,14 @@
             marker.classList.remove('bd-open', 'bd-monitoring', 'bd-closed');
             const record = latest[machine];
             if (!record) {
+                delete marker.dataset.breakdownStatus;
                 marker.title = `${machine}: ไม่มีรายการ Breakdown`;
                 return;
             }
             const status = normalizeStatus(record);
-            marker.classList.add(`bd-${status}`);
-            marker.title = `${machine}: ${statusLabel(status)} — ${record.rootCause || record.eventType || 'Breakdown'}`;
+            // Keep the core layout/installation dot untouched; incident state has a separate panel.
+            marker.dataset.breakdownStatus = status;
+            marker.title = `${machine}: ${statusLabel(status)} — ${record.symptom || record.rootCause || record.eventType || 'Breakdown'}`;
         });
     }
 
@@ -129,7 +127,7 @@
         marker?.click();
     }
 
-    function renderPanel(latest, source) {
+    function renderPanel(latest, source, stale, asOf) {
         const stage = document.querySelector('.viewer-stage');
         if (!stage) return;
         let panel = document.getElementById('breakdown-status-panel');
@@ -140,38 +138,47 @@
             stage.appendChild(panel);
         }
 
-        panel.innerHTML = `
-            <div class="breakdown-status-panel__head">
-                <strong>สถานะ Machine Breakdown</strong>
-                <button type="button" id="breakdown-refresh">รีเฟรช</button>
-            </div>
-            <div class="breakdown-status-grid">
-                ${MACHINES.map(machine => {
-                    const record = latest[machine];
-                    const status = record ? normalizeStatus(record) : 'closed';
-                    const description = record ? (record.rootCause || record.eventType || 'Breakdown') : 'ไม่มีรายการ';
-                    return `<button type="button" class="breakdown-status-card status-${status}" data-breakdown-machine="${machine}"><strong>${machine}</strong><span>${description}</span><em>${record ? `${statusLabel(status)} · ${formatEventTime(record)}` : 'ปกติ'}</em></button>`;
-                }).join('')}
-            </div>
-            <div style="margin-top:8px;color:#7589a3;font-size:10px">แหล่งข้อมูล: ${source} · อัปเดตอัตโนมัติทุก 1 นาที</div>
-        `;
-        panel.querySelector('#breakdown-refresh')?.addEventListener('click', refresh);
-        panel.querySelectorAll('[data-breakdown-machine]').forEach(button => {
-            button.addEventListener('click', () => selectMachine(button.dataset.breakdownMachine));
+        panel.replaceChildren();
+        const node = (tag, text, className) => { const el = document.createElement(tag); el.textContent = text; if (className) el.className = className; return el; };
+        const head = node('div', '', 'breakdown-status-panel__head');
+        head.appendChild(node('strong', 'สถานะ Machine Breakdown'));
+        const retry = node('button', 'รีเฟรช'); retry.type = 'button'; retry.id = 'breakdown-refresh'; retry.addEventListener('click', refresh); head.appendChild(retry);
+        panel.appendChild(head);
+        const grid = node('div', '', 'breakdown-status-grid');
+        MACHINES.forEach(machine => {
+            const record = latest[machine];
+            const status = record ? normalizeStatus(record) : 'none';
+            const button = node('button', '', 'breakdown-status-card status-' + status); button.type = 'button'; button.dataset.breakdownMachine = machine;
+            button.appendChild(node('strong', machine));
+            button.appendChild(node('span', record ? record.symptom || record.rootCause || record.eventType || 'Breakdown' : stale ? 'ข้อมูลไม่พร้อมใช้งาน' : 'ไม่มีเหตุที่เปิดอยู่'));
+            button.appendChild(node('em', record ? statusLabel(status) + ' · ' + formatEventTime(record) : stale ? 'Unavailable' : 'ไม่มีเหตุที่เปิดอยู่'));
+            button.addEventListener('click', () => selectMachine(machine)); grid.appendChild(button);
         });
+        panel.appendChild(grid);
+        const info = node('div', 'แหล่งข้อมูล: ' + source + (asOf ? ' · ' + new Date(asOf).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }) : '') + ' · สถานะติดตั้งแสดงที่จุดสีของเครื่อง');
+        info.style.marginTop = '8px'; panel.appendChild(info);
     }
 
     async function refresh() {
-        const { records, source } = await readBreakdowns();
-        const latest = latestByMachine(records);
-        renderPanel(latest, source);
-        decorateMarkers(latest);
+        if (inFlight || document.hidden) return;
+        inFlight = true;
+        try {
+            const { records, source, stale, asOf } = await readBreakdowns();
+            const latest = latestByMachine(records);
+            renderPanel(latest, source, stale, asOf);
+            decorateMarkers(latest);
+        } finally {
+            inFlight = false;
+            clearTimeout(timer);
+            if (!document.hidden) timer = window.setTimeout(refresh, REFRESH_INTERVAL_MS * Math.min(4, Math.pow(2, failures)));
+        }
     }
 
     function start() {
         injectStyles();
         refresh();
-        window.setInterval(refresh, REFRESH_INTERVAL_MS);
+        document.addEventListener('visibilitychange', () => { clearTimeout(timer); if (!document.hidden) refresh(); });
+        window.addEventListener('pagehide', () => clearTimeout(timer));
     }
 
     window.addEventListener('load', start, { once: true });

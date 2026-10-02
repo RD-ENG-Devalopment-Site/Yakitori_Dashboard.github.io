@@ -13,6 +13,9 @@ function doPost(e) {
     var request = parseRequest_(e);
 
     var action = String(request.action || "").trim();
+    if (["record_breakdown", "update_breakdown", "close_breakdown", "correct_breakdown", "read_write_status", "read_breakdown_event", "migrate_breakdown_schema"].indexOf(action) !== -1) {
+      return jsonOutput_(breakdownProtocol2_(request));
+    }
     if (action === "record_trial") {
       return jsonOutput_(saveExternalRecord_(request.payload || {}));
     }
@@ -26,7 +29,7 @@ function doPost(e) {
     }
 
     if (action === "record_breakdown") {
-      return jsonOutput_(saveBreakdownRecord_(request.payload || {}));
+      breakdownError_("AUTH_REQUIRED", "Signed protocol 2 is required");
     }
 
     if (action === "record_block_tracker") {
@@ -42,7 +45,7 @@ function doPost(e) {
     }
 
     if (action === "create_breakdown_sheet") {
-      return jsonOutput_(createBreakdownSheet_());
+      breakdownError_("FORBIDDEN", "Use the signed administrator migration");
     }
 
     if (action === "create_bl23_shift_b_sheet") {
@@ -69,6 +72,7 @@ function doPost(e) {
     return jsonOutput_({
       status: "error",
       code: error.code || "WRITE_FAILED",
+      state: ["INVALID_REQUEST", "AUTH_REQUIRED", "AUTH_EXPIRED", "FORBIDDEN", "WRITES_DISABLED", "STORAGE_REQUIRED", "VALIDATION", "REVISION_CONFLICT", "NOT_FOUND", "REQUEST_CONFLICT", "ACTIVE_EVENT_CONFLICT", "LAYOUT_CONFLICT", "LAYOUT_UNAVAILABLE", "PAYLOAD_TOO_LARGE", "SCHEMA_REQUIRED", "INVALID_ROUTE"].indexOf(error.code) !== -1 ? "rejected" : (error.code === "BUSY" ? "pending" : "unknown"),
       message: error.toString()
     });
   }
@@ -392,12 +396,7 @@ function createGz40gShiftBSheet() {
 }
 
 function createBreakdownSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ensureBreakdownLogSheet_(ss);
-  return {
-    status: "success",
-    sheet: sheet.getName()
-  };
+  breakdownError_("FORBIDDEN", "Use the signed administrator migration");
 }
 
 function resetGizzardDataSheets_() {
@@ -762,7 +761,12 @@ function getJsonStream(e) {
       var targets = {};
       var routes = productionRoutes_();
       Object.keys(routes).forEach(function(key) { targets[key] = routes[key].target; });
-      return jsonOutput_({ status: "success", apiVersion: "20260930-routes-1", targets: targets, writeProtocolVersion: null });
+      return jsonOutput_({ status: "success", apiVersion: "20261002-breakdown-2", targets: targets, writeProtocolVersion: 2, breakdownWritesEnabled: breakdownWritesEnabled_() });
+    }
+    if (action === "read_breakdown_event") {
+      var detailFeed = breakdownPublicFeed_(breakdownSpreadsheet_().getSheetByName(BREAKDOWN_LOG_SHEET));
+      var detail = detailFeed._records.filter(function(record) { return record.eventId === String(params.eventId || params.id || ""); });
+      return jsonOutput_(detail.length === 1 ? {status:"success",record:detail[0],_records:detail} : {status:"error",code:"NOT_FOUND",_records:[]});
     }
     if (action && ["read_breakdown", "read_block_tracker", "read_machine_layout"].indexOf(action) === -1) {
       invalidRoute_("Unknown read action");
@@ -780,16 +784,14 @@ function getJsonStream(e) {
       }
       if (action === "read_block_tracker") return jsonOutput_(readBlockTrackerRecords_());
       if (action === "read_machine_layout") return jsonOutput_(readMachineLayoutRecords_());
-      var breakdownConfig = getBl23gProjectConfig_(requestedProject || BL23G_M2_PROJECT_KEY);
-      return jsonOutput_(buildBreakdownFeed_(breakdownConfig.spreadsheet.getSheetByName(BREAKDOWN_LOG_SHEET)));
+      return jsonOutput_(buildBreakdownFeed_(breakdownSpreadsheet_().getSheetByName(BREAKDOWN_LOG_SHEET)));
     }
     if (isBreakdownSheetName_(params.sheet)) {
       var breakdownProject = normalizeLine_(params.projectKey);
       if (breakdownProject && breakdownProject !== BL23G_M1_PROJECT_KEY && breakdownProject !== BL23G_M2_PROJECT_KEY) {
         invalidRoute_("Invalid breakdown project");
       }
-      var legacyBreakdownConfig = getBl23gProjectConfig_(breakdownProject || BL23G_M2_PROJECT_KEY);
-      return jsonOutput_(buildBreakdownFeed_(legacyBreakdownConfig.spreadsheet.getSheetByName(BREAKDOWN_LOG_SHEET)));
+      return jsonOutput_(buildBreakdownFeed_(breakdownSpreadsheet_().getSheetByName(BREAKDOWN_LOG_SHEET)));
     }
 
     var route = resolveProductionRoute_(params, false);
@@ -830,103 +832,7 @@ function getJsonStream(e) {
 }
 
 function buildBreakdownFeed_(sheet) {
-  var data = sheet ? sheet.getDataRange().getValues() : [];
-  if (!data.length) {
-    return {
-      status: "success",
-      source: "sheet",
-      sheet: BREAKDOWN_LOG_SHEET,
-      updatedAt: "",
-      total: 0,
-      _records: []
-    };
-  }
-
-  var headers = data[0].map(function(header) {
-    return String(header || "").trim();
-  });
-  var records = [];
-
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    var rowMap = {};
-    var hasValue = false;
-
-    for (var j = 0; j < headers.length; j++) {
-      var header = headers[j];
-      if (!header) continue;
-      rowMap[header] = row[j];
-      if (row[j] !== "" && row[j] !== null && row[j] !== undefined) {
-        hasValue = true;
-      }
-    }
-
-    if (!hasValue) continue;
-
-    var eventId = valueOrEmpty_(rowMap.eventId || rowMap.breakdownId || ("BD-ROW-" + i));
-    var createdAt = valueOrEmpty_(rowMap.createdAt);
-    var breakdownDate = valueOrEmpty_(rowMap.breakdownDate || rowMap.recordDate || rowMap.date);
-    var shift = normalizeShift_(rowMap.shift, "A");
-    var line = normalizeLine_(rowMap.line || rowMap.productLine);
-    var record = {
-      eventId: eventId,
-      breakdownId: eventId,
-      key: eventId,
-      id: eventId,
-      createdAt: createdAt,
-      updatedAt: createdAt,
-      breakdownDate: breakdownDate,
-      recordDate: breakdownDate,
-      line: line,
-      productLine: line,
-      shift: shift,
-      machineVersion: valueOrEmpty_(rowMap.machineVersion),
-      conveyorPosition: valueOrEmpty_(rowMap.conveyorPosition),
-      machineArea: valueOrEmpty_(rowMap.machineArea || rowMap.machine),
-      machine: valueOrEmpty_(rowMap.machineArea || rowMap.machine),
-      station: valueOrEmpty_(rowMap.station),
-      eventType: valueOrEmpty_(rowMap.eventType || rowMap.breakdownType),
-      breakdownType: valueOrEmpty_(rowMap.eventType || rowMap.breakdownType),
-      severity: valueOrEmpty_(rowMap.severity || "Medium"),
-      breakdownStatus: valueOrEmpty_(rowMap.breakdownStatus || rowMap.status || "Open"),
-      status: valueOrEmpty_(rowMap.breakdownStatus || rowMap.status || "Open"),
-      startTime: valueOrEmpty_(rowMap.startTime),
-      endTime: valueOrEmpty_(rowMap.endTime),
-      durationMin: Number(rowMap.durationMin) || 0,
-      lossProxy: Number(rowMap.lossProxy) || 0,
-      impactOutput: Number(rowMap.impactOutput) || 0,
-      affectedTrial: valueOrEmpty_(rowMap.affectedTrial || rowMap.trial),
-      trial: valueOrEmpty_(rowMap.affectedTrial || rowMap.trial),
-      rootCause: valueOrEmpty_(rowMap.rootCause || rowMap.issue),
-      issue: valueOrEmpty_(rowMap.rootCause || rowMap.issue),
-      actionTaken: valueOrEmpty_(rowMap.actionTaken || rowMap.actionNote),
-      actionNote: valueOrEmpty_(rowMap.actionTaken || rowMap.actionNote),
-      owner: valueOrEmpty_(rowMap.owner || rowMap.pic),
-      pic: valueOrEmpty_(rowMap.owner || rowMap.pic),
-      submitter: valueOrEmpty_(rowMap.submitter || rowMap.createdBy),
-      createdBy: valueOrEmpty_(rowMap.submitter || rowMap.createdBy),
-      note: valueOrEmpty_(rowMap.note || rowMap.comment),
-      comment: valueOrEmpty_(rowMap.note || rowMap.comment),
-      recordType: valueOrEmpty_(rowMap.recordType || "record_breakdown")
-    };
-
-    records.push(record);
-  }
-
-  records.sort(function(a, b) {
-    var aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-    var bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-    return bTime - aTime;
-  });
-
-  return {
-    status: "success",
-    source: "sheet",
-    sheet: sheet.getName(),
-    updatedAt: records.length ? records[0].createdAt : "",
-    total: records.length,
-    _records: records
-  };
+  return breakdownPublicFeed_(sheet);
 }
 
 function saveExternalRecord_(payload) {
@@ -983,45 +889,7 @@ function saveApprovalRecord_(payload) {
 }
 
 function saveBreakdownRecord_(payload) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var now = new Date();
-  var timeZone = Session.getScriptTimeZone() || "Asia/Bangkok";
-  var sheetName = String(payload.sheetName || payload.sheet || BREAKDOWN_LOG_SHEET).trim();
-  var sheet = ensureBreakdownLogSheet_(ss);
-
-  var row = [
-    "BD-" + Utilities.formatDate(now, timeZone, "yyyyMMdd-HHmmss"),
-    now.toISOString(),
-    valueOrEmpty_(payload.breakdownDate || payload.recordDate || payload.date),
-    valueOrEmpty_(payload.line),
-    normalizeShift_(payload.shift),
-    valueOrEmpty_(payload.machineVersion),
-    valueOrEmpty_(payload.conveyorPosition),
-    valueOrEmpty_(payload.machineArea || payload.machine),
-    valueOrEmpty_(payload.station),
-    valueOrEmpty_(payload.eventType || payload.breakdownType),
-    valueOrEmpty_(payload.severity || "Medium"),
-    valueOrEmpty_(payload.breakdownStatus || payload.status || "Open"),
-    valueOrEmpty_(payload.startTime),
-    valueOrEmpty_(payload.endTime),
-    Number(payload.durationMin) || 0,
-    Number(payload.lossProxy) || 0,
-    Number(payload.impactOutput) || 0,
-    valueOrEmpty_(payload.affectedTrial || payload.trial),
-    valueOrEmpty_(payload.rootCause || payload.issue),
-    valueOrEmpty_(payload.actionTaken || payload.actionNote),
-    valueOrEmpty_(payload.owner || payload.pic),
-    valueOrEmpty_(payload.submitter || payload.createdBy),
-    valueOrEmpty_(payload.note || payload.comment),
-    "record_breakdown"
-  ];
-
-  sheet.appendRow(row);
-  return {
-    status: "success",
-    message: "Breakdown saved to " + sheetName,
-    sheet: sheetName
-  };
+  breakdownError_("AUTH_REQUIRED", "Legacy breakdown writes are disabled");
 }
 
 function getBlockTrackerSheet_() {
