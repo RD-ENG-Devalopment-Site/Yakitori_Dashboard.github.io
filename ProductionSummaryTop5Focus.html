@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="dashboard-data-version" content="20260901-02">
+    <meta name="dashboard-data-version" content="20261007-01">
     <title>Production Summary & Focus 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -271,6 +271,7 @@
                 rank: 3, type: 'BOILED BB SKIN', thName: '(หนังอกต้ม)', vol: 56115.20, share: '11.6%', color: 'bg-[#8b5cf6]',
                 details: [
                     { name: 'YTR 35 G BOILED BB SKIN F15', machine: true },
+                    { name: 'YTR 30 G BOILED BB SKIN R15', machine: true },
                     { name: 'HERB YTR BOILED BB SKIN 35 G TW18', machine: false },
                     { name: 'HERB YTR BOILED BB SKIN 25 G R15 IVQF', machine: true },
                     { name: 'HERB FED YTR BOILED BB SKIN 25 G 12R (IF)', machine: true }
@@ -326,7 +327,8 @@
             {
                 rank: 11, type: 'SOFTBONE', thName: '(กระดูกอ่อน)', vol: 900.00, share: '0.2%', color: 'bg-[#323248]',
                 details: [
-                    { name: 'YTR SOFTBONE WITH BL MEAT 30 G TG15', machine: false }
+                    { name: 'YTR SOFTBONE WITH BL MEAT 30 G TG15', machine: false },
+                    { name: 'NAT HERB FED CHICKEN SOFTBONE AND BONJIRI YAKITORI 40 G', machine: false }
                 ]
             },
             {
@@ -472,10 +474,16 @@
                 ]
             },
             {
-                month: 'OCT', total: 14070.00, topProduct: '35 G BOILED BB SKIN', topVol: 8820,
+                month: 'OCT', total: 42360.70, topProduct: 'YTR 35 G BOILED BB SKIN F15', topVol: 9985.20,
                 details: [
-                    { name: 'YTR 35 G BOILED BB SKIN F15', vol: 8820.00 },
-                    { name: 'HERB FED YTR GIZZARD 35 G R15', vol: 5250.00 }
+                    { name: 'YTR 35 G BOILED BB SKIN F15', vol: 9985.20, machine: true },
+                    { name: 'HERB FED YTR BOILED BB SKIN 25 G 12R (IF)', vol: 8370.00, machine: true },
+                    { name: 'HERB FED YTR NECK SKIN 40 G R15', vol: 8000.00, machine: true },
+                    { name: 'HERB FED YTR GIZZARD 35 G R15', vol: 5197.50, machine: true },
+                    { name: 'HERB FED YTR BB+YAGEN 40 G R15', vol: 4160.00, machine: false },
+                    { name: 'YTR HEART HALF CUT 40 G F15', vol: 3120.00, machine: true },
+                    { name: 'NAT HERB FED CHICKEN SOFTBONE AND BONJIRI YAKITORI 40 G', vol: 2880.00, machine: false },
+                    { name: 'YTR 30 G BOILED BB SKIN R15', vol: 648.00, machine: true }
                 ]
             },
             {
@@ -488,8 +496,8 @@
 
         // ฟังก์ชันตรวจสอบความสามารถในการใช้เครื่อง (อ้างอิงจากรายชื่อสินค้าที่ไม่สามารถเสียบได้)
         const dashboardMeta = {
-            updatedAt: '2026-09-01',
-            source: 'September 2026 production plan + product type mapping'
+            updatedAt: '2026-10-07',
+            source: 'October 2026 production plan + product type mapping'
         };
 
         const filterState = {
