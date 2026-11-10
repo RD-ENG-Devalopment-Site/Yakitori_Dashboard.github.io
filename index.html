@@ -685,6 +685,17 @@
             }
         ];
 
+        const pendingBbSkinLine = {
+            prefix: 'bbskinr15', label: 'BB SKIN 30G R15', color: '#50cd89',
+            href: 'BB Skin 30G R15 Dashboard.html', pending: true, records: []
+        };
+
+        function withPendingBbSkinLine(results) {
+            return results.flatMap(config => config.prefix === 'bbskin'
+                ? [config, pendingBbSkinLine]
+                : [config]);
+        }
+
         let currentShiftFilter = 'all';
         let dashboardReady = false;
         let headerClockTimer = null;
@@ -1233,6 +1244,15 @@
                                     <td colspan="7" class="py-6 text-center text-[#6b7280]">ยังมีข้อมูลไม่พอสำหรับสร้าง recent change feed</td>
                                 </tr>
                             `}
+                            <tr data-line="${pendingBbSkinLine.prefix}">
+                                <td class="py-3 pr-4 text-white font-semibold"><a href="${pendingBbSkinLine.href}" class="hover:text-[#50cd89] focus-visible:underline">${pendingBbSkinLine.label}</a> <span class="text-[#6b7280] font-normal">/ รอเชื่อมข้อมูล</span></td>
+                                <td class="py-3 pr-4 text-[#a1a5b7]">--</td>
+                                <td class="py-3 pr-4 text-[#a1a5b7]">--</td>
+                                <td class="py-3 pr-4 text-[#a1a5b7]">--</td>
+                                <td class="py-3 pr-4 text-[#a1a5b7]">--</td>
+                                <td class="py-3 pr-4 text-[#a1a5b7]">--</td>
+                                <td class="py-3 pr-4 text-[#a1a5b7]">--</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -1790,7 +1810,7 @@
                         <div class="min-w-[170px] rounded-lg border border-dashed border-[#323248] bg-[#151521] px-3 py-2.5">
                             <div class="flex items-center justify-between gap-2">
                                 ${renderShiftBadge(shift)}
-                                <span class="text-[11px] text-[#a1a5b7]">${config.feedErrors?.[shift] === 'route' ? 'แหล่งข้อมูลไม่ตรงสินค้า/กะ' : config.failedShifts?.includes(shift) ? 'โหลดไม่สำเร็จ' : config.loadingShifts?.includes(shift) ? 'กำลังโหลดข้อมูล' : 'ยังไม่มีข้อมูล'}</span>
+                                <span class="text-[11px] text-[#a1a5b7]">${config.pending ? 'รอเชื่อมข้อมูล' : config.feedErrors?.[shift] === 'route' ? 'แหล่งข้อมูลไม่ตรงสินค้า/กะ' : config.failedShifts?.includes(shift) ? 'โหลดไม่สำเร็จ' : config.loadingShifts?.includes(shift) ? 'กำลังโหลดข้อมูล' : 'ยังไม่มีข้อมูล'}</span>
                             </div>
                             <div class="mt-3 text-sm font-semibold text-[#6b7280]">--</div>
                         </div>
@@ -1834,16 +1854,16 @@
                         <span>Line / Target</span>
                         ${visibleShifts.map(shift => `<span>Shift ${shift}</span>`).join('')}
                     </div>
-                    ${results.map(config => {
+                    ${withPendingBbSkinLine(results).map(config => {
                         const cells = visibleShifts.map(shift => {
-                            const stats = getStats(filterByShift(config.records, shift), config.summary?.byShift?.[shift]);
+                            const stats = config.pending ? null : getStats(filterByShift(config.records, shift), config.summary?.byShift?.[shift]);
                             return `<div>${renderShiftCell(config, shift, stats)}</div>`;
                         }).join('');
                         return `
                             <div data-line="${config.prefix}" class="grid ${visibleShifts.length === 2 ? 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]' : 'grid-cols-[minmax(190px,0.8fr)_minmax(0,1fr)]'} gap-3 items-stretch px-4 py-3 border-b border-[#2b2b40] last:border-b-0">
                                 <div class="flex flex-col justify-center min-w-[150px] py-1">
-                                    <div class="flex items-center gap-2 text-white font-bold text-sm"><span class="w-2 h-2 rounded-full" style="background:${config.color}"></span>${config.label}</div>
-                                    <div class="mt-1 text-[11px] text-[#6b7280]">Target ${config.target} ไม้/คน/ชม.</div>
+                                    <div class="flex items-center gap-2 text-white font-bold text-sm"><span class="w-2 h-2 rounded-full" style="background:${config.color}"></span>${config.pending ? `<a href="${config.href}" class="hover:text-[#50cd89] focus-visible:underline">${config.label}</a>` : config.label}</div>
+                                    <div class="mt-1 text-[11px] text-[#6b7280]">${config.pending ? 'รอกำหนด Target · เตรียมเชื่อมข้อมูล' : `Target ${config.target} ไม้/คน/ชม.`}</div>
                                 </div>
                                 ${cells}
                             </div>
@@ -1910,7 +1930,7 @@
             const tbody = document.getElementById('compareBody');
             if (!tbody) return;
 
-            const markup = results.map(({ prefix, label, records, summary, failedShifts = [] }) => {
+            const markup = withPendingBbSkinLine(results).map(({ prefix, label, records, summary, failedShifts = [], pending, href }) => {
                 const aStats = getStats(filterByShift(records, 'A'), summary?.byShift?.A);
                 const bStats = getStats(filterByShift(records, 'B'), summary?.byShift?.B);
                 const aLatest = aStats ? aStats.latestProd : null;
@@ -1950,7 +1970,7 @@
 
                 return `
                     <tr data-line="${prefix}">
-                        <td class="py-3 pr-4 text-white font-semibold align-top">${label}</td>
+                        <td class="py-3 pr-4 text-white font-semibold align-top">${pending ? `<a href="${href}" class="hover:text-[#50cd89] focus-visible:underline">${label}</a><span class="block mt-1 text-[11px] text-[#6b7280] font-normal">รอเชื่อมข้อมูล</span>` : label}</td>
                         <td class="py-3 pr-4 align-top">${renderMetric(aStats, 'A', 'text-[#c4b5fd]')}</td>
                         <td class="py-3 pr-4 align-top">${renderMetric(bStats, 'B', 'text-[#7dd3fc]')}</td>
                         <td class="py-3 pr-4 font-semibold ${getGapClass(latestGap)}">${renderDelta(latestGap)}</td>
